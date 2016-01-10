@@ -23,7 +23,7 @@ my %WriteMakefileArgs = (
     "Test::Fatal" => 0,
     "Test::More" => "0.88"
   },
-  "VERSION" => "0.0180",
+  "VERSION" => "0.001",
   "test" => {
     "TESTS" => "t/*.t t/evo/*.t t/evo/comp/*.t t/evo/comp/gen/*.t t/evo/comp/meta/*.t t/evo/comp/role/*.t t/evo/comp/role/exporter/*.t t/evo/comp/role/func_circular/*.t t/evo/comp/role/func_usage/*.t t/evo/ee/*.t t/evo/eval/*.t t/evo/evo_import/*.t t/evo/export/*.t t/evo/export/exporter/*.t t/evo/export/func_tests/*.t t/evo/export/unit/*.t t/evo/lib/*.t t/evo/loop/*.t t/evo/loop/comp/*.t t/evo/loop/roles/*.t t/evo/loop/roles/handle/*.t t/evo/loop/roles/zone/*.t t/evo/promises/*.t t/evo/promises/promise/*.t t/evo/util/*.t t/evo/w/*.t t/evo/want/*.t t/perf/*.t"
   }
