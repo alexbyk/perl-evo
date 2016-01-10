@@ -1,6 +1,6 @@
 # NAME
 
-Evo - Evo - the next generation component-oriented development framework
+Evo - the next generation component-oriented development framework
 
 # VERSION
 

@@ -1,0 +1,8 @@
+/texamples.pl
+/Evo-*
+/tmp/
+.*
+*~
+!.gitignore
+!.perltidyrc
+!.travis.yml
