@@ -117,7 +117,7 @@ Shortcuts are used to make life easily during code refactoring (and you module s
 
 C<-> is replaced by C<Evo>
 
-  use Evo '-Promises promise';
+  use Evo '-Promises promise'; # "Evo::Promises promise"
 
 C<:> and C<::> make sense in the package and depends on the package name where is used
 
