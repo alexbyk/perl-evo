@@ -4,7 +4,7 @@ Evo - Evo - the next generation component-oriented development framework
 
 # VERSION
 
-version 0.001
+version 0.0180
 
 # DESCRIPTION
 
