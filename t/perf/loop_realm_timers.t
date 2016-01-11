@@ -11,11 +11,8 @@ my $L = 100;
 
 my $k;
 
-my $loop = Evo::Loop::Comp::new();
-
 my $fn = sub {
-  loop_timer 0 => sub { $k++ }
-    for 1 .. $L;
+  loop_timer(0 => sub { $k++ }) for 1 .. $L;
   loop_start;
 };
 
