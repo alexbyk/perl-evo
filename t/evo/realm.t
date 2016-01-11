@@ -10,26 +10,28 @@ use Test::Fatal;
 
 }
 
-ERR: {
-  like exception { My::Foo::realm_run({}) }, qr/instance of "My::Foo".+$0/;
+IN_ALIEN_REALM: {
+  My::Foo::realm 'LORD' => sub {
+    is My::Foo::realm_lord, 'LORD';
+  };
 }
 
 NOT_IN_REALM: {
-  like exception { My::Foo::realm() }, qr/not in realm of "My::Foo".+$0/;
-  is My::Foo::realm('DEFAULT'), 'DEFAULT';
+  like exception { My::Foo::realm_lord() }, qr/not in realm of "My::Foo".+$0/;
+  is My::Foo::realm_lord('DEFAULT'), 'DEFAULT';
 }
 
 IN_REALM: {
   my $obj1 = bless {}, 'My::Foo';
   my $obj2 = bless {}, 'My::Foo';
 
-  My::Foo::realm_run $obj1, sub {
-    is My::Foo::realm('DEFAULT'), $obj1;
-    is My::Foo::realm(), $obj1;
+  My::Foo::realm $obj1, sub {
+    is My::Foo::realm_lord('DEFAULT'), $obj1;
+    is My::Foo::realm_lord(), $obj1;
 
-    My::Foo::realm_run $obj2, sub { is My::Foo::realm(), $obj2; };
+    My::Foo::realm $obj2, sub { is My::Foo::realm_lord(), $obj2; };
 
-    is My::Foo::realm(), $obj1;
+    is My::Foo::realm_lord(), $obj1;
   };
 
 }

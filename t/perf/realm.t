@@ -20,9 +20,9 @@ my $k = 0;
 my $obj = bless {}, 'My::Obj';
 my $fn = sub {
   $k++;
-  $obj->realm_run(
+  $obj->realm(
     sub {
-      die unless My::Obj::realm('foo') == $obj;
+      die unless My::Obj::realm_lord('foo') == $obj;
     }
   );
 };

@@ -4,6 +4,8 @@ use List::Util 'first';
 use Time::HiRes 'usleep';
 use Carp 'croak';
 
+use Evo::Realm '*';
+
 has is_running => 0;
 has tick_time => \&steady_time, is => 'rw';
 
