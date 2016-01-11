@@ -191,19 +191,15 @@ Export function, that won't be available in the source class
     package My::Lib;
     use Evo '-Export *; -Loaded';
 
-    BEGIN {
-      export_gen foo => sub ($class) {
-        say "$class requested me";
-        sub {"hello, $class"};
-      };
-    }
+    export_gen foo => sub ($class) {
+      say "$class requested me";
+      sub {"hello, $class"};
+    };
   };
 
 
-  use My::Lib '*';
+  My::Lib->import('*');
   foo();
-
-I<L<Evo::Loaded> and C<BEGIN> are for example only, don't needed in the real code>
 
 Very powefull and most exciting feature. C<Evo::Export> exports generators, that produces subroutines. Consider it as a 3nd dimension in 3d programming
 

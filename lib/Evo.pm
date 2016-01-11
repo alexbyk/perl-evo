@@ -79,9 +79,7 @@ Post modern component oriented programming L<Evo::Comp> instead of OO
 (no docs yet) Fast non recursive L<Evo::Promises>, 100% Promises/Spec A compatible
 
 =item *
-(no docs yet) Interesting L<Evo::Realm> design pattern, which is as handy as "Singleton" but without Sintleton's flaws.
-It makes real thing that are considered impossible in other languages. For example, testing EventLoop timers without patching, separating flows for one loop and so on.
-(ready but experimental and not documented)
+Interesting L<Evo::Realm> design pattern, which is as handy as "Singleton" but without Sintleton's flaws. Testable and mockable alternative of the global class
 
 =item *
 Exception handling in pure perl: L<Evo::Eval>, "try catch" alternative. Like C<Try::Tiny>, but without it's bugs and much faster
