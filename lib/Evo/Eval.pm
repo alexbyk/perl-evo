@@ -21,7 +21,7 @@ sub eval_want : Export {
 }
 
 
-sub eval_try : prototype($$;$) : Export {
+sub eval_try : prototype(&$;$) : Export {
   my ($try, $catch, $fin) = @_;
   my $call = eval_want wantarray, $try;
   $call = eval_want wantarray, my $e = $@, $catch if !$call && $catch;
@@ -42,10 +42,9 @@ sub eval_try : prototype($$;$) : Export {
 
 =head1 SYNOPSYS
 
-  use Evo '-Eval *; -Want *';
+  use Evo '-Eval *';
 
-  my $call = eval_want WANT_LIST, sub { return (1, 2, 3) };
-  say $call->result;
+  eval_try { die "Error" } sub($e) { print "Catched: $e" };
 
   # try_fn, catch_fn, finally_fn
   my $res;
@@ -53,13 +52,11 @@ sub eval_try : prototype($$;$) : Export {
   $res = eval_try sub {...}, sub {...};
   $res = eval_try sub {...}, undef, sub {...};
 
-  # try_want
+
+=head1 Comparison with alternatives
 
 
-=head2 Comparison with alternatives
-
-
-=head3 with Try::Tiny
+=head2 with Try::Tiny
 
 L<Try::Tiny> is very similar and PP too, but has design flaw, and can't catch this case:
 
@@ -74,11 +71,11 @@ Instead of throwing an exception, it can only report it to STDERR.
 
 Also because C<Evo::Eval> doesn't try to pretend "blocks", it work's 3-5 times faster than Try::Tiny and is much more "tiny" (see source code)
 
-=head3 with TryCatch
+=head2 with TryCatch
 
 L<TryCatch> is 3-4 times faster, but has many dependencies written in C, doesn't support finally and has a lot of code compared to this module
 
-=head3 with Guard
+=head2 with Guard
 
 L<Guard> is written in C and has the same flaw as L<Try::Tiny> - can't deal with exceptions.
 
@@ -138,12 +135,17 @@ Deals correctly with C<wantarray>
 
 =head2 eval_want
 
+  use Evo '-Eval *; -Want *';
+  my $call = eval_want WANT_LIST, sub { return (1, 2, 3) };
+  say $call->result;
+
 Mostly is for internal purposes to deal correctly with C<wantarray>
 
 Invokes a last argument with the context of the first argument(see Evo::Want),
 passing remaining arguments. If the function throws an error, returns nothing
 and sets <$@>. So returned value can answer the question was an invocation
 successfull or not
+
 
 
   use Evo '-Eval *';
