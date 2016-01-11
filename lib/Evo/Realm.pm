@@ -27,6 +27,8 @@ export_gen realm => sub($key) {
 
 =head1 SYNOPSYS
 
+See the full example at the bottom of this doc L</"BUILDING REALM">
+
   package main;
   use Evo;
 
@@ -34,22 +36,22 @@ export_gen realm => sub($key) {
 
     package My::Log;
     use Evo '-Comp *; -Realm *';
-    has level => 3;
+    sub msg($self, $msg) { say $msg }
 
+    package My::MockLog;
+    use Evo '-Comp *';
+    sub msg($self, $msg) { say "MOCK" }
   };
 
 
   my $default = My::Log::new();
-  my $silent = My::Log::new(level => 0);
+  my $mock    = My::MockLog::new();
 
-  say $default->realm_lord->level;    # 3
-  $silent->realm(
-    sub {
-      say $default->realm_lord->level;    # 0
-    }
-  );
+  My::Log::realm $mock, sub {
+    $default->realm_lord->msg('hello');    # MOCK
+  };
 
-  say $default->realm_lord->level;        # 3
+  $default->realm_lord->msg('hello');      # hello
 
 =head1 FUNCTIONS
 
@@ -59,16 +61,18 @@ Start a new realm (the last argument) with the lord (the first argument).
 
 
   my $silent_log = My::Log::new(level => 1);
-  My::Lib::realm $silent_log, sub { };
-  My::Lib::realm $silent_log, 'arg1', 'arg2', sub { };
-
+  My::Log::realm $silent_log, sub { };
+  My::Log::realm $silent_log, 'arg1', 'arg2', sub { };
 
 =head2 realm_lord
 
 Get the lord of current realm. If we're not in the realm of the module, return the passed argument or die
 
-  my $lord = My::Log::realm_lord($default);         # return current lord or $default
-  $lord = My::Log::realm_lord();                    # return current lord or die
+  my $default = My::Log::new();
+  my $lord    = My::Log::realm_lord($default);    # return current lord or $default
+  $lord = $default->realm_lord;                   # the same ($default is an instance of My::Log)
+
+  $lord = My::Log::realm_lord();                  # return current lord or die
 
 =head1 TESTING
 
@@ -99,18 +103,15 @@ It's time for L<Evo::Realm> pattern. We're could create a different instance of 
 
 Let's write a mocked loop
 
-{
-
-  package My::Mock::Loop;
+  package My::MockLoopComp;
   use Evo '-Comp *';
   has stash => sub { {} };
   sub timer($self, $delay, $fn) { $self->stash->{count}++; $fn->() }
-}
 
 And now how to make it a lord:
 
-  my $mock_loop = My::Mock::Loop::new();
-  Evo::Loop::realm $mock_loop, sub {
+  my $mock_loop = My::MockLoopComp::new();
+  Evo::Loop::Comp::realm $mock_loop, sub {
     $app->rename_later('alex');
   };
 
@@ -139,7 +140,7 @@ Below is a full example, you can copy-paste-and-run it.
   # Create a mock loop. It executes function blocking and count invocations
   {
 
-    package My::Mock::Loop;
+    package My::MockLoopComp;
     use Evo '-Comp *';
     has stash => sub { {} };
     sub timer($self, $delay, $fn) { $self->stash->{count}++; $fn->() }
@@ -154,10 +155,10 @@ Below is a full example, you can copy-paste-and-run it.
 
     # create mock loop and an instance of our app
     my $app = My::App::new(name => 'old');
-    my $mock_loop = My::Mock::Loop::new();
+    my $mock_loop = My::MockLoopComp::new();
 
     # make mock loop a lord for this realm:
-    Evo::Loop::realm $mock_loop, sub {
+    Evo::Loop::Comp::realm $mock_loop, sub {
       $app->rename_later('alex');
     };
 
@@ -173,55 +174,31 @@ Below is a full example, you can copy-paste-and-run it.
 
 =head1 BUILDING REALM
 
-All function are universal and can be used as components method, as well as Lib methods
-The key is the name of the class, wich did call C<use 'Evo::Realm *'>
-
-=head1 As a lib
-
-In this example the key is C<My::Lib>
-
-  package main;
-  use Evo;
-
-  {
+To build component with realm, just import C<Evo::Realm '*'> into the component's package.
 
     package My::Log;
-    use Evo '-Comp *';
-    has 'level' => 3;
-    sub log($self, $msg, $level = 3) { warn "[$level] $msg" if $level <= $self->level }
+    use Evo '-Comp *; -Realm *';
+    sub msg($self, $msg) { say $msg }
 
+After that you can use it like this:
+
+  my $mock    = My::MockLog::new();
+  My::Log::realm $mock, sub {
+    $default->realm_lord->msg('hello');    # MOCK
+  };
+
+This form isn't convenient: it's lot of typing and you can miss C<-E<gt>realm_lord> part by accident. Let's improve our log and make it simple like C<mylog('hello')>
 
     package My::Lib;
-    use Evo '-Realm *; -Export *';
-    my $default = My::Log::new;
+    use Evo '-Export *';
+    use constant DEFAULT_LOG => My::Log::new();
 
-    # use current lord or default one
-    sub glog : Export { realm_lord($default)->log(@_) }
+    sub mylog : Export { DEFAULT_LOG->realm_lord->msg(@_) }
 
-  };
+This library does all boring stuff for us. Now we can import it C<use My::Lib '*';> and use C<mylog> function.
 
-  My::Lib->import('*');
+The full improved example from the SYNOPSYS:
 
-  # default level is 3
-  glog('visible',   2);    # visible
-  glog('invisible', 4);    # not
-
-  # make realm with default level 1
-  my $silent_log = My::Log::new(level => 1);
-  My::Lib::realm $silent_log, sub {
-    glog('visible',   1);    # visible
-    glog('invisible', 2);    # not
-  };
-
-  # realm end, level is 3 again here
-  glog('visible', 3);        # visible
-
-
-
-
-=head2 As a component with method
-
-Rewritten example, the key is the component's package itself
 
   package main;
   use Evo;
@@ -230,27 +207,28 @@ Rewritten example, the key is the component's package itself
 
     package My::Log;
     use Evo '-Comp *; -Realm *';
-    has 'level' => 3;
-    sub log($self, $msg, $level = 3) { warn "[$level] $msg" if $level <= $self->level }
+    sub msg($self, $msg) { say $msg }
+
+    package My::MockLog;
+    use Evo '-Comp *';
+    sub msg($self, $msg) { say "MOCK" }
+
+    package My::Lib;
+    use Evo '-Export *';
+    use constant DEFAULT_LOG => My::Log::new();
+
+    sub mylog : Export { DEFAULT_LOG->realm_lord->msg(@_) }
 
   };
 
+  My::Lib->import('*');    # use My::Lib '*'; in real code
+  my $mock = My::MockLog::new();
 
-  my $default = My::Log::new();
-  $default->realm_lord->log("visible",   3);
-  $default->realm_lord->log('invisible', 4);    # not
+  My::Log::realm $mock, sub {
+    mylog('hello');        # MOCK
+  };
 
-  My::Log::new(level => 1)->realm(
-    sub {
-      $default->realm_lord->log('visible',   1);    # visible
-      $default->realm_lord->log('invisible', 2);    # not
-    }
-  );
+  mylog('hello');          # hello
 
-  # realm end, level is 3 again here
-  $default->realm_lord->log('visible', 3);          # visible
-
-
-Pay attention, we use C<$default-E<gt>realm_lord-E<gt>log()>
 
 =cut
