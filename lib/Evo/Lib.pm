@@ -1,5 +1,5 @@
 package Evo::Lib;
-use Evo '-Export *', -Util, 'Carp croak';
+use Evo '-Export *', -Util;
 use Time::HiRes qw(CLOCK_MONOTONIC clock_gettime);
 
 PATCH: {
