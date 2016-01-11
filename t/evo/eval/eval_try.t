@@ -1,12 +1,15 @@
-package main;
 use Evo '-Eval *; -Lib *; -Want *';
 use Test::More;
 use Test::Fatal;
 
-
 my ($e, $reg, $res);
 sub reg($) { push @$reg, shift; }
 sub reset_test() { ($e, $res, @$reg) = () }
+
+# short syntax
+reset_test;
+eval_try { die "Foo\n" } sub { $e = shift };
+is $e, "Foo\n";
 
 # try + catch =============
 # live
