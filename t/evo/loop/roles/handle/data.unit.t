@@ -10,6 +10,7 @@ use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
   package MyLoop;
   use Evo '-Comp *', -Loaded;
   with 'Evo::Loop::Role::Handle';
+  sub update_tick_time { }
 
   sub zone_cb { $_[1] . '-Z' }
 }

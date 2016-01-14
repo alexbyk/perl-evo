@@ -3,7 +3,7 @@ use Evo '-Comp::Role *';
 use Carp 'croak';
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
-requires qw(zone_cb);
+requires qw(zone_cb update_tick_time);
 
 *handle_poll = *IO::Poll::_poll;
 
@@ -70,6 +70,7 @@ sub handle_process($self, $timeout_float=undef) : Role {
   my $timeout_ms = $timeout_float ? int($timeout_float * 1000) : 0;
   my @map = map { ($_ => $data->{$_}->{mask}) } keys $data->%*;
   if (handle_poll($timeout_ms, @map)) {
+    $self->update_tick_time;    # because events can call timers with uotdated time
     my $data = $self->handle_data;
     while (my ($fd, $revents) = splice @map, 0, 2) {
       my $slot = $data->{$fd};

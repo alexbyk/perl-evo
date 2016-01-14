@@ -1,7 +1,6 @@
 package main;
-use Evo;
+use Evo -Net::Socket;
 use Test::More;
-use IO::Socket::IP;
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
 {
@@ -9,17 +8,27 @@ use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
   package MyLoop;
   use Evo '-Comp *', -Loaded;
   with 'Evo::Loop::Role::Handle';
+  sub update_tick_time { }
 
   sub zone_cb { $_[1] }
 }
 
 
-my $handle = IO::Socket::IP->new(LocalHost => "127.0.0.1:12345", Blocking => 0, Listen => 1)
-  or die "Cannot construct handle - $@";
+my $handle = Evo::Net::Socket::new()->socket_open() or die "Cannot construct handle - $@";
 
 
 my $fd = fileno $handle;
 no warnings 'once', 'redefine';
+
+UTT: {
+  my $called;
+  my $loop = MyLoop::new();
+  local *MyLoop::update_tick_time = sub { $called++ };
+  local *Evo::Loop::Role::Handle::handle_poll = sub { $_[2] = POLLIN; 1; };
+  $loop->handle_in($handle, sub { });
+  $loop->handle_process;
+  is $called, 1;
+}
 
 POLLIN: {
   my $loop = MyLoop::new();

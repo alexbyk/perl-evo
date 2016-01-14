@@ -22,7 +22,7 @@ sub s_streams($s, @conns) : Role {
 sub _gen_sock($family, $o) {
   my $sock
     = Evo::Net::Socket::new()->socket_open($family)->socket_nodelay(delete $o->{nodelay} // 1)
-    ->socket_reuseaddr(delete $o->{reuseaddr} // 1)->socket_nb(1);
+    ->socket_reuseaddr(delete $o->{reuseaddr} // 1)->non_blocking(1);
 
   # not always supported
   $sock->socket_reuseport(1) if delete $o->{reuseport};
@@ -60,7 +60,7 @@ sub s_accept_socket($self, $sock) : Role {
   while ($child = $sock->socket_accept()) {
 
     # handle accept should return new socket, probably bless this one
-    my $stream = $self->handle_accept($child->socket_nb(1));
+    my $stream = $self->handle_accept($child->non_blocking(1));
     $self->s_streams($stream);
     die "$stream should privide emit" unless $stream->can('emit');
   }

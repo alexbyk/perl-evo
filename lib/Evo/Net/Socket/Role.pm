@@ -2,7 +2,7 @@ package Evo::Net::Socket::Role;
 use Evo '-Comp::Role *; -Net::Util *; Symbol gensym; Carp croak';
 use Socket qw(
   SOCK_STREAM AF_INET AF_INET6 SOL_SOCKET IPPROTO_TCP TCP_NODELAY
-  SO_REUSEADDR SO_REUSEPORT SO_DOMAIN SO_TYPE SO_PROTOCOL
+  SO_REUSEADDR SO_REUSEPORT SO_DOMAIN SO_TYPE SO_PROTOCOL SO_SNDBUF SO_RCVBUF
 );
 use Fcntl qw(F_SETFL F_GETFL O_NONBLOCK);
 
@@ -26,9 +26,12 @@ sub socket_domain : Role   { _opt(SOL_SOCKET, SO_DOMAIN,   domain   => @_); }
 sub socket_type : Role     { _opt(SOL_SOCKET, SO_TYPE,     type     => @_); }
 sub socket_protocol : Role { _opt(SOL_SOCKET, SO_PROTOCOL, protocol => @_); }
 
-sub socket_reuseaddr : Role { _opt(SOL_SOCKET,  SO_REUSEADDR, reuseaddr => @_); }
-sub socket_reuseport : Role { _opt(SOL_SOCKET,  SO_REUSEPORT, reuseport => @_); }
-sub socket_nodelay : Role   { _opt(IPPROTO_TCP, TCP_NODELAY,  nodelay   => @_); }
+sub socket_reuseaddr : Role { _opt(SOL_SOCKET, SO_REUSEADDR, reuseaddr => @_); }
+sub socket_reuseport : Role { _opt(SOL_SOCKET, SO_REUSEPORT, reuseport => @_); }
+sub socket_rcvbuf : Role    { _opt(SOL_SOCKET, SO_RCVBUF,    rcvbuf    => @_); }
+sub socket_sndbuf : Role    { _opt(SOL_SOCKET, SO_SNDBUF,    sndbuf    => @_); }
+
+sub socket_nodelay : Role { _opt(IPPROTO_TCP, TCP_NODELAY, nodelay => @_); }
 
 sub _fopt($flag, $debug, $s, $val=undef) {
   my $flags = fcntl($s, F_GETFL, 0) or _die $debug;
@@ -37,25 +40,23 @@ sub _fopt($flag, $debug, $s, $val=undef) {
   $s;
 }
 
-sub socket_nb : Role { _fopt(O_NONBLOCK, "nb", @_) }
-
-sub socket_local($s) : Role {
-  my $saddr = getsockname($s) or _die "getsockname";
-  net_smart_unpack($saddr);
-}
-
-sub socket_remote($s) : Role {
-  my $saddr = getpeername($s) or _die "getsockname";
-  net_smart_unpack($saddr);
-}
+sub non_blocking : Role { _fopt(O_NONBLOCK, "nb", @_) }
 
 # bind and listen croak on failures
 sub socket_bind($s, $saddr) : Role { bind($s, $saddr) or _die "bind"; $s }
 sub socket_listen($s, $n) : Role { listen($s, $n) or _die "listen"; $s }
-sub shutdown($s, $how) : Role { shutdown($s, $how) or _die "shutdown"; $s }
 
-# connect an accept don't croak on failures to be able to be NB
-sub socket_connect($s, $saddr) : Role { connect($s, $saddr) }
+sub socket_local($s) : Role {
+  my $saddr = getsockname($s) or return;
+  net_smart_unpack($saddr);
+}
+
+sub socket_remote($s) : Role {
+  my $saddr = getpeername($s) or return;
+  net_smart_unpack($saddr);
+}
+
+sub socket_connected($s) : Role { getpeername($s) && 1 }
 
 role_gen socket_accept => sub($class) {
   sub($s) {

@@ -1,6 +1,5 @@
 package main;
 use Evo '-Loop *; Test::More; Test::Fatal; Socket :all; -Net::Socket; Symbol gensym';
-use Fcntl qw(F_GETFL O_NONBLOCK);
 
 my $HAS_REUSEPORT = eval { my $v = SO_REUSEPORT(); 1 };
 
@@ -19,7 +18,7 @@ OPTS: {
   is $sock->socket_reuseport(1)->socket_reuseport, 1 if $HAS_REUSEPORT;
 
   # rw fcntl
-  is $sock->socket_nb(1)->socket_nb, 1;
+  is $sock->non_blocking(1)->non_blocking, 1;
 
   # defaults
   $sock = Evo::Net::Socket::new()->socket_open();
@@ -27,12 +26,20 @@ OPTS: {
   is $sock->socket_type,      SOCK_STREAM;
   is $sock->socket_protocol,  IPPROTO_TCP;
   is $sock->socket_nodelay,   0;
-  is $sock->socket_nb,        0;
+  is $sock->non_blocking,     0;
   is $sock->socket_reuseaddr, 0;
   is $sock->socket_reuseport, 0 if $HAS_REUSEPORT;
 
 }
 
+FUNCS: {
+  my $sock = Evo::Net::Socket::new()->socket_open();
+  my ($addr, $port) = $sock->socket_remote;
+  ok !$sock->socket_remote;
+  ok !$sock->socket_local;
+  ok $sock->socket_rcvbuf;
+  ok $sock->socket_sndbuf;
+}
 
 BIND_LISTEN_CONNECTv6: {
 
@@ -47,7 +54,7 @@ BIND_LISTEN_CONNECTv6: {
 
   # cl
   my $cl = Evo::Net::Socket::new()->socket_open;
-  $cl->socket_connect(pack_sockaddr_in6($port, $naddr6));
+  connect($cl, pack_sockaddr_in6($port, $naddr6));
 
   # accept
   my ($ch_s, $err) = $serv->socket_accept();

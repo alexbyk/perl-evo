@@ -1,7 +1,6 @@
 package main;
 use Evo '-Net::Util *; -Loop *';
 use Socket ':all';
-use Fcntl qw(F_GETFL O_NONBLOCK);
 use Test::More;
 use Test::Fatal;
 use Errno 'EINVAL';
@@ -33,7 +32,7 @@ LISTEN_OPTS: {
 
   my $sock = $serv->s_listen(ip => '::1');
   is $sock->socket_reuseaddr, 1;
-  is $sock->socket_nb,        1;
+  is $sock->non_blocking,        1;
   is $sock->socket_nodelay,   1;
   is $sock->socket_reuseport, 0 if $HAS_REUSEPORT;
 
@@ -117,10 +116,10 @@ ACCEPT: {
   my $sock  = $serv->s_listen(ip => '::1');
   my $saddr = getsockname $sock;
   my $cl1   = Evo::Net::Socket::new()->socket_open();
-  $cl1->socket_connect($saddr);
+  connect $cl1, $saddr;
   $serv->s_accept_socket($sock);
   is_deeply [$LAST->socket_local], [$cl1->socket_remote];
-  is $LAST->socket_nb,      1;
+  is $LAST->non_blocking,      1;
   is $LAST->socket_nodelay, 1;
 }
 
@@ -128,7 +127,7 @@ ACCEPT_ERROR: {
   my $serv  = My::Server::new();
   my $sock  = $serv->s_listen(ip => '::1');
   my $sock2 = $serv->s_listen(ip => '::1');
-  $sock->shutdown(2);
+  shutdown $sock, 2;
   my $e;
   $serv->on(s_error => sub { $e = $_[1] })->s_accept_socket($sock);
   is $e + 0, EINVAL;

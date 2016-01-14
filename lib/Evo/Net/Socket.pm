@@ -5,7 +5,7 @@ with ':Role';
 
 our @CARP_NOT = qw(Evo::Net::Server::Role);
 
-sub new() { my $s = init(gensym) }
+sub new() { init(gensym) }
 
 1;
 
@@ -55,7 +55,11 @@ Opens socket just like C<socket>. If already opened, dies
 
 =item * socket_nodelay
 
-=item * socket_nb
+=item * socket_rcvbuf
+
+=item * socket_sndbuf
+
+=item * non_blocking
 
 =back
 
