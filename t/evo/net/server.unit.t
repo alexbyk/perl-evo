@@ -95,14 +95,14 @@ SCOPE: {
     my $obj1 = bless {n => 1}, "My::Temp";
     my $obj2 = bless {n => 2}, "My::Temp";
     my $obj3 = bless {n => 3}, "My::Temp";
-    $serv->s_connections($obj1);
-    is_deeply [$serv->s_connections], [$obj1];
-    $serv->s_connections($obj2, $obj3);
-    is_deeply [sort $serv->s_connections], [sort $obj1, $obj2, $obj3];
+    $serv->s_streams($obj1);
+    is_deeply [$serv->s_streams], [$obj1];
+    $serv->s_streams($obj2, $obj3);
+    is_deeply [sort $serv->s_streams], [sort $obj1, $obj2, $obj3];
   }
 
-  $serv->s_connections({});
-  is_deeply [$serv->s_connections], [];
+  $serv->s_streams({});
+  is_deeply [$serv->s_streams], [];
 }
 
 ACCEPT: {
@@ -113,7 +113,7 @@ ACCEPT: {
   $cl1->socket_connect($saddr);
   $serv->s_accept_socket($sock);
   is_deeply [$LAST->socket_local], [$cl1->socket_remote];
-  is $LAST->socket_nb, 1;
+  is $LAST->socket_nb,      1;
   is $LAST->socket_nodelay, 1;
 }
 

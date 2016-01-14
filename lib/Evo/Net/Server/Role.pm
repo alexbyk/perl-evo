@@ -12,7 +12,7 @@ has s_sockets => sub { [] };
 
 has _s_conn_data => sub { fieldhash my %hash; \%hash }, is => 'ro';
 
-sub s_connections($s, @conns) : Role {
+sub s_streams($s, @conns) : Role {
   my $data = $s->_s_conn_data;
   return map { id_2obj $_} keys %$data unless @conns;
   $data->{$_}++ for @conns;
@@ -58,7 +58,7 @@ sub s_accept_socket($self, $sock) : Role {
 
     # handle accept should return new socket, probably bless this one
     my $stream = $self->handle_accept($child->socket_nb(1));
-    $self->s_connections($stream);
+    $self->s_streams($stream);
     die "$stream should privide emit" unless $stream->can('emit');
   }
   return if $! == EAGAIN || $! == EWOULDBLOCK;
