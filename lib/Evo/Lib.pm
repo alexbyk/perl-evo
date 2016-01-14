@@ -1,6 +1,6 @@
 package Evo::Lib;
 use Evo '-Export *', -Util;
-use Time::HiRes qw(CLOCK_MONOTONIC clock_gettime);
+use Time::HiRes qw(CLOCK_MONOTONIC);
 
 PATCH: {
   no warnings 'once';
@@ -10,10 +10,11 @@ PATCH: {
 
 export qw(debug monkey_patch);
 
-my $HAS_M_TIME = eval { clock_gettime(CLOCK_MONOTONIC); 1 };
+
+my $HAS_M_TIME = eval { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); 1; };
 
 export_anon steady_time => $HAS_M_TIME
-  ? sub { clock_gettime(CLOCK_MONOTONIC); }
+  ? sub { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); }
   : \&Time::HiRes::time;
 
 sub ws_combine : Export {
