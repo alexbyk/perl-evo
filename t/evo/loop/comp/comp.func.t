@@ -1,4 +1,4 @@
-use Evo -Loop::Comp;
+use Evo -Loop::Comp, -Net::Socket;
 use Test::More;
 use Evo::W::Eval 'w_eval_run';
 
@@ -56,6 +56,18 @@ TIMER_TICK: {
   local *Evo::Loop::Comp::steady_time = sub { $time + 1 };
   is $loop->tick(), 0;
   is $t_called, 3;
+}
+
+IGNORE_SIGPIPE: {
+  my $loop = Evo::Loop::Comp::new();
+
+  ok !$SIG{PIPE};
+  $loop->postpone(sub { is $SIG{PIPE}, 'IGNORE'; });
+  ok !$SIG{PIPE};
+  $loop->start;
+
+  my $sock = Evo::Net::Socket::new();
+  $sock->socket_open();
 }
 
 

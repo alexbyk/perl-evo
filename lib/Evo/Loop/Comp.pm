@@ -42,6 +42,6 @@ sub maybe_sleep($self) {
 }
 
 
-sub start($self) { $self->maybe_sleep while $self->tick; }
+sub start($self) { local $SIG{PIPE} = 'IGNORE'; $self->maybe_sleep while $self->tick; }
 
 1;
