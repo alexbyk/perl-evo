@@ -2,12 +2,24 @@ package main;
 use Evo;
 use Evo::Comp::Meta;
 use Test::More;
+use Test::Fatal;
 
 my $called;
 my $m1 = sub { };
 {
 
   package My::Role;
+  use Evo -Loaded;
+
+
+  package My::Rex::Empty;
+  use Evo -Loaded;
+  sub new { bless {}, __PACKAGE__ }
+
+  sub methods { }
+  sub attrs   { }
+
+  package My::Rex;
   use Evo -Loaded;
   sub new { bless {}, __PACKAGE__ }
   use Test::More;
@@ -30,8 +42,12 @@ my $m1 = sub { };
   }
 }
 
+EMPTY: {
+  my $meta = Evo::Comp::Meta::new(rex => My::Rex::Empty::new());
+  like exception { $meta->install_roles('My::Comp', 'My::Role') }, qr/Empty.+"My::Role".+$0/;
+}
 
-my $meta = Evo::Comp::Meta::new(rex => My::Role::new());
+my $meta = Evo::Comp::Meta::new(rex => My::Rex::new());
 
 no warnings 'redefine';
 local *Evo::Comp::Meta::install_attr = sub {

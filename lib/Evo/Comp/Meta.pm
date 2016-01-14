@@ -99,9 +99,11 @@ sub install_roles($self, $comp, @roles) {
     load $role;
 
     my %attrs = $rex->attrs($role);
-    $self->install_attr($comp, $_, $attrs{$_}->@*) for keys %attrs;
+    my %methods = $rex->methods($role, $comp);
+    croak qq{Empty role "$role". Not a Role?} unless keys(%attrs) || keys(%methods);
 
-    monkey_patch $comp, $rex->methods($role, $comp);
+    $self->install_attr($comp, $_, $attrs{$_}->@*) for keys %attrs;
+    monkey_patch $comp, %methods;
     push @hslots, [$comp, [$rex->hooks($role)]];
   }
 
