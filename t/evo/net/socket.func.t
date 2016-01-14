@@ -2,6 +2,8 @@ package main;
 use Evo '-Loop *; Test::More; Test::Fatal; Socket :all; -Net::Socket; Symbol gensym';
 use Fcntl qw(F_GETFL O_NONBLOCK);
 
+my $HAS_REUSEPORT = eval { my $v = SO_REUSEPORT(); 1 };
+
 OPTS: {
   # ro
   my $sock = Evo::Net::Socket::new()->socket_open(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -12,8 +14,9 @@ OPTS: {
   # rw sock
   $sock = Evo::Net::Socket::new()->socket_open(AF_INET6);
   is $sock->socket_reuseaddr(1)->socket_reuseaddr, 1;
-  is $sock->socket_reuseport(1)->socket_reuseport, 1;
   is $sock->socket_nodelay(1)->socket_nodelay,     1;
+
+  is $sock->socket_reuseport(1)->socket_reuseport, 1 if $HAS_REUSEPORT;
 
   # rw fcntl
   is $sock->socket_nb(1)->socket_nb, 1;
@@ -26,7 +29,7 @@ OPTS: {
   is $sock->socket_nodelay,   0;
   is $sock->socket_nb,        0;
   is $sock->socket_reuseaddr, 0;
-  is $sock->socket_reuseport, 0;
+  is $sock->socket_reuseport, 0 if $HAS_REUSEPORT;
 
 }
 

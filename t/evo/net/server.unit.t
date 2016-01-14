@@ -6,6 +6,8 @@ use Test::More;
 use Test::Fatal;
 use Errno 'EINVAL';
 
+my $HAS_REUSEPORT = eval { my $v = SO_REUSEPORT(); 1 };
+
 my $LAST;
 {
 
@@ -33,13 +35,18 @@ LISTEN_OPTS: {
   is $sock->socket_reuseaddr, 1;
   is $sock->socket_nb,        1;
   is $sock->socket_nodelay,   1;
-  is $sock->socket_reuseport, 0;
+  is $sock->socket_reuseport, 0 if $HAS_REUSEPORT;
 
   # passed
-  $sock = $serv->s_listen(ip => '::1', reuseaddr => 0, reuseport => 1, nodelay => 0);
+  $sock = $serv->s_listen(ip => '::1', reuseaddr => 0, nodelay => 0);
   is $sock->socket_reuseaddr, 0;
   is $sock->socket_nodelay,   0;
-  is $sock->socket_reuseport, 1;
+
+  # reuseport
+  if ($HAS_REUSEPORT) {
+    $sock = $serv->s_listen(ip => '::1', reuseport => 1);
+    is $sock->socket_reuseport, 1;
+  }
 }
 
 
