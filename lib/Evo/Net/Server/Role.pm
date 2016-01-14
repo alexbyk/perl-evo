@@ -22,8 +22,11 @@ sub s_streams($s, @conns) : Role {
 sub _gen_sock($family, $o) {
   my $sock
     = Evo::Net::Socket::new()->socket_open($family)->socket_nodelay(delete $o->{nodelay} // 1)
-    ->socket_reuseaddr(delete $o->{reuseaddr} // 1)->socket_nb(1)
-    ->socket_reuseport(delete $o->{reuseport} || 0);
+    ->socket_reuseaddr(delete $o->{reuseaddr} // 1)->socket_nb(1);
+
+  # not always supported
+  $sock->socket_reuseport(1) if delete $o->{reuseport};
+  $sock;
 }
 
 sub s_handle_error($self, $sock, $err) : Role {
