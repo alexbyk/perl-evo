@@ -4,15 +4,18 @@ use Evo ':Comp';
 
 use constant DEFAULT => Evo::Loop::Comp::new();
 
-sub start : Export(loop_start)               { DEFAULT->realm_lord->start(@_) }
-sub timer : Export(loop_timer)               { DEFAULT->realm_lord->timer(@_); }
-sub timer_remove : Export(loop_timer_remove) { DEFAULT->realm_lord->timer_remove(@_); }
+sub loop_start : Export        { DEFAULT->realm_lord->start(@_) }
+sub loop_timer : Export        { DEFAULT->realm_lord->timer(@_); }
+sub loop_timer_remove : Export { DEFAULT->realm_lord->timer_remove(@_); }
 
-sub handle : Export(loop_handle)               { DEFAULT->realm_lord->handle(@_) }
-sub handle_catch : Export(loop_handle_catch)   { DEFAULT->realm_lord->handle_catch(@_) }
-sub handle_remove : Export(loop_handle_remove) { DEFAULT->realm_lord->handle_remove(@_); }
+sub loop_handle_in : Export         { DEFAULT->realm_lord->handle_in(@_) }
+sub loop_handle_out : Export        { DEFAULT->realm_lord->handle_out(@_) }
+sub loop_handle_error : Export      { DEFAULT->realm_lord->handle_error(@_) }
+sub loop_handle_remove_in : Export  { DEFAULT->realm_lord->handle_remove(@_); }
+sub loop_handle_remove_out : Export { DEFAULT->realm_lord->handle_remove(@_); }
+sub loop_handle_remove_all : Export { DEFAULT->realm_lord->handle_remove_all(@_); }
 
-sub zone : Export(loop_zone)                        { DEFAULT->realm_lord->zone(@_) }
-sub postpone : prototype(&) : Export(loop_postpone) { DEFAULT->realm_lord->postpone(@_) }
+sub loop_zone : Export                    { DEFAULT->realm_lord->zone(@_) }
+sub loop_postpone : prototype(&) : Export { DEFAULT->realm_lord->postpone(@_) }
 
 1;

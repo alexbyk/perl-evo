@@ -25,7 +25,7 @@ POLLIN: {
   my $loop = MyLoop::new();
   local *Evo::Loop::Role::Handle::handle_poll = sub { $_[2] = POLLIN; 1; };
   my $called;
-  $loop->handle($handle, in => sub { $called++ });
+  $loop->handle_in($handle, sub { $called++ });
   $loop->handle_process();
 
   is $called, 1;
@@ -35,7 +35,7 @@ POLLOUT: {
   my $loop = MyLoop::new();
   local *Evo::Loop::Role::Handle::handle_poll = sub { $_[2] = POLLOUT; 1; };
   my $called;
-  $loop->handle($handle, out => sub { $called++ });
+  $loop->handle_out($handle, sub { $called++ });
   $loop->handle_process();
 
   is $called, 1;
@@ -45,8 +45,8 @@ POLLERR: {
   my $loop = MyLoop::new();
   local *Evo::Loop::Role::Handle::handle_poll = sub { $_[2] = POLLERR; 1; };
   my $called;
-  $loop->handle($handle, in => sub {fail});
-  $loop->handle_catch($handle, sub { $called++ });
+  $loop->handle_in($handle, sub {fail});
+  $loop->handle_error($handle, sub { $called++ });
   $loop->handle_process();
   is $called, 1;
 }
@@ -55,7 +55,7 @@ POLLERR_EMPTY: {
   my $loop = MyLoop::new();
   local *Evo::Loop::Role::Handle::handle_poll = sub { $_[2] = POLLERR; 1; };
   my $called;
-  $loop->handle($handle, in => sub {fail});
+  $loop->handle_in($handle, sub {fail});
   $loop->handle_process();
   pass "not died";
 }
@@ -67,7 +67,7 @@ POLL_ARG: {
   $loop->handle_process(0.123456);
   ok !$pcalled;
 
-  $loop->handle($handle, in => sub { $called++ });
+  $loop->handle_in($handle, sub { $called++ });
   $loop->handle_process(0.123456);
   is $arg_t,   123;
   is $pcalled, 1;

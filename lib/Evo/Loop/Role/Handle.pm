@@ -26,15 +26,18 @@ sub _mask_fd {
   return ($mask, $fd);
 }
 
-sub handle_catch($self, $handle, $fn) : Role {
+sub handle_error($self, $handle, $fn) : Role {
   my $slot = $self->handle_data->{fileno($handle)}
-    or croak "Install events for $handle before catch";
-  croak "$handle already has catch" if exists $slot->{catch};
+    or croak "Install events for $handle before error";
+  croak "$handle already has error" if exists $slot->{error};
 
-  $slot->{catch} = $self->zone_cb($fn);
+  $slot->{error} = $self->zone_cb($fn);
 }
 
-sub handle($self, $handle, $type, $fn) : Role {
+sub handle_in : Role  { handle('in',  @_) }
+sub handle_out : Role { handle('out', @_) }
+
+sub handle($type, $self, $handle, $fn) {
   my ($mask, $fd) = _mask_fd($self, $handle, $type);
   my $data = $self->handle_data;
   croak qq#$handle already has "$type"# if $data->{$fd}{$type};
@@ -42,7 +45,10 @@ sub handle($self, $handle, $type, $fn) : Role {
   $data->{$fd}{mask} |= $mask;
 }
 
-sub handle_remove($self, $handle, $type) : Role {
+sub handle_remove_in : Role  { handle_remove(in  => @_) }
+sub handle_remove_out : Role { handle_remove(out => @_) }
+
+sub handle_remove($type, $self, $handle) {
   my ($mask, $fd) = _mask_fd($self, $handle, $type);
   my $data = $self->handle_data;
   croak qq#$handle hasn't "$type"# unless exists $data->{$fd}{$type};
@@ -69,7 +75,7 @@ sub handle_process($self, $timeout_float=undef) : Role {
       my $slot = $data->{$fd};
       $slot->{in}->()    if $revents & SOCKET_IN;
       $slot->{out}->()   if $revents & SOCKET_OUT;
-      $slot->{catch}->() if ($revents & SOCKET_ERR) && $slot->{catch};
+      $slot->{error}->() if ($revents & SOCKET_ERR) && $slot->{error};
     }
   }
 }
