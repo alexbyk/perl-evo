@@ -38,7 +38,7 @@
          }
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
          "web" : "http://github.com/alexbyk/perl-evo/issues"
@@ -47,6 +47,6 @@
          "web" : "http://github.com/alexbyk/perl-evo"
       }
    },
-   "version" : "0.0186"
+   "version" : "0.0187"
 }
 
