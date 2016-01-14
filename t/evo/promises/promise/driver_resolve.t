@@ -17,6 +17,24 @@ use Test::More;
 
 sub p { My::P::new(@_) }
 
+VALUE: {
+  my $p = p();
+  $p->d_resolve('VAL');
+  ok is_fulfilled_with 'VAL', $p;
+}
+
+BLESSED_OBJ: {
+  my $p = p();
+  $p->d_resolve(my $obj = bless {}, 'My::Obj');
+  ok is_fulfilled_with $obj, $p;
+}
+
+BLESSED_REF: {
+  my $p = p();
+  $p->d_resolve('VAL');
+  ok is_fulfilled_with 'VAL', $p;
+}
+
 SAME_OBJ: {
   my $p = p();
   $p->d_resolve($p);

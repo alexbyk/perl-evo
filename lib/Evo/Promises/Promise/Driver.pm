@@ -87,7 +87,8 @@ sub d_resolve($self, $x) : Role {
       $x = $sync->v;    # and next, but it's already last in loop
       next;
     }
-    die "Should't be here";
+    # 2.3.3.4
+    return $self->d_fulfill($x);
   }
 }
 
