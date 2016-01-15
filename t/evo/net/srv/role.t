@@ -19,7 +19,8 @@ my $LAST;
   use Evo '-Comp *';
   sub ee_events {qw(srv_error)}
   with -Net::Srv::Role, -Ee;
-  sub srv_handle_accept($self, $sock) { $LAST = bless $sock, 'My::Stream' }
+  sub srv_handle_accept($self, $sock) :
+    Override { $LAST = Evo::Net::Srv::Role::srv_handle_accept($self, $sock) }
 
   sub srv_handle_error($self, $sock, $err) : Override {
     $self->emit(srv_error => $err);
@@ -63,7 +64,7 @@ LISTEN_OPTS: {
 
 LISTEN_RUNNING: {
   my $loop = Evo::Loop::Comp::new();
-  my $srv = My::Server::new();
+  my $srv  = My::Server::new();
   $loop->realm(
     sub {
       my $sock = $srv->srv_listen(ip => '::1');
@@ -75,7 +76,7 @@ LISTEN_RUNNING: {
 
 LISTEN_STOPPED: {
   my $loop = Evo::Loop::Comp::new();
-  my $srv = My::Server::new()->srv_is_running(0);
+  my $srv  = My::Server::new()->srv_is_running(0);
   $loop->realm(
     sub {
       my $sock = $srv->srv_listen(ip => '::1');
@@ -87,7 +88,7 @@ LISTEN_STOPPED: {
 
 START_STOP: {
   my $loop = Evo::Loop::Comp::new();
-  my $srv = My::Server::new();
+  my $srv  = My::Server::new();
   $loop->realm(
     sub {
 
@@ -124,24 +125,24 @@ SCOPE: {
 }
 
 ACCEPT: {
-  my $srv  = My::Server::new();
+  my $srv   = My::Server::new();
   my $sock  = $srv->srv_listen(ip => '::1');
   my $saddr = getsockname $sock;
   my $cl1   = Evo::Net::Socket::new()->socket_open();
   connect $cl1, $saddr;
-  $srv->srv_accept_socket($sock);
+  $srv->srv_accept($sock);
   is_deeply [$LAST->socket_local], [$cl1->socket_remote];
   is $LAST->non_blocking,   1;
   is $LAST->socket_nodelay, 1;
 }
 
 ACCEPT_ERROR: {
-  my $srv  = My::Server::new();
+  my $srv   = My::Server::new();
   my $sock  = $srv->srv_listen(ip => '::1');
   my $sock2 = $srv->srv_listen(ip => '::1');
   shutdown $sock, 2;
   my $e;
-  $srv->on(srv_error => sub { $e = $_[1] })->srv_accept_socket($sock);
+  $srv->on(srv_error => sub { $e = $_[1] })->srv_accept($sock);
   is $e + 0, EINVAL;
   is_deeply $srv->srv_sockets, [$sock2];
 }

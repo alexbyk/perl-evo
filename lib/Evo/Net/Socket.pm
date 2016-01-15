@@ -27,6 +27,19 @@ Opens socket just like C<socket>. If already opened, dies
 
 =cut
 
+=head2 socket_local
+
+=head2 socket_remote
+
+  my ($ip, $port) = $sock->socket_remote;
+  ($ip, $port) = $sock->socket_local;
+
+More frienly results than C<getpeername> and C<getsockname> 
+
+=head2 socket_accept
+
+Instead of saddr return a new socket and initiate with the C<init> method of the derived class
+
 
 =head1 Info
 

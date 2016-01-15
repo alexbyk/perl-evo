@@ -5,8 +5,6 @@ use Socket qw( AF_INET AF_INET6 SOL_SOCKET SOMAXCONN);
 use Scalar::Util 'weaken';
 use Hash::Util::FieldHash qw(fieldhash id_2obj);
 
-requires qw(srv_handle_accept);
-
 has srv_is_running => 1;
 has srv_sockets => sub { [] };
 
@@ -30,9 +28,10 @@ sub _gen_sock($family, $o) {
 }
 
 sub srv_handle_error($self, $sock, $err) : Role { $self->srv_remove_socket($sock); }
+sub srv_handle_accept($self, $sock) : Role      {$sock}
 
 sub srv_start_watching($self, $sock) : Role {
-  loop_io_in $sock, sub { $self->srv_accept_socket($sock) };
+  loop_io_in $sock, sub { $self->srv_accept($sock) };
   loop_io_error $sock, sub { $self->srv_handle_error($sock, "Unknown") };
 }
 sub srv_stop_watching($self, $sock) : Role { loop_io_remove_all $sock; }
@@ -53,14 +52,13 @@ sub srv_remove_socket($self, $sock) : Role {
   $self->srv_sockets([grep { $_ != $sock } $self->srv_sockets->@*]);
 }
 
-sub srv_accept_socket($self, $sock) : Role {
+sub srv_accept($self, $sock) : Role {
   my $child;
   while ($child = $sock->socket_accept()) {
 
     # handle accept should return new socket, probably bless this one
-    my $stream = $self->srv_handle_accept($child->non_blocking(1));
+    my $stream = $self->srv_handle_accept($sock->non_blocking(1));
     $self->srv_streams($stream);
-    die "$stream should privide emit" unless $stream->can('emit');
   }
   return if $! == EAGAIN || $! == EWOULDBLOCK;
   $self->srv_handle_error($sock, $!);
