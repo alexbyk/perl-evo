@@ -75,7 +75,9 @@ Will print C<2>
 
 =head2 fin
 
-Chain promise with a handler, that gets called with no argument when the parent promise is settled(fulfilled or rejected). When that handler returns a result, the next promise gets postponed. Value are ignored. If that handler causes an exception or returns rejected promise (or promise that will eventually gets rejected), the chain would be rejected
+Chain promise with a handler, that gets called with no argument when the parent promise is settled(fulfilled or rejected). When that handler returns a result, the next promise gets postponed. Value are ignored. If that handler causes an exception or returns rejected promise (or promise that will eventually gets rejected), the chain would be rejected.
+
+A shorter. Causes no effect on the chain unless rejection happens
 
   promises_resolve('VAL')->fin(sub() {'IGNORED'})->then(sub($v) { say $v});
 

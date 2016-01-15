@@ -24,19 +24,23 @@ sub reason($self) : Role {
 
 
 sub fin($self, $fn) : Role {
+  my $d = Evo::Promises::Deferred::new(promise => $self->can('new')->());
   my $onF = sub($v) {
-    promises_resolve($fn->())->then(sub {$v});
+    $d->resolve($fn->());    # need pass result because it can be a promise
+    $d->promise->then(sub {$v});
   };
   my $onR = sub($r) {
-    promises_resolve($fn->())->then(sub { promises_reject($r) });
+    $d->resolve($fn->());    # see above
+    $d->promise->then(sub { promises_reject($r) });
   };
   $self->then($onF, $onR);
 }
 
 sub catch : Role { shift->then(undef, shift) }
 
-role_gen then => sub {
-  my $new = shift->can('new');
+# also we can do $self->can('new')->();
+role_gen then => sub($pkg) {
+  my $new = $pkg->can('new');
 
   #assert($new);
   sub {
