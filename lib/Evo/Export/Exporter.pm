@@ -62,7 +62,7 @@ sub add_sub($self, $src, $name_as) {
 }
 
 sub proxy($self, $epkg, $spkg, @xlist) {
-  $spkg = Evo::Util::resolve_package(scalar caller, $spkg);
+  $spkg = Evo::Util::resolve_package($epkg, $spkg);
   load $spkg;
   my @list = $self->expand_wildcards($spkg, @xlist);
 

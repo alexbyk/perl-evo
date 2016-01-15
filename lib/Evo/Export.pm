@@ -43,10 +43,10 @@ sub _parse_attr($attr) {
 }
 
 
-sub _add_gen { EXPORTER->add_gen(__PACKAGE__, shift, shift); }
+sub _add_gen($name, $gen) { EXPORTER->add_gen(__PACKAGE__, $name, $gen); }
 
 _add_gen export_gen => sub($dst) {
-  sub { EXPORTER->add_gen($dst, shift, shift) }
+  sub($name, $gen) { EXPORTER->add_gen($dst, $name, $gen) }
 };
 
 _add_gen export_anon => sub($dst) {
@@ -61,7 +61,7 @@ _add_gen export => sub($dst) {
 };
 
 _add_gen export_proxy => sub($dst) {
-  sub { EXPORTER->proxy($dst, shift, shift); }
+  sub($epkg,@list) { EXPORTER->proxy($dst, $epkg, @list); }
 };
 
 1;
