@@ -15,6 +15,8 @@ It provides rewritten and postmodern features like
 
 ![GIF Demo](https://raw.github.com/alexbyk/perl-evo/master/demo.gif)
 
+Vim ultisnips with `Evo` support can be found here: [vim-ultisnips-perl](https://github.com/alexbyk/vim-ultisnips-perl)
+
 ## AUTHOR
 
 alexbyk.com

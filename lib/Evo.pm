@@ -62,8 +62,6 @@ sub import {
 
 =head1 DESCRIPTION
 
-=for HTML <p><img src="https://raw.github.com/alexbyk/perl-evo/master/demo.gif" alt="Perl Evo gif" /></p>
-
 This framowerk opens new age of perl programming
 It provides rewritten and postmodern features like
 
@@ -91,6 +89,13 @@ Exception handling in pure perl: L<Evo::Eval>, "try catch" alternative. Like C<T
 L<Evo::Ee> - a component role that gives your component "EventEmitter" abilities
 
 =back
+
+
+=head1 Vim UltiSnips
+
+=for HTML <p><img src="https://raw.github.com/alexbyk/perl-evo/master/demo.gif" alt="Perl Evo gif" /></p>
+
+Vim ultisnips with C<Evo> support can be found here: L<https://github.com/alexbyk/vim-ultisnips-perl>
 
 =head1 IMPORTING
 
