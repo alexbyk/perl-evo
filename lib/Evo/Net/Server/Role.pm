@@ -81,6 +81,9 @@ sub s_listen($self, %opts) : Role {
     my ($saddr, $family) = net_gen_saddr_family($ip, $port);
     $sock = _gen_sock($family, $remaining)->socket_bind($saddr);
   }
+  else {
+    $sock = _gen_sock(AF_INET6, $remaining);
+  }
 
   croak "unknown options: " . join(',', keys %$remaining) if keys %$remaining;
 

@@ -27,16 +27,16 @@ LISTEN_OPTS: {
 
   my $serv = My::Server::new();
 
-  # default
+  # default with ip
   like exception { $serv->s_listen(ip => '::1', bad => 'foo') }, qr/unknown.+bad.+$0/;
 
   my $sock = $serv->s_listen(ip => '::1');
   is $sock->socket_reuseaddr, 1;
-  is $sock->non_blocking,        1;
+  is $sock->non_blocking,     1;
   is $sock->socket_nodelay,   1;
   is $sock->socket_reuseport, 0 if $HAS_REUSEPORT;
 
-  # passed
+  # passed with ip
   $sock = $serv->s_listen(ip => '::1', reuseaddr => 0, nodelay => 0);
   is $sock->socket_reuseaddr, 0;
   is $sock->socket_nodelay,   0;
@@ -46,6 +46,14 @@ LISTEN_OPTS: {
     $sock = $serv->s_listen(ip => '::1', reuseport => 1);
     is $sock->socket_reuseport, 1;
   }
+
+  # with wildcard
+  $sock = $serv->s_listen(ip => '*');
+  is $sock->socket_reuseaddr, 1;
+  is $sock->non_blocking,     1;
+  is $sock->socket_nodelay,   1;
+  is $sock->socket_reuseport, 0 if $HAS_REUSEPORT;
+  is [$sock->socket_local]->[0], '::';
 }
 
 
@@ -119,7 +127,7 @@ ACCEPT: {
   connect $cl1, $saddr;
   $serv->s_accept_socket($sock);
   is_deeply [$LAST->socket_local], [$cl1->socket_remote];
-  is $LAST->non_blocking,      1;
+  is $LAST->non_blocking,   1;
   is $LAST->socket_nodelay, 1;
 }
 

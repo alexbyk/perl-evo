@@ -57,8 +57,7 @@ BIND_LISTEN_CONNECTv6: {
   connect($cl, pack_sockaddr_in6($port, $naddr6));
 
   # accept
-  my ($ch_s, $err) = $serv->socket_accept();
-  ok !$err;
+  my $ch_s = $serv->socket_accept();
   is $ch_s->socket_domain, AF_INET6;
   ok $ch_s->socket_reuseaddr;
 
