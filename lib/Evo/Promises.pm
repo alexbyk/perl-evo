@@ -18,7 +18,6 @@ sub deferred : Export :
 
 =head2 promise
 
-
   promise(
     sub($resolve, $reject) {
       loop_timer 1 => sub { $resolve->('HELLO') };
@@ -82,6 +81,17 @@ A shorter. Causes no effect on the chain unless rejection happens
   promises_resolve('VAL')->fin(sub() {'IGNORED'})->then(sub($v) { say $v});
 
 Usefull for closing connections etc. The idea described here: L<https://github.com/kriskowal/q#propagation>
+
+=head1 IMPLEMENTATION
+
+This is a sexy and fast non-recursive implementation of Promises/A+
+
+The end-user library L<Evo::Promises> works with L<Evo::Loop> (promises require event loop because of L<https://promisesaplus.com/#point-34>)
+But the main part (see L<Evo::Promises::Driver>) is designed to be reused and it's ridiculously simple to implement variant for other loops with a few lines of code (see the source code of L<Evo::Promises>)
+
+
+Different implementations of promises should work together well by design. Right now there are other implementations in CPAN. But when I tested them(2016yr), they were far away from A+ and contained many bugs. So if need to mix different promises libraries, try to start the chain from this one
+
 
 
 =head1 SEE ALSO
