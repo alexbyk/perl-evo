@@ -1,19 +1,19 @@
-package Evo::Net::Server::Role;
+package Evo::Net::Srv::Role;
 use Evo '-Role *; -Loop *; -Net::Socket; -Net::Util *; Carp croak';
 use Errno qw( EAGAIN EWOULDBLOCK );
 use Socket qw( AF_INET AF_INET6 SOL_SOCKET SOMAXCONN);
 use Scalar::Util 'weaken';
 use Hash::Util::FieldHash qw(fieldhash id_2obj);
 
-requires qw(handle_accept emit);
+requires qw(srv_handle_accept);
 
-has s_is_running => 1;
-has s_sockets => sub { [] };
+has srv_is_running => 1;
+has srv_sockets => sub { [] };
 
-has _s_conn_data => sub { fieldhash my %hash; \%hash }, is => 'ro';
+has _srv_conn_data => sub { fieldhash my %hash; \%hash }, is => 'ro';
 
-sub s_streams($s, @conns) : Role {
-  my $data = $s->_s_conn_data;
+sub srv_streams($s, @conns) : Role {
+  my $data = $s->_srv_conn_data;
   return map { id_2obj $_} keys %$data unless @conns;
   $data->{$_}++ for @conns;
 }
@@ -29,47 +29,45 @@ sub _gen_sock($family, $o) {
   $sock;
 }
 
-sub s_handle_error($self, $sock, $err) : Role {
-  $self->s_remove_socket($sock)->emit(s_error => $err);
+sub srv_handle_error($self, $sock, $err) : Role { $self->srv_remove_socket($sock); }
+
+sub srv_start_watching($self, $sock) : Role {
+  loop_handle_in $sock, sub { $self->srv_accept_socket($sock) };
+  loop_handle_error $sock, sub { $self->srv_handle_error($sock, "Unknown") };
+}
+sub srv_stop_watching($self, $sock) : Role { loop_handle_remove_all $sock; }
+
+sub srv_stop($self) : Role {
+  croak "already stopped" unless $self->srv_is_running;
+  $self->srv_is_running(0);
+  $self->srv_stop_watching($_) for $self->srv_sockets->@*;
 }
 
-sub s_start_watching($self, $sock) : Role {
-  loop_handle_in $sock, sub { $self->s_accept_socket($sock) };
-  loop_handle_error $sock, sub { $self->s_handle_error($sock, "Unknown") };
-}
-sub s_stop_watching($self, $sock) : Role { loop_handle_remove_all $sock; }
-
-sub s_stop($self) : Role {
-  croak "already stopped" unless $self->s_is_running;
-  $self->s_is_running(0);
-  $self->s_stop_watching($_) for $self->s_sockets->@*;
+sub srv_start($self) : Role {
+  croak "already running" if $self->srv_is_running;
+  $self->srv_is_running(1);
+  $self->srv_start_watching($_) for $self->srv_sockets->@*;
 }
 
-sub s_start($self) : Role {
-  croak "already running" if $self->s_is_running;
-  $self->s_is_running(1);
-  $self->s_start_watching($_) for $self->s_sockets->@*;
+sub srv_remove_socket($self, $sock) : Role {
+  $self->srv_sockets([grep { $_ != $sock } $self->srv_sockets->@*]);
 }
 
-sub s_remove_socket($self, $sock) : Role {
-  $self->s_sockets([grep { $_ != $sock } $self->s_sockets->@*]);
-}
-
-sub s_accept_socket($self, $sock) : Role {
+sub srv_accept_socket($self, $sock) : Role {
   my $child;
   while ($child = $sock->socket_accept()) {
 
     # handle accept should return new socket, probably bless this one
-    my $stream = $self->handle_accept($child->non_blocking(1));
-    $self->s_streams($stream);
+    my $stream = $self->srv_handle_accept($child->non_blocking(1));
+    $self->srv_streams($stream);
     die "$stream should privide emit" unless $stream->can('emit');
   }
   return if $! == EAGAIN || $! == EWOULDBLOCK;
-  $self->s_handle_error($sock, $!);
+  $self->srv_handle_error($sock, $!);
 }
 
 
-sub s_listen($self, %opts) : Role {
+sub srv_listen($self, %opts) : Role {
   my $port    = delete $opts{port}    || 0;
   my $backlog = delete $opts{backlog} || SOMAXCONN;
   my $ip      = delete $opts{ip}      || croak "Provide ip or * for wildcards";
@@ -88,15 +86,19 @@ sub s_listen($self, %opts) : Role {
   croak "unknown options: " . join(',', keys %$remaining) if keys %$remaining;
 
   $sock->socket_listen($backlog);
-  push $self->s_sockets->@*, $sock;
-  $self->s_start_watching($sock) if $self->s_is_running;
+  push $self->srv_sockets->@*, $sock;
+  $self->srv_start_watching($sock) if $self->srv_is_running;
   $sock;
 }
 
 
 1;
 
-=head2 s_listen
+=head1
+
+Each component should provide C<srv_handle_accept> and may want override C<srv_handle_error>
+
+=head2 srv_listen
 
 Create a socket and call listen.
 
