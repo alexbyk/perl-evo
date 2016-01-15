@@ -57,8 +57,8 @@ sub srv_accept($self, $sock) : Role {
   while ($child = $sock->socket_accept()) {
 
     # handle accept should return new socket, probably bless this one
-    my $stream = $self->srv_handle_accept($sock->non_blocking(1));
-    $self->srv_streams($stream);
+    $child = $self->srv_handle_accept($child->non_blocking(1));
+    $self->srv_streams($child);
   }
   return if $! == EAGAIN || $! == EWOULDBLOCK;
   $self->srv_handle_error($sock, $!);

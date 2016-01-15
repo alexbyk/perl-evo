@@ -132,6 +132,7 @@ ACCEPT: {
   connect $cl1, $saddr;
   $srv->srv_accept($sock);
   is_deeply [$LAST->socket_local], [$cl1->socket_remote];
+  is_deeply [$LAST->socket_remote], [$cl1->socket_local];
   is $LAST->non_blocking,   1;
   is $LAST->socket_nodelay, 1;
 }
