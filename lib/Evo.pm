@@ -32,7 +32,8 @@ sub import {
   my @list = @_;
   unshift @list, '-Default' unless grep { $_ && $_ eq '-Default' } @list;
 
-  @list = map { split ';', $_ } @list;
+  # trim
+  @list = grep {$_} map { my $s = $_; $s =~ s/^\s+|\s+$//g; $s } map { split ';', $_ } @list;
   foreach my $key (@list) {
     my ($class, @args) = _parse($target, $key);
     load($class);
