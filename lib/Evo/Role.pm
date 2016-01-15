@@ -50,6 +50,9 @@ export_anon MODIFY_CODE_ATTRIBUTES => sub($class, $code, @attrs) {
 
 1;
 
+# VERSION
+
+# ABSTRACT: Evo::Role - reuse code between components
 
 =head1 SYNOPSYS
 
@@ -57,6 +60,8 @@ export_anon MODIFY_CODE_ATTRIBUTES => sub($class, $code, @attrs) {
   use Evo;
 
   {
+
+    # Evo::Load is only for one-file examples
 
     package Person::Human;
     use Evo '-Role *; -Loaded';
@@ -74,10 +79,8 @@ export_anon MODIFY_CODE_ATTRIBUTES => sub($class, $code, @attrs) {
   my $alex = Person::new(name => 'alex');
   $alex->intro;
 
-I<C<Evo::Loaded> is only needed to copy-paste this examples into one file and run it. In the real life code, where every role has separate file, it's not neccessary>
 
 =head1 DESCRIPTION
-
 
 OO is considered an anti-pattern because it's hard to change base class and reuse the code written by other person (Fragile base class problem), and every refactoring makes OO applications low-tested or extra-tested. Component oriented programming doesn't have such weakness. It uses roles (like Moose's roles), or so called "mixins".
 
@@ -87,7 +90,6 @@ Also Roles can protect you from method and attributes clashing, because all meth
 I'll write an article about this late (maybe)
 
 Here is a breaf overview
-
 
 =head2 Building and using component roles
 
@@ -109,11 +111,11 @@ And to use it in the component
 
 See L<Evo::Comp/"with">.
 
-=head3 shortcuts
+=head3 Shortcuts
 
 C<Evo::Role> supports shortcuts, here C<:Human> in C<Person> is resolved to C<Person::Human>. This helps a lot during refactoring. See L<Evo/"shortcuts"> for more information
 
-=head3 storage agnostic
+=head3 Storage agnostic
 
 The good news are roles don't care what type of storage will be used by derived component (L<Evo::Comp::Hash>, L<Evo::Comp::Out> or others) - it will work. So you can do something like this:
 
@@ -159,8 +161,6 @@ Let's separate C<Person::Human> into 2 different roles;
     with ':LoudHuman', ':Human';
     sub intro { say "My name is ", shift->upper_name }
 
-
-
 C<Person::LoudHuman> provides method C<upper_name>. C<requires 'name'>, which is used by C<upper_name> ensures that derivered class has this method or attribute. (attributes should be described before L<Evo::Comp/"with">, to solve circular requirements, include all roles in one L<Evo::Comp/"with">)
 
 =head3 features
@@ -183,7 +183,6 @@ C<:Role> attribute is preffered
 
 List method that should be available in component during role installation.
 If you require attribute, describe it before L</"with">. If you have circular dependencies, load all roles in the single L</"with">.
-
 
 =head2 Overriding methods
 
@@ -216,5 +215,6 @@ It's possible to override method in the derived class. By default you're protect
   say $comp->bar;    # OVERRIDEN BAR
 
 Many overriden methods is a signal for refactoring. But sometimes it's ok to provide a "default" method for testing, or override 3d party library
+
 
 =cut

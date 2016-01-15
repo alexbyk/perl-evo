@@ -48,9 +48,10 @@ sub import {
 }
 
 
-# VERSION
 
 1;
+
+# VERSION
 
 # ABSTRACT: Evo - the next generation component-oriented development framework
 
@@ -91,7 +92,7 @@ L<Evo::Ee> - a component role that gives your component "EventEmitter" abilities
 =back
 
 
-=head1 Vim UltiSnips
+=head1 VIM
 
 =for HTML <p><img src="https://raw.github.com/alexbyk/perl-evo/master/demo.gif" alt="Perl Evo gif" /></p>
 
