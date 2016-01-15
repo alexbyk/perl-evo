@@ -1,8 +1,5 @@
 package main;
-use Evo;
-use Evo::Comp::Meta;
-use Test::More;
-use Test::Fatal;
+use Evo '-Comp::Meta; -Comp::Role::Exporter; Test::More; Test::Fatal; Test::Evo::Helpers *';
 
 my $called;
 my $m1 = sub { };
@@ -10,6 +7,8 @@ my $m1 = sub { };
 
   package My::Role;
   use Evo -Loaded;
+
+  # ms and a1 mocked
 
 
   package My::Rex::Empty;
@@ -24,13 +23,8 @@ my $m1 = sub { };
   sub new { bless {}, __PACKAGE__ }
   use Test::More;
 
-  sub methods {
-    return (m1 => $m1);
-  }
-
-  sub attrs {
-    return (a1 => [is => 'rw']);
-  }
+  sub methods { return (m1 => $m1); }
+  sub attrs { return (a1 => [is => 'rw']); }
 
   sub hooks {
     (
@@ -43,24 +37,28 @@ my $m1 = sub { };
 }
 
 EMPTY: {
-  my $meta = Evo::Comp::Meta::new(rex => My::Rex::Empty::new());
+  my $meta = comp_meta;
   like exception { $meta->install_roles('My::Comp', 'My::Role') }, qr/Empty.+"My::Role".+$0/;
 }
 
-my $meta = Evo::Comp::Meta::new(rex => My::Rex::new());
+INSTALL: {
 
-no warnings 'redefine';
-local *Evo::Comp::Meta::install_attr = sub {
-  is_deeply \@_, [$meta, 'My::Comp', 'a1', 'is', 'rw'];
-  $called++;
+  my $meta = Evo::Comp::Meta::new(rex => My::Rex::new());
 
-};
-local *Evo::Comp::Meta::monkey_patch = sub {
-  is_deeply \@_, ['My::Comp', 'm1', $m1];
-  $called++;
+  no warnings 'redefine';
+  local *Evo::Comp::Meta::install_attr = sub {
+    is_deeply \@_, [$meta, 'My::Comp', 'a1', 'is', 'rw'];
+    $called++;
 
-};
-$meta->install_roles('My::Comp', 'My::Role');
+  };
+  local *Evo::Comp::Meta::monkey_patch = sub {
+    is_deeply \@_, ['My::Comp', 'm1', $m1];
+    $called++;
 
-is $called, 3;
+  };
+  $meta->install_roles('My::Comp', 'My::Role');
+
+  is $called, 3;
+}
+
 done_testing;

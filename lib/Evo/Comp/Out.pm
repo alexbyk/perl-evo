@@ -12,9 +12,22 @@ export_gen has => sub($class) {
   sub { $META->install_attr($class, @_); };
 };
 
-
 export_gen with => sub($class) {
   sub { $META->install_roles($class, @_); };
+};
+
+export_gen overrides => sub($class) {
+  sub { $META->mark_overriden($class, @_); };
+};
+
+
+export_anon MODIFY_CODE_ATTRIBUTES => sub($class, $code, @attrs) {
+  my @bad = grep { $_ ne 'Override' } @attrs;
+  return @bad if @bad;
+
+  Evo::Util::find_subnames($class, $code);
+  $META->mark_overriden($class, Evo::Util::find_subnames($class, $code));
+  return;
 };
 
 

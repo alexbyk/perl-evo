@@ -18,4 +18,8 @@ sub foo_bar { return $_[0]->foo . $_[0]->bar }
 
 sub FOO_BAR : Role { uc shift->foo_bar }
 
+sub overriden1 : Role  {'BAD'}
+sub overriden2 : Role {'BAD'}
+sub overriden3 : Role {'BAD'}
+
 1;

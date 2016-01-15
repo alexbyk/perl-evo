@@ -15,9 +15,10 @@ sub data { shift->{data} }
 sub new { bless {data => {}, @_}, __PACKAGE__; }
 
 
-sub builder_options($self, $class) {
-  $self->data->{$class}{bo} ||= {};
-}
+sub builder_options($self, $class) { $self->data->{$class}{bo} ||= {}; }
+
+# allow comp to override this methods
+sub mark_overriden($self, $comp, @list) { $self->data->{$comp}{override}{$_}++ for @list }
 
 sub install_attr($self, $class, $name, @xopts) {
   my $data = $self->data->{$class} ||= {};
@@ -35,9 +36,9 @@ sub install_attr($self, $class, $name, @xopts) {
 
 # ro just adds chet wrapper
 sub compile_attr($self, $name, %opts) {
-  my $gen = $self->{gen};
-  my $lt  = exists $opts{lazy} && (ref $opts{lazy} ? 'CODE' : 'VALUE');
-  my $ch  = $opts{check};
+  my $gen = $self->{gen} || croak "No gen";
+  my $lt = exists $opts{lazy} && (ref $opts{lazy} ? 'CODE' : 'VALUE');
+  my $ch = $opts{check};
 
   my $res;
   if (!$lt) {
@@ -91,19 +92,30 @@ sub parse_style($self, @attr) {
   %opts;
 }
 
+sub rex($self) { $self->{rex} }
+
 sub install_roles($self, $comp, @roles) {
-  my $rex = $self->{rex};
+  my $rex = $self->{rex} or die "no rex";
   no strict 'refs';    ## no critic
   my @hslots;
   foreach my $role (map { Evo::Util::resolve_package($comp, $_) } @roles) {
     load $role;
 
-    my %attrs = $rex->attrs($role);
+    my %attrs   = $rex->attrs($role);
     my %methods = $rex->methods($role, $comp);
-    croak qq{Empty role "$role". Not a Role?} unless keys(%attrs) || keys(%methods);
+    my @names   = (keys(%attrs), keys(%methods));
+    croak qq{Empty role "$role". Not a Role?} unless @names;
 
-    $self->install_attr($comp, $_, $attrs{$_}->@*) for keys %attrs;
-    monkey_patch $comp, %methods;
+    foreach my $name (keys %attrs) {
+      next if $self->data->{$comp}{override}{$name};
+      croak qq{Component $comp already "can" method "$name"} if $comp->can($name);
+      $self->install_attr($comp, $name, $attrs{$name}->@*);
+    }
+    foreach my $name (keys %methods) {
+      next if $self->data->{$comp}{override}{$name};
+      croak qq{Component $comp already "can" method "$name"} if $comp->can($name);
+      monkey_patch $comp, $name, $methods{$name};
+    }
     push @hslots, [$comp, [$rex->hooks($role)]];
   }
 
