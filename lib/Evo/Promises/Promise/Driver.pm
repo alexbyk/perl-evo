@@ -1,5 +1,6 @@
 package Evo::Promises::Promise::Driver;
-use Evo '-Role *; -Promises::Sync; -Promises::Util FULFILLED REJECTED PENDING';
+use Evo '-Role *; -Promises::Sync';
+use Evo '-Promises::Util FULFILLED REJECTED PENDING promises_resolve promises_reject';
 use Carp 'croak';
 use Scalar::Util 'blessed';
 
@@ -19,6 +20,17 @@ sub value($self) : Role {
 sub reason($self) : Role {
   croak "$self isn't rejected" unless $self->state eq REJECTED;
   $self->d_v;
+}
+
+
+sub fin($self, $fn) : Role {
+  my $onF = sub($v) {
+    promises_resolve($fn->())->then(sub {$v});
+  };
+  my $onR = sub($r) {
+    promises_resolve($fn->())->then(sub { promises_reject($r) });
+  };
+  $self->then($onF, $onR);
 }
 
 sub catch : Role { shift->then(undef, shift) }
@@ -87,6 +99,7 @@ sub d_resolve($self, $x) : Role {
       $x = $sync->v;    # and next, but it's already last in loop
       next;
     }
+
     # 2.3.3.4
     return $self->d_fulfill($x);
   }

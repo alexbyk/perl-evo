@@ -26,13 +26,13 @@ sub is_rejected_with($v, $p) : Export {
   return defined $dv ? $v eq $dv : !defined $dv;
 }
 
-sub promise_resolve($v) : Export {
+sub promises_resolve($v) : Export {
   my $d = Evo::Promises::Deferred::new(promise => Evo::Promises::Promise::new());
   $d->resolve($v);
   $d->promise;
 }
 
-sub promise_reject($v) : Export {
+sub promises_reject($v) : Export {
   my $d = Evo::Promises::Deferred::new(promise => Evo::Promises::Promise::new());
   $d->reject($v);
   $d->promise;
@@ -84,6 +84,7 @@ sub promises_all : Export {
   }
   $d->promise;
 }
+
 
 
 1;
