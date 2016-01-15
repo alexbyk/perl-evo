@@ -62,6 +62,8 @@ sub import {
 
 =head1 DESCRIPTION
 
+=for HTML <p><img src="https://raw.github.com/alexbyk/perl-evo/master/demo.gif" alt="Perl Evo gif" /></p>
+
 This framowerk opens new age of perl programming
 It provides rewritten and postmodern features like
 

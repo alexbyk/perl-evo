@@ -49,5 +49,12 @@ FATAL: {
 use Evo 'My::Foo; -My::Bar *;';
 use Evo 'My::Foo; -My::Bar';
 
+# one string
+{
+  package My::Foo;
+  use Evo '-Export *; -Realm ';
+  use Evo '-Export *; -Realm;';
+  use Evo '-Export *; -Realm; ';
+}
 
 done_testing;
