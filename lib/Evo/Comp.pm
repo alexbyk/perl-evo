@@ -126,14 +126,16 @@ Can be 'rw' or 'ro'; Unlike Perl6 is 'rw' by default
 
 Attribute will be filled with this value if isn't provided to the C<new> constructor You can't use references, but you can provide a coderef instead of value, in this case return value of an invocation of this function will be used.
 
-
-  has ref => sub { {} };
-  has ref => sub { {} };
+  # pay attention, no argument passed here
+  has ref => sub() { {} };
+  has foo => default => sub() { [] };
 
 =head4 lazy
 
-Like default, but won't be filled at the first invocation, not in constructor.
-  
+Like default, but will be filled at the first invocation, not in constructor, and an instance will be passed as the argument
+ 
+  # pay attention, an instance is passed
+  has foo => lazy => sub($self) { [] };
 
 =head4 required
 
