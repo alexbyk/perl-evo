@@ -180,4 +180,16 @@ Load role and install all methods and attributes to the component. Supports L<Ev
 
 Circular requirements can be solved by requiring roles in the single C<with>. See L<Evo::Comp::Role/"requires">
 
+=head2 overrides
+
+  override qw(foo bar);
+
+Mark names as overriden. Use it before L</"with">. You can also use C<Override> attribute, wich is preferred. See L<Evo::Comp::Role/"Overriding methods">
+
+=head1 CODE ATTRIBUTES
+
+  sub foo : Override { 'OVERRIDEN'; }
+
+Mark name as overriden. See L<Evo::Comp::Role/"Overriding methods">
+
 =cut

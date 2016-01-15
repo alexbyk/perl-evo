@@ -3,6 +3,7 @@ use Evo;
 use Evo::Comp::Role '*';
 
 has 'foo';
+has 'overriden_attr' => 'bad';
 
 role_methods('foo_bar');
 

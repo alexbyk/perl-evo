@@ -184,4 +184,37 @@ C<:Role> attribute is preffered
 List method that should be available in component during role installation.
 If you require attribute, describe it before L</"with">. If you have circular dependencies, load all roles in the single L</"with">.
 
+
+=head2 Overriding methods
+
+It's possible to override method in the derived class. By default you're protected from method clashing. But you can override role methods with L<Evo::Comp::Role/"overrides"> or C<Override> subroutine attribute. And because components are flat, you can easely acces role's methods (just like SUPER) - just use C<Role::Package::name> syntax.
+
+  package main;
+  use Evo;
+
+  {
+
+    package MyRole;
+    use Evo '-Comp::Role *; -Loaded';
+    has foo => 'FOO';
+    sub bar : Role : {'BAR'}
+
+
+    package MyComp;
+    use Evo '-Comp *';
+
+    overrides qw(foo);
+    with 'MyRole';
+
+    sub foo : Override { 'OVERRIDEN'; }
+    sub bar : Override { 'OVERRIDEN' . ' ' . MyRole::bar(); }
+  };
+
+
+  my $comp = MyComp::new();
+  say $comp->foo;    # OVERRIDEN
+  say $comp->bar;    # OVERRIDEN BAR
+
+Many overriden methods is a signal for refactoring. But sometimes it's ok to provide a "default" method for testing, or override 3d party library
+
 =cut
