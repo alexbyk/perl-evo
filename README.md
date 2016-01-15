@@ -13,6 +13,8 @@ It provides rewritten and postmodern features like
 - Exception handling in pure perl: [Evo::Eval](https://metacpan.org/pod/Evo::Eval), "try catch" alternative. Like `Try::Tiny`, but without it's bugs and much faster
 - [Evo::Ee](https://metacpan.org/pod/Evo::Ee) - a component role that gives your component "EventEmitter" abilities
 
+![GIF Demo](https://raw.github.com/alexbyk/perl-evo/master/demo.gif)
+
 ## AUTHOR
 
 alexbyk.com
