@@ -1,11 +1,10 @@
 package main;
-use Evo '-Net::Util *; -Loop *';
-use Socket ':all';
-use Test::More;
-use Test::Fatal;
-use Errno 'EINVAL';
+use Evo '-Net::Util *; -Loop *; -Net::Socket';
+use Evo 'Socket :all; Test::More; Test::Fatal; Errno EINVAL';
 
-my $HAS_REUSEPORT = eval { my $v = SO_REUSEPORT(); 1 };
+my $HAS_REUSEPORT = eval { my $v = SO_REUSEPORT(); 1 } or diag "NO REUSEPORT $@";
+my $CAN_REUSEPORT6 = eval { Evo::Net::Socket::new()->socket_open()->socket_reuseport; 1 }
+  or diag "CAN'T REUSEPORT6 $@";
 
 my $LAST;
 {
@@ -31,10 +30,10 @@ LISTEN_OPTS: {
   like exception { $serv->s_listen(ip => '::1', bad => 'foo') }, qr/unknown.+bad.+$0/;
 
   my $sock = $serv->s_listen(ip => '::1');
-  is $sock->socket_reuseaddr, 1;
-  is $sock->non_blocking,     1;
-  is $sock->socket_nodelay,   1;
-  is $sock->socket_reuseport, 0 if $HAS_REUSEPORT;
+  ok $sock->socket_reuseaddr;
+  ok $sock->non_blocking;
+  ok $sock->socket_nodelay;
+  ok !$sock->socket_reuseport if $HAS_REUSEPORT;
 
   # passed with ip
   $sock = $serv->s_listen(ip => '::1', reuseaddr => 0, nodelay => 0);
@@ -49,10 +48,10 @@ LISTEN_OPTS: {
 
   # with wildcard
   $sock = $serv->s_listen(ip => '*');
-  is $sock->socket_reuseaddr, 1;
-  is $sock->non_blocking,     1;
-  is $sock->socket_nodelay,   1;
-  is $sock->socket_reuseport, 0 if $HAS_REUSEPORT;
+  ok $sock->socket_reuseaddr;
+  ok $sock->non_blocking;
+  ok $sock->socket_nodelay;
+  ok !$sock->socket_reuseport if $HAS_REUSEPORT;
   is [$sock->socket_local]->[0], '::';
 }
 
