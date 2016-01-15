@@ -3,9 +3,9 @@ use Test::More;
 use Evo::Loop qw(
   loop_start
   loop_timer loop_timer_remove
-  loop_handle_error  loop_handle_remove_all
-  loop_handle_in loop_handle_remove_in
-  loop_handle_out loop_handle_remove_out
+  loop_io_error loop_io_remove_all
+  loop_io_in loop_io_remove_in
+  loop_io_out loop_io_remove_out
   loop_postpone
   loop_zone
 );

@@ -6,7 +6,7 @@ use Time::HiRes 'usleep';
 has is_running => 0;
 has tick_time => \&steady_time, is => 'rw';
 
-with 'Evo::Loop::Role::Zone', 'Evo::Loop::Role::Timer', 'Evo::Loop::Role::Handle',
+with 'Evo::Loop::Role::Zone', 'Evo::Loop::Role::Timer', 'Evo::Loop::Role::Io',
   'Evo::Loop::Role::Postpone';
 
 sub update_tick_time { shift->tick_time(steady_time()); }
@@ -15,25 +15,25 @@ sub update_tick_time { shift->tick_time(steady_time()); }
 sub tick($self) {
   $self->update_tick_time();
 
-  my $handle_count   = $self->handle_count;
+  my $io_count       = $self->io_count;
   my $timer_count    = $self->timer_count;
   my $postpone_count = $self->postpone_count;
-  return unless $postpone_count || $handle_count || $timer_count;
+  return unless $postpone_count || $io_count || $timer_count;
 
   $self->timer_process();
-  $self->handle_process();
+  $self->io_process();
   $self->postpone_process();
 
-  return $self->handle_count + $self->timer_count + $self->postpone_count;
+  return $self->io_count + $self->timer_count + $self->postpone_count;
 }
 
-# sleep in usleep or in handle_process. Assumming there is at least some event
+# sleep in usleep or in io_process. Assumming there is at least some event
 sub maybe_sleep($self) {
   $self->update_tick_time;
-  my ($tc, $sc) = ($self->timer_count(), $self->handle_count());
+  my ($tc, $sc) = ($self->timer_count(), $self->io_count());
 
-  if    ($sc && $tc)  { $self->handle_process($self->timer_calculate_timeout()); }
-  elsif ($sc && !$tc) { $self->handle_process(-1); }
+  if    ($sc && $tc)  { $self->io_process($self->timer_calculate_timeout()); }
+  elsif ($sc && !$tc) { $self->io_process(-1); }
   elsif (!$sc && $tc) {
     my $timeout = int($self->timer_calculate_timeout * 1_000_000);
     usleep($timeout) if $timeout;

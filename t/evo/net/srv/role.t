@@ -68,7 +68,7 @@ LISTEN_RUNNING: {
     sub {
       my $sock = $srv->srv_listen(ip => '::1');
       is_deeply $srv->srv_sockets, [$sock];
-      is_deeply $loop->handle_count, 1;
+      is_deeply $loop->io_count, 1;
     }
   );
 }
@@ -80,7 +80,7 @@ LISTEN_STOPPED: {
     sub {
       my $sock = $srv->srv_listen(ip => '::1');
       is_deeply $srv->srv_sockets, [$sock];
-      is_deeply $loop->handle_count, 0;
+      is_deeply $loop->io_count, 0;
     }
   );
 }
@@ -96,12 +96,12 @@ START_STOP: {
       $srv->srv_stop();
       like exception { $srv->srv_stop }, qr/already/;
       ok !$srv->srv_is_running;
-      is $loop->handle_count, 0;
+      is $loop->io_count, 0;
 
       $srv->srv_start();
       like exception { $srv->srv_start }, qr/already/;
       ok $srv->srv_is_running;
-      is $loop->handle_count, 3;
+      is $loop->io_count, 3;
 
     }
   );

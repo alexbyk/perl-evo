@@ -32,10 +32,10 @@ sub _gen_sock($family, $o) {
 sub srv_handle_error($self, $sock, $err) : Role { $self->srv_remove_socket($sock); }
 
 sub srv_start_watching($self, $sock) : Role {
-  loop_handle_in $sock, sub { $self->srv_accept_socket($sock) };
-  loop_handle_error $sock, sub { $self->srv_handle_error($sock, "Unknown") };
+  loop_io_in $sock, sub { $self->srv_accept_socket($sock) };
+  loop_io_error $sock, sub { $self->srv_handle_error($sock, "Unknown") };
 }
-sub srv_stop_watching($self, $sock) : Role { loop_handle_remove_all $sock; }
+sub srv_stop_watching($self, $sock) : Role { loop_io_remove_all $sock; }
 
 sub srv_stop($self) : Role {
   croak "already stopped" unless $self->srv_is_running;

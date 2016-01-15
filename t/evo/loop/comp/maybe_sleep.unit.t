@@ -18,13 +18,13 @@ MAYBE_SLEEP_CALL_UTT: {
 }
 
 my ($got_sp, $got_usleep);
-local *Evo::Loop::Comp::handle_process = sub { $got_sp     = $_[1] };
+local *Evo::Loop::Comp::io_process = sub { $got_sp     = $_[1] };
 local *Evo::Loop::Comp::usleep         = sub { $got_usleep = $_[0] };
 
 Y_SOCK_Y_TIMERS: {
   ($got_sp, $got_usleep) = ();
   my $loop = Evo::Loop::Comp::new();
-  local *Evo::Loop::Comp::handle_count            = sub {1};
+  local *Evo::Loop::Comp::io_count            = sub {1};
   local *Evo::Loop::Comp::timer_count             = sub {1};
   local *Evo::Loop::Comp::timer_calculate_timeout = sub {1.23};
   $loop->maybe_sleep;
@@ -35,7 +35,7 @@ Y_SOCK_Y_TIMERS: {
 Y_SOCK_N_TIMERS: {
   ($got_sp, $got_usleep) = ();
   my $loop = Evo::Loop::Comp::new();
-  local *Evo::Loop::Comp::handle_count = sub {1};
+  local *Evo::Loop::Comp::io_count = sub {1};
   local *Evo::Loop::Comp::timer_count  = sub {0};
   $loop->maybe_sleep;
   is $got_usleep, undef;
@@ -45,7 +45,7 @@ Y_SOCK_N_TIMERS: {
 N_SOCK_Y_TIMERS: {
   ($got_sp, $got_usleep) = ();
   my $loop = Evo::Loop::Comp::new();
-  local *Evo::Loop::Comp::handle_count            = sub {0};
+  local *Evo::Loop::Comp::io_count            = sub {0};
   local *Evo::Loop::Comp::timer_count             = sub {1};
   local *Evo::Loop::Comp::timer_calculate_timeout = sub {1.23};
   $loop->maybe_sleep;
