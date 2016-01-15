@@ -1,5 +1,7 @@
 package Evo::Promises;
-use Evo '-Export *; :Deferred; :Promise';
+use Evo '-Export *; :Deferred; :Promise; :Util *';
+
+export_proxy ':Util', qw(promise_reject promise_resolve promises_all promises_race);
 
 sub promise($fn) : Export {
   my $d = Evo::Promises::Deferred::new(promise => my $p = Evo::Promises::Promise::new());
@@ -9,53 +11,6 @@ sub promise($fn) : Export {
 
 sub deferred : Export :
   prototype() { Evo::Promises::Deferred::new(promise => Evo::Promises::Promise::new()); }
-
-sub promises_race : Export {
-  my $d   = deferred;
-  my $onF = sub { $d->resolve(@_) };
-  my $onR = sub { $d->reject(@_) };
-  foreach my $cur (@_) {
-    if (ref $cur eq 'Evo::Promises::Promise') {
-      $cur->then($onF, $onR);
-    }
-    else {
-      # wrap with our promise
-      my $wd = deferred;
-      $wd->promise->then($onF, $onR);
-      $wd->resolve($cur);
-    }
-  }
-
-  $d->promise;
-}
-
-sub promises_all : Export {
-  my $d = deferred;
-  do { $d->resolve([]); return $d->promise; } unless @_;
-
-  my @prms    = @_;
-  my $pending = @prms;
-
-  my @result;
-  my $onR = sub { $d->reject($_[0]) };
-
-  for (my $i = 0; $i < @prms; $i++) {
-    my $cur_i = $i;
-    my $cur_p = $prms[$cur_i];
-    my $onF   = sub { $result[$cur_i] = $_[0]; $d->resolve(\@result) if --$pending == 0; };
-
-    if (ref $cur_p eq 'Evo::Promises::Promise') {
-      $cur_p->then($onF, $onR);
-    }
-    else {
-      # wrap with our promise
-      my $wd = deferred;
-      $wd->promise->then($onF, $onR);
-      $wd->resolve($cur_p);
-    }
-  }
-  $d->promise;
-}
 
 1;
 

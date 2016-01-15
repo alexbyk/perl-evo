@@ -1,5 +1,5 @@
 package main;
-use Evo '-Promises::Util *; -Promises::Promise';
+use Evo '-Promises::Util *; -Promises::Promise; -Promises *';
 use Test::More;
 
 *p = *Evo::Promises::Promise::new;
@@ -21,6 +21,14 @@ unshift $par->d_children->@*, $ch;
 ok is_locked_in($par, $ch);
 ok !is_locked_in(p(), $ch);
 
+# resolved/rejected
+ok is_fulfilled_with 33, promise_resolve(33);
+ok is_rejected_with 44,  promise_reject(44);
+
+# resolve will follow, reject not
+my $p = promise(sub { });
+ok is_locked_in $p,     promise_resolve($p);
+ok is_rejected_with $p, promise_reject($p);
 done_testing;
 
 1;

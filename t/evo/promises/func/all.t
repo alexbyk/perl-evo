@@ -9,7 +9,6 @@ EMPTY: {
   is_deeply $result, [];
 }
 
-
 RESOLVE_ORDER: {
   my ($d1, $d2, $d3) = (deferred, deferred, deferred);
   my ($result, $called);
