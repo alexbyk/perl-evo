@@ -1,7 +1,7 @@
 package Evo::Comp::Hash;
 use Evo '-Export *';
 use Evo::Lib 'monkey_patch';
-use Evo '::Gen::Hash GEN; ::Role ROLE_EXPORTER';
+use Evo '::Gen::Hash GEN; -Role ROLE_EXPORTER';
 use Evo '::Meta';
 
 my $META = Evo::Comp::Meta::new(gen => GEN, rex => ROLE_EXPORTER);

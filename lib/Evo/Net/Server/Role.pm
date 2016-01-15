@@ -1,5 +1,5 @@
 package Evo::Net::Server::Role;
-use Evo '-Comp::Role *; -Loop *; -Net::Socket; -Net::Util *; Carp croak';
+use Evo '-Role *; -Loop *; -Net::Socket; -Net::Util *; Carp croak';
 use Errno qw( EAGAIN EWOULDBLOCK );
 use Socket qw( AF_INET AF_INET6 SOL_SOCKET SOMAXCONN);
 use Scalar::Util 'weaken';

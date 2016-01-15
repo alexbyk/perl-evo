@@ -1,6 +1,6 @@
 package Test::Evo::Helpers;
 use Evo '-Export *';
-use Evo '-Comp::Meta; -Comp::Role::Exporter';
+use Evo '-Comp::Meta; -Role::Exporter';
 
 
 sub comp_meta : Export {
@@ -11,7 +11,7 @@ sub comp_meta : Export {
     };
   }
 
-  Evo::Comp::Meta::new(gen => \%gen, rex => Evo::Comp::Role::Exporter::new());
+  Evo::Comp::Meta::new(gen => \%gen, rex => Evo::Role::Exporter::new());
 }
 
 1;

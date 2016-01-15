@@ -1,5 +1,5 @@
 package Evo::Net::Socket::Role;
-use Evo '-Comp::Role *; -Net::Util *; Symbol gensym; Carp croak';
+use Evo '-Role *; -Net::Util *; Symbol gensym; Carp croak';
 use Socket qw(
   SOCK_STREAM AF_INET AF_INET6 SOL_SOCKET IPPROTO_TCP TCP_NODELAY
   SO_REUSEADDR SO_REUSEPORT SO_DOMAIN SO_TYPE SO_PROTOCOL SO_SNDBUF SO_RCVBUF

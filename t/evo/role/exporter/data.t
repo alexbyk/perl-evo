@@ -2,7 +2,7 @@ package main;
 use Evo;
 use Test::More;
 use Test::Fatal;
-use Evo::Comp::Role::Exporter;
+use Evo::Role::Exporter;
 
 {
 
@@ -15,7 +15,7 @@ use Evo::Comp::Role::Exporter;
 }
 
 ERRORS: {
-  my $obj = Evo::Comp::Role::Exporter::new();
+  my $obj = Evo::Role::Exporter::new();
 
   # methods
   like exception { $obj->add_methods('My::Role', 'not_existing'); }, qr/method.+not_existing.+$0/i;
@@ -33,7 +33,7 @@ ERRORS: {
 }
 
 GEN: {
-  my $obj = Evo::Comp::Role::Exporter::new();
+  my $obj = Evo::Role::Exporter::new();
   $obj->add_gen(
     'My::Role',
     gm => sub {
@@ -49,7 +49,7 @@ GEN: {
 
 
 OK: {
-  my $obj = Evo::Comp::Role::Exporter::new();
+  my $obj = Evo::Role::Exporter::new();
   $obj->add_attr('My::Role', 'attr1', is => 'rw');
   $obj->add_attr('My::Role', 'attr2', is => 'ro');
   $obj->add_methods('My::Role', qw(foo bar));

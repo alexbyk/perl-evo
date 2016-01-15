@@ -1,4 +1,4 @@
-package Evo::Comp::Role::Exporter;
+package Evo::Role::Exporter;
 use Evo;
 use Evo::Util;
 use Carp 'croak';

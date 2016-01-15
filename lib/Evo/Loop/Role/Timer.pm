@@ -1,5 +1,5 @@
 package Evo::Loop::Role::Timer;
-use Evo '-Comp::Role *';
+use Evo '-Role *';
 use List::Util 'first';
 
 requires qw(zone_cb tick_time);

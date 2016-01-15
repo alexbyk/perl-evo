@@ -2,7 +2,7 @@ package main;
 use Evo;
 use Test::More;
 use Test::Fatal;
-use Evo::Comp::Role::Exporter;
+use Evo::Role::Exporter;
 
 {
 
@@ -16,11 +16,11 @@ use Evo::Comp::Role::Exporter;
 
 }
 
-my $obj = Evo::Comp::Role::Exporter::new();
+my $obj = Evo::Role::Exporter::new();
 
 no warnings 'redefine';
 my $loaded;
-local *Evo::Comp::Role::Exporter::load = sub { $loaded++ };
+local *Evo::Role::Exporter::load = sub { $loaded++ };
 
 $obj->add_methods('My::Role1', 'm1');
 $obj->add_attr('My::Role1', 'a1', is => 'rw');

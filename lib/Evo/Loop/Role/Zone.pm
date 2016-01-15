@@ -1,5 +1,5 @@
 package Evo::Loop::Role::Zone;
-use Evo '-Comp::Role *';
+use Evo '-Role *';
 use Evo::Lib '*';
 use Carp 'croak';
 

@@ -1,5 +1,5 @@
 package Evo::Loop::Role::Postpone;
-use Evo '-Comp::Role *';
+use Evo '-Role *';
 
 requires qw(zone_cb);
 

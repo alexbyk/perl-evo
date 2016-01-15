@@ -1,5 +1,5 @@
 package Evo::Loop::Role::Handle;
-use Evo '-Comp::Role *';
+use Evo '-Role *';
 use Carp 'croak';
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 

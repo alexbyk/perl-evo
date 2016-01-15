@@ -6,7 +6,7 @@ use Test::Fatal;
 {
 
   package My::Role;
-  use Evo '-Comp::Role *; -Loaded';
+  use Evo '-Role *; -Loaded';
   has 'foo', 'foov';
   sub foo_uc : Role { uc shift->foo }
   role_gen gm => sub {
@@ -15,7 +15,7 @@ use Test::Fatal;
   };
 
   package My::PRole;
-  use Evo '-Comp::Role *; -Loaded';
+  use Evo '-Role *; -Loaded';
   has 'own', 'ownv';
   role_proxy 'My::Role';
 

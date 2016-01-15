@@ -1,13 +1,13 @@
-package Evo::Comp::Role;
+package Evo::Role;
 use Evo '-Export *';
-use Evo::Comp::Role::Exporter;
+use Evo::Role::Exporter;
 use Carp 'croak';
 use Evo::Util;
 use Module::Load 'load';
 
 our @CARP_NOT = ('Evo::Util');
 
-use constant ROLE_EXPORTER => Evo::Comp::Role::Exporter::new();
+use constant ROLE_EXPORTER => Evo::Role::Exporter::new();
 export 'ROLE_EXPORTER';
 
 export_gen has => sub($class) {
@@ -59,7 +59,7 @@ export_anon MODIFY_CODE_ATTRIBUTES => sub($class, $code, @attrs) {
   {
 
     package Person::Human;
-    use Evo '-Comp::Role *; -Loaded';
+    use Evo '-Role *; -Loaded';
     has 'name';
     sub upper_name : Role { uc shift->name }
 
@@ -95,7 +95,7 @@ To share method, add C<Role> tag. All attributes are shared automatically. In ou
 
     # Person/Human.pm
     package Person::Human;
-    use Evo '-Comp::Role *';
+    use Evo '-Role *';
     has 'name';
     sub upper_name : Role { uc shift->name }
 
@@ -111,7 +111,7 @@ See L<Evo::Comp/"with">.
 
 =head3 shortcuts
 
-C<Evo::Comp::Role> supports shortcuts, here C<:Human> in C<Person> is resolved to C<Person::Human>. This helps a lot during refactoring. See L<Evo/"shortcuts"> for more information
+C<Evo::Role> supports shortcuts, here C<:Human> in C<Person> is resolved to C<Person::Human>. This helps a lot during refactoring. See L<Evo/"shortcuts"> for more information
 
 =head3 storage agnostic
 
@@ -143,12 +143,12 @@ Let's separate C<Person::Human> into 2 different roles;
 
     # Person/Human.pm
     package Person::Human;
-    use Evo '-Comp::Role *';
+    use Evo '-Role *';
     has 'name';
 
     # Person/LoudHuman.pm
     package Person::LoudHuman;
-    use Evo '-Comp::Role *';
+    use Evo '-Role *';
 
     requires 'name';
     sub upper_name : Role { uc shift->name }
@@ -187,7 +187,7 @@ If you require attribute, describe it before L</"with">. If you have circular de
 
 =head2 Overriding methods
 
-It's possible to override method in the derived class. By default you're protected from method clashing. But you can override role methods with L<Evo::Comp::Role/"overrides"> or C<Override> subroutine attribute. And because components are flat, you can easely acces role's methods (just like SUPER) - just use C<Role::Package::name> syntax.
+It's possible to override method in the derived class. By default you're protected from method clashing. But you can override role methods with L<Evo::Role/"overrides"> or C<Override> subroutine attribute. And because components are flat, you can easely acces role's methods (just like SUPER) - just use C<Role::Package::name> syntax.
 
   package main;
   use Evo;
@@ -195,7 +195,7 @@ It's possible to override method in the derived class. By default you're protect
   {
 
     package MyRole;
-    use Evo '-Comp::Role *; -Loaded';
+    use Evo '-Role *; -Loaded';
     has foo => 'FOO';
     sub bar : Role : {'BAR'}
 

@@ -1,5 +1,5 @@
 package Evo::Promises::Promise::Driver;
-use Evo '-Comp::Role *; -Promises::Sync; -Promises::Util FULFILLED REJECTED PENDING';
+use Evo '-Role *; -Promises::Sync; -Promises::Util FULFILLED REJECTED PENDING';
 use Carp 'croak';
 use Scalar::Util 'blessed';
 

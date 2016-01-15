@@ -57,7 +57,7 @@ The most problems with Moose like modules is with initialization. Let's take a l
 
 As you can see, we passed C<fo> instead of C<foo>, and Moose silently ignored it. You should write a huge amout of extra tests to pervent such errors.
 
-Also traditional OO programming suffers the fragile base class problems (use Google). To solve it, component oriented C<Evo::Comp> introduces flexible component roles L<Evo::Comp::Role>. 
+Also traditional OO programming suffers the fragile base class problems (use Google). To solve it, component oriented C<Evo::Comp> introduces flexible component roles L<Evo::Role>. 
 
 So I decided to write all the stuff and name it component oriented programming. More explanation will be written later
 
@@ -167,7 +167,7 @@ You can also return C<(0, "CustomError")> to provide more expressive explanation
 
 =head1 Code reuse
 
-Instead of OO inheritance, wich suffers from fragile base class problem, C<Evo::Comp> provides L<Evo::Comp::Role>. This is a perfect choice for code reuse because of it's safety and flexibility. Look at L<Evo::Comp::Role> for more information
+Instead of OO inheritance, wich suffers from fragile base class problem, C<Evo::Comp> provides L<Evo::Role>. This is a perfect choice for code reuse because of it's safety and flexibility. Look at L<Evo::Role> for more information
 
 =head2 with
 
@@ -178,18 +178,18 @@ Load role and install all methods and attributes to the component. Supports L<Ev
 
     with ':LoudHuman', ':Human';
 
-Circular requirements can be solved by requiring roles in the single C<with>. See L<Evo::Comp::Role/"requires">
+Circular requirements can be solved by requiring roles in the single C<with>. See L<Evo::Role/"requires">
 
 =head2 overrides
 
   override qw(foo bar);
 
-Mark names as overriden. Use it before L</"with">. You can also use C<Override> attribute, wich is preferred. See L<Evo::Comp::Role/"Overriding methods">
+Mark names as overriden. Use it before L</"with">. You can also use C<Override> attribute, wich is preferred. See L<Evo::Role/"Overriding methods">
 
 =head1 CODE ATTRIBUTES
 
   sub foo : Override { 'OVERRIDEN'; }
 
-Mark name as overriden. See L<Evo::Comp::Role/"Overriding methods">
+Mark name as overriden. See L<Evo::Role/"Overriding methods">
 
 =cut

@@ -1,6 +1,6 @@
 package MyComp::MyRole;
 use Evo;
-use Evo::Comp::Role '*';
+use Evo::Role '*';
 
 has 'foo';
 has 'overriden_attr' => 'bad';

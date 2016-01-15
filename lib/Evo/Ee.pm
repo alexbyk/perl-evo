@@ -1,5 +1,5 @@
 package Evo::Ee;
-use Evo '-Comp::Role *';
+use Evo '-Role *';
 use Carp 'croak';
 use List::Util 'first';
 
