@@ -2,5 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0196    2016-01-16 10:01:56+02:00 Europe/Kiev
+
   - Added periodic timers
   - Implemented promises
