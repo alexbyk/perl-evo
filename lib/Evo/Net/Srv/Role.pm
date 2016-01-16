@@ -20,7 +20,7 @@ sub srv_streams($s, @conns) : Role {
 sub _gen_sock($family, $o) {
   my $sock
     = Evo::Net::Socket::new()->socket_open($family)->socket_nodelay(delete $o->{nodelay} // 1)
-    ->socket_reuseaddr(delete $o->{reuseaddr} // 1)->non_blocking(1);
+    ->socket_reuseaddr(delete $o->{reuseaddr} // 1)->io_non_blocking(1);
 
   # not always supported
   $sock->socket_reuseport(1) if delete $o->{reuseport};
@@ -57,7 +57,7 @@ sub srv_accept($self, $sock) : Role {
   while ($child = $sock->socket_accept()) {
 
     # handle accept should return new socket, probably bless this one
-    $child = $self->srv_handle_accept($child->non_blocking(1));
+    $child = $self->srv_handle_accept($child->io_non_blocking(1));
     $self->srv_streams($child);
   }
   return if $! == EAGAIN || $! == EWOULDBLOCK;

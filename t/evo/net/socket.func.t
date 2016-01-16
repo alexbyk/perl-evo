@@ -21,7 +21,7 @@ OPTS: {
   ok $sock->socket_reuseport(1)->socket_reuseport if $CAN_REUSEPORT6;
 
   # rw fcntl
-  ok $sock->non_blocking(1)->non_blocking;
+  ok $sock->io_non_blocking(1)->io_non_blocking;
 
   # defaults
   $sock = Evo::Net::Socket::new()->socket_open();
@@ -29,7 +29,7 @@ OPTS: {
   is $sock->socket_type, SOCK_STREAM;
   is $sock->socket_protocol, IPPROTO_TCP;
   ok !$sock->socket_nodelay;
-  ok !$sock->non_blocking;
+  ok !$sock->io_non_blocking;
   ok !$sock->socket_reuseaddr;
   ok !$sock->socket_reuseport if $HAS_REUSEPORT;
 

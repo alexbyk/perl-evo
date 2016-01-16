@@ -37,7 +37,7 @@ LISTEN_OPTS: {
 
   my $sock = $srv->srv_listen(ip => '::1');
   ok $sock->socket_reuseaddr;
-  ok $sock->non_blocking;
+  ok $sock->io_non_blocking;
   ok $sock->socket_nodelay;
   ok !$sock->socket_reuseport if $HAS_REUSEPORT;
 
@@ -55,7 +55,7 @@ LISTEN_OPTS: {
   # with wildcard
   $sock = $srv->srv_listen(ip => '*');
   ok $sock->socket_reuseaddr;
-  ok $sock->non_blocking;
+  ok $sock->io_non_blocking;
   ok $sock->socket_nodelay;
   ok !$sock->socket_reuseport if $HAS_REUSEPORT;
   is [$sock->socket_local]->[0], '::';
@@ -133,7 +133,7 @@ ACCEPT: {
   $srv->srv_accept($sock);
   is_deeply [$LAST->socket_local],  [$cl1->socket_remote];
   is_deeply [$LAST->socket_remote], [$cl1->socket_local];
-  ok $LAST->non_blocking;
+  ok $LAST->io_non_blocking;
   ok $LAST->socket_nodelay;
 }
 

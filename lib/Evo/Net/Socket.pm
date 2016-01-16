@@ -1,7 +1,7 @@
 package Evo::Net::Socket;
 use Evo '-Comp::Out *; Symbol gensym';
 
-with ':Role';
+with ':Role', '-Io::Role';
 
 our @CARP_NOT = qw(Evo::Net::Server::Role);
 
