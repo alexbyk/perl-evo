@@ -1,12 +1,21 @@
-use Evo 'Test::More; -Promises *; -Loop *';
+use Evo 'Test::More; -Promise *; -Loop *';
 
 
 EMPTY: {
   my ($called, $result);
-  my $p = promises_all()->then(sub { $called++; $result = shift; });
+  my $p = promise_all()->then(sub { $called++; $result = shift; });
   loop_start();
   is $called, 1;
   is_deeply $result, [];
+}
+
+WITH_SPREAD: {
+  my ($called, %result);
+  my $p = promise_all(one => promise_resolve(1), two => 2)
+    ->spread(sub(%res) { $called++; %result = %res; });
+  loop_start();
+  is $called, 1;
+  is_deeply \%result, {one => 1, two => 2};
 }
 
 RESOLVE_ORDER: {
@@ -14,7 +23,7 @@ RESOLVE_ORDER: {
   my ($result, $called);
   no warnings 'once';
   local *My::Thenable::then = sub($th, $res, $rej) { $res->('5th') };
-  promises_all($d1->promise, $d2->promise, $d3->promise, 4, bless {}, 'My::Thenable')
+  promise_all($d1->promise, $d2->promise, $d3->promise, 4, bless {}, 'My::Thenable')
     ->then(sub { $called++; $result = shift; });
 
   loop_start;
@@ -46,7 +55,7 @@ RESOLVE_ORDER: {
 REJECT_BY_PROMISE: {
   my ($d1, $d2, $d3, $d4) = (deferred, deferred, deferred, deferred);
   my ($reason, $called);
-  promises_all($d1->promise, $d2->promise, $d3->promise, $d4->promise)
+  promise_all($d1->promise, $d2->promise, $d3->promise, $d4->promise)
     ->then(sub {fail}, sub { $called++; $reason = shift; });
 
   $d1->resolve('v');
@@ -69,7 +78,7 @@ REJECT_BY_THENABLE: {
   my ($d1, $d2, $d3) = (deferred, deferred, deferred, deferred);
   my ($reason, $called);
 
-  promises_all($d1->promise, $d2->promise, $d3->promise, bless {}, 'My::Thenable')
+  promise_all($d1->promise, $d2->promise, $d3->promise, bless {}, 'My::Thenable')
     ->then(sub {fail}, sub { $called++; $reason = shift; });
 
   $d1->resolve('v');
@@ -92,7 +101,7 @@ REJECT_BY_DIED_THENABLE: {
   my ($d1, $d2) = (deferred, deferred);
   my ($reason, $called);
 
-  promises_all($d1->promise, $d2->promise, bless {}, 'My::Thenable')
+  promise_all($d1->promise, $d2->promise, bless {}, 'My::Thenable')
     ->then(sub {fail}, sub { $called++; $reason = shift; });
 
   loop_start;

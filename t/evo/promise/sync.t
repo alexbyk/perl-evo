@@ -1,5 +1,5 @@
 package main;
-use Evo '-Promises::Sync';
+use Evo '-Promise::Sync';
 use Test::More;
 
 my @calls;
@@ -20,7 +20,7 @@ my @calls;
   sub then { $_[0]->then_fn->(@_); }
 }
 
-sub gen() { Evo::Promises::Sync::new(promise => My::P::new()) }
+sub gen() { Evo::Promise::Sync::new(promise => My::P::new()) }
 
 ONCE: {
   my $d = gen;

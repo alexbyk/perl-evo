@@ -1,12 +1,12 @@
 package main;
-use Evo '-Promises::Util *;';
+use Evo '-Promise::Util *;';
 use Test::More;
 
 {
 
   package My::P;
   use Evo '-Comp *';
-  with '-Promises::Promise::Driver';
+  with '-Promise::Comp::Driver';
   sub loop_postpone { }
 }
 

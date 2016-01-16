@@ -1,8 +1,8 @@
-use Evo 'Test::More; -Promises *; -Loop *';
+use Evo 'Test::More; -Promise *; -Loop *';
 
 # fulfill chain
 F_FIN_RETURNS_VALUE: {
-  my $p = promises_resolve('VAL');
+  my $p = promise_resolve('VAL');
   my ($V, $called);
   $p->fin(sub() { $called++; "IGNORE" })->then(sub($v) { $V = $v; }, sub {fail});
   loop_start;
@@ -11,9 +11,9 @@ F_FIN_RETURNS_VALUE: {
 }
 
 F_FIN_RETURNS_PROMISE_F: {
-  my $p = promises_resolve('VAL');
+  my $p = promise_resolve('VAL');
   my ($called, $fcalled, $V);
-  $p->fin(sub() { $fcalled++; promises_resolve('IGNORE') })->then(sub($v) { $called++; $V = $v; });
+  $p->fin(sub() { $fcalled++; promise_resolve('IGNORE') })->then(sub($v) { $called++; $V = $v; });
   loop_start;
   is $called,  1;
   is $V,       'VAL';
@@ -22,9 +22,9 @@ F_FIN_RETURNS_PROMISE_F: {
 
 
 F_FIN_RETURNS_PROMISE_R: {
-  my $p = promises_resolve('BAD');
+  my $p = promise_resolve('BAD');
   my ($called, $fcalled, $R);
-  $p->fin(sub() { $fcalled++; promises_reject('REASON') })
+  $p->fin(sub() { $fcalled++; promise_reject('REASON') })
     ->then(sub {fail}, sub($r) { $called++; $R = $r; });
   loop_start;
   is $called,  1;
@@ -33,7 +33,7 @@ F_FIN_RETURNS_PROMISE_R: {
 }
 
 F_FIN_DIES: {
-  my $p = promises_resolve('BAD');
+  my $p = promise_resolve('BAD');
   my ($called, $fcalled, $R);
   $p->fin(sub() { $fcalled++; die "REASON\n" })->catch(sub($r) { $called++; $R = $r; });
   loop_start;
@@ -44,7 +44,7 @@ F_FIN_DIES: {
 
 # reject chain
 R_FIN_RETURNS_VALUE: {
-  my $p = promises_reject('REASON');
+  my $p = promise_reject('REASON');
   my ($reason, $fcalled);
   $p->fin(sub() { $fcalled++; "IGNORE" })->catch(sub($r) { $reason = $r; });
   loop_start;
@@ -53,25 +53,25 @@ R_FIN_RETURNS_VALUE: {
 }
 
 R_FIN_RETURNS_PROMISE_F: {
-  my $p = promises_reject('REASON');
+  my $p = promise_reject('REASON');
   my ($reason, $fcalled);
-  $p->fin(sub() { $fcalled++; promises_resolve('IGNORE') })->catch(sub($r) { $reason = $r; });
+  $p->fin(sub() { $fcalled++; promise_resolve('IGNORE') })->catch(sub($r) { $reason = $r; });
   loop_start;
   is $fcalled, 1;
   is $reason,  'REASON';
 }
 
 R_FIN_RETURNS_PROMISE_R: {
-  my $p = promises_reject('BAD');
+  my $p = promise_reject('BAD');
   my ($reason, $fcalled);
-  $p->fin(sub() { $fcalled++; promises_reject('REPLACED') })->catch(sub($r) { $reason = $r; });
+  $p->fin(sub() { $fcalled++; promise_reject('REPLACED') })->catch(sub($r) { $reason = $r; });
   loop_start;
   is $fcalled, 1;
   is $reason,  'REPLACED';
 }
 
 R_FIN_DIES: {
-  my $p = promises_reject('BAD');
+  my $p = promise_reject('BAD');
   my ($reason, $fcalled);
   $p->fin(sub { $fcalled++; die "REPLACED\n" })->catch(sub($r) { $reason = $r; });
   loop_start;

@@ -1,4 +1,4 @@
-package Evo::Promises::Deferred;
+package Evo::Promise::Deferred;
 use Evo '-Comp *';
 
 has 'promise', required => 1, is => 'ro';

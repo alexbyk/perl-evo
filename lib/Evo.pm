@@ -78,7 +78,7 @@ Post modern component oriented programming L<Evo::Comp> instead of OO
 (no docs yet) Fast Event-Loop L<Evo::Loop> with unique feature zones (Not ready)
 
 =item *
-Fast non recursive L<Evo::Promises>, 100% "Promises/Spec A" compatible
+Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible
 
 =item *
 Interesting L<Evo::Realm> design pattern, which is as handy as "Singleton" but without Sintleton's flaws. Testable and mockable alternative of the global class
@@ -124,7 +124,7 @@ Shortcuts are used to make life easily during code refactoring (and you module s
 
 C<-> is replaced by C<Evo>
 
-  use Evo '-Promises promise'; # "Evo::Promises promise"
+  use Evo '-Promise promise'; # "Evo::Promise promise"
 
 C<:> and C<::> make sense in the package and depends on the package name where is used
 

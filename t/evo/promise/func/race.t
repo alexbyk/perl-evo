@@ -1,8 +1,8 @@
-use Evo 'Test::More; -Promises *; -Loop *';
+use Evo 'Test::More; -Promise *; -Loop *';
 
 EMPTY: {
   my ($called);
-  my $p = promises_race()->then(sub { $called++; });
+  my $p = promise_race()->then(sub { $called++; });
   loop_start;
   ok !$called;
 }
@@ -11,7 +11,7 @@ EMPTY: {
 SIMPLE_VAL: {
   my ($called, $result);
   my $d = deferred;
-  my $p = promises_race('simple', $d->promise)->then(sub { $called++; $result = shift; });
+  my $p = promise_race('simple', $d->promise)->then(sub { $called++; $result = shift; });
   $d->resolve('bad');
   loop_start();
   is $called, 1;
@@ -20,7 +20,7 @@ SIMPLE_VAL: {
 
 RESOLVE_BY_PROMISE: {
   my ($d1, $d2, $d3) = (deferred, deferred, deferred);
-  my $p = promises_race($d1->promise, $d2->promise, $d3->promise);
+  my $p = promise_race($d1->promise, $d2->promise, $d3->promise);
   my ($called, $result);
   $p->then(sub { $called++; $result = shift }, sub {fail});
 
@@ -36,7 +36,7 @@ RESOLVE_BY_PROMISE: {
 
 RESOLVE_BY_PROMISE_WITH_PROMISE_AND_VAL: {
   my ($d1, $d2, $d3) = (deferred, deferred, deferred);
-  my $p = promises_race($d1->promise, $d2->promise, $d3->promise);
+  my $p = promise_race($d1->promise, $d2->promise, $d3->promise);
   my ($called, $result);
   $p->then(sub { $called++; $result = shift }, sub {fail});
 
@@ -53,7 +53,7 @@ RESOLVE_BY_PROMISE_WITH_PROMISE_AND_VAL: {
 
 REJECT_BY_PROMISE: {
   my ($d1, $d2, $d3) = (deferred, deferred, deferred);
-  my $p = promises_race($d1->promise, $d2->promise, $d3->promise);
+  my $p = promise_race($d1->promise, $d2->promise, $d3->promise);
   my ($called, $reason);
   $p->then(sub {fail}, sub { $called++; $reason = shift });
 
@@ -74,7 +74,7 @@ RESOLVE_BY_THENABLE: {
   local *My::Thenable::then = sub($th, $res, $rej) { $resolve = $res; };
   my $thenable = bless {}, 'My::Thenable';
   my ($d1, $d2) = (deferred, deferred);
-  my $p = promises_race($d1->promise, $d2->promise, $thenable);
+  my $p = promise_race($d1->promise, $d2->promise, $thenable);
   my ($called, $result);
   $p->then(sub { $called++; $result = shift }, sub {fail});
 
@@ -95,7 +95,7 @@ REJECT_BY_THENABLE: {
   local *My::Thenable::then = sub($th, $res, $rej) { $reject = $rej; };
   my $thenable = bless {}, 'My::Thenable';
   my ($d1, $d2) = (deferred, deferred);
-  my $p = promises_race($d1->promise, $d2->promise, $thenable);
+  my $p = promise_race($d1->promise, $d2->promise, $thenable);
   my ($called, $reason);
   $p->then(sub {fail}, sub { $called++; $reason = shift });
 

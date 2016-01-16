@@ -1,4 +1,4 @@
-package Evo::Promises::Util;
+package Evo::Promise::Util;
 use Evo '-Export *';
 use List::Util 'first';
 use Carp 'croak';
@@ -26,29 +26,29 @@ sub is_rejected_with($v, $p) : Export {
   return defined $dv ? $v eq $dv : !defined $dv;
 }
 
-sub promises_resolve($v) : Export {
-  my $d = Evo::Promises::Deferred::new(promise => Evo::Promises::Promise::new());
+sub promise_resolve($v) : Export {
+  my $d = Evo::Promise::Deferred::new(promise => Evo::Promise::Comp::new());
   $d->resolve($v);
   $d->promise;
 }
 
-sub promises_reject($v) : Export {
-  my $d = Evo::Promises::Deferred::new(promise => Evo::Promises::Promise::new());
+sub promise_reject($v) : Export {
+  my $d = Evo::Promise::Deferred::new(promise => Evo::Promise::Comp::new());
   $d->reject($v);
   $d->promise;
 }
 
-sub promises_race : Export {
-  my $d = Evo::Promises::Deferred::new(promise => Evo::Promises::Promise::new());
+sub promise_race : Export {
+  my $d = Evo::Promise::Deferred::new(promise => Evo::Promise::Comp::new());
   my $onF = sub { $d->resolve(@_) };
   my $onR = sub { $d->reject(@_) };
   foreach my $cur (@_) {
-    if (ref $cur eq 'Evo::Promises::Promise') {
+    if (ref $cur eq 'Evo::Promise::Comp') {
       $cur->then($onF, $onR);
     }
     else {
       # wrap with our promise
-      my $wd = Evo::Promises::Deferred::new(promise => Evo::Promises::Promise::new());
+      my $wd = Evo::Promise::Deferred::new(promise => Evo::Promise::Comp::new());
       $wd->promise->then($onF, $onR);
       $wd->resolve($cur);
     }
@@ -57,8 +57,8 @@ sub promises_race : Export {
   $d->promise;
 }
 
-sub promises_all : Export {
-  my $d = Evo::Promises::Deferred::new(promise => Evo::Promises::Promise::new());
+sub promise_all : Export {
+  my $d = Evo::Promise::Deferred::new(promise => Evo::Promise::Comp::new());
   do { $d->resolve([]); return $d->promise; } unless @_;
 
   my @prms    = @_;
@@ -72,12 +72,12 @@ sub promises_all : Export {
     my $cur_p = $prms[$cur_i];
     my $onF   = sub { $result[$cur_i] = $_[0]; $d->resolve(\@result) if --$pending == 0; };
 
-    if (ref $cur_p eq 'Evo::Promises::Promise') {
+    if (ref $cur_p eq 'Evo::Promise::Comp') {
       $cur_p->then($onF, $onR);
     }
     else {
       # wrap with our promise
-      my $wd = Evo::Promises::Deferred::new(promise => Evo::Promises::Promise::new());
+      my $wd = Evo::Promise::Deferred::new(promise => Evo::Promise::Comp::new());
       $wd->promise->then($onF, $onR);
       $wd->resolve($cur_p);
     }

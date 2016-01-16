@@ -1,10 +1,10 @@
-package Evo::Promises::Promise::Driver;
-use Evo '-Role *; -Promises::Sync';
-use Evo '-Promises::Util FULFILLED REJECTED PENDING promises_resolve promises_reject';
+package Evo::Promise::Comp::Driver;
+use Evo '-Role *; -Promise::Sync';
+use Evo '-Promise::Util FULFILLED REJECTED PENDING promise_resolve promise_reject';
 use Carp 'croak';
 use Scalar::Util 'blessed';
 
-# https://promisesaplus.com/
+# https://promiseaplus.com/
 
 has $_ for qw(d_v d_locked d_fh d_rh d_settled);
 has 'd_children' => sub { [] };
@@ -12,31 +12,35 @@ has 'state' => PENDING;
 
 #sub assert { shift or croak join '; ', caller() }
 
-sub value($self) : Role {
-  croak "$self isn't fulfilled" unless $self->state eq FULFILLED;
-  $self->d_v;
-}
-
-sub reason($self) : Role {
-  croak "$self isn't rejected" unless $self->state eq REJECTED;
-  $self->d_v;
-}
+#sub value($self) : Role {
+#  croak "$self isn't fulfilled" unless $self->state eq FULFILLED;
+#  $self->d_v;
+#}
+#
+#sub reason($self) : Role {
+#  croak "$self isn't rejected" unless $self->state eq REJECTED;
+#  $self->d_v;
+#}
 
 
 sub fin($self, $fn) : Role {
-  my $d = Evo::Promises::Deferred::new(promise => $self->can('new')->());
+  my $d = Evo::Promise::Deferred::new(promise => $self->can('new')->());
   my $onF = sub($v) {
     $d->resolve($fn->());    # need pass result because it can be a promise
     $d->promise->then(sub {$v});
   };
   my $onR = sub($r) {
     $d->resolve($fn->());    # see above
-    $d->promise->then(sub { promises_reject($r) });
+    $d->promise->then(sub { promise_reject($r) });
   };
   $self->then($onF, $onR);
 }
 
-sub catch : Role { shift->then(undef, shift) }
+sub catch($self, $cfn) : Role { $self->then(undef, $cfn) }
+
+sub spread($self, $fn) : Role {
+  $self->then(sub($ref) { $fn->($ref->@*) });
+}
 
 # also we can do $self->can('new')->();
 role_gen then => sub($pkg) {
@@ -98,7 +102,7 @@ sub d_resolve($self, $x) : Role {
     }
 
     if ($x->can('then')) {
-      my $sync = Evo::Promises::Sync::new(promise => $self)->try_thenable($x);
+      my $sync = Evo::Promise::Sync::new(promise => $self)->try_thenable($x);
       return unless $sync->should_resolve;
       $x = $sync->v;    # and next, but it's already last in loop
       next;

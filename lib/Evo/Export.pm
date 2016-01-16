@@ -93,11 +93,11 @@ Standart L<Exporter> wasn't good enough for me, so I've written a new one from t
 
   use Evo;
   use Evo::Eval 'eval_try';
-  use Evo::Promises 'promise', 'deferred';
+  use Evo::Promise 'promise', 'deferred';
 
 For convenient, you can load all above in one line
 
-  use Evo '-Eval eval_try; -Promises promise, deferred';
+  use Evo '-Eval eval_try; -Promise promise, deferred';
 
 C<*> means load all. C<-> is a shortcut. See L<Evo/"shortcuts>
 
@@ -106,18 +106,18 @@ C<*> means load all. C<-> is a shortcut. See L<Evo/"shortcuts>
 You can rename subroutines to avoid method clashing
 
   # import promise as prm
-  use Evo '-Promises promise:prm';
+  use Evo '-Promise promise:prm';
 
 You can use C<*> with exclude C<-> for convinient
   
   # import all except "deferred"
-  use Evo '-Promises *, -deferred';
+  use Evo '-Promise *, -deferred';
 
 If one name clashes with yours, you can import all except that name and import
 renamed version of that name
 
   # import all as is but only deferred will be renamed to "renamed_deferred"
-  use Evo '-Promises *, -deferred, deferred:renamed_deferred';
+  use Evo '-Promise *, -deferred, deferred:renamed_deferred';
 
 
 

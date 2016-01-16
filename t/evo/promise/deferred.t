@@ -1,5 +1,5 @@
 package main;
-use Evo '-Promises::Deferred';
+use Evo '-Promise::Deferred';
 use Test::More;
 
 my @calls;
@@ -15,7 +15,7 @@ my @calls;
 
 }
 
-sub gen() { Evo::Promises::Deferred::new(promise => My::P::new()) }
+sub gen() { Evo::Promise::Deferred::new(promise => My::P::new()) }
 
 ONCE: {
   my $d = gen;

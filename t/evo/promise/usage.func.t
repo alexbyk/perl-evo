@@ -1,4 +1,4 @@
-use Evo '-Promises *; -Loop *';
+use Evo '-Promise *; -Loop *';
 use Test::More;
 
 

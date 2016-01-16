@@ -1,5 +1,5 @@
 package main;
-use Evo '-Promises::Util *;';
+use Evo '-Promise::Util *;';
 use Test::More;
 use Test::Fatal;
 
@@ -7,7 +7,7 @@ use Test::Fatal;
 
   package My::P;
   use Evo '-Comp *';
-  with '-Promises::Promise::Driver';
+  with '-Promise::Comp::Driver';
   sub loop_postpone { }
 }
 
@@ -37,23 +37,23 @@ THEN_TRAVERSE: {
 }
 
 
-VALUE: {
-  like exception { p()->value }, qr/isn't fulfilled/;
-  like exception { p()->d_reject('R')->value }, qr/isn't fulfilled/;
-
-  my $p = p();
-  $p->d_fulfill('V');
-  is $p->value, 'V';
-}
-
-REASON: {
-  like exception { p()->reason }, qr/isn't rejected/;
-  like exception { p()->d_fulfill('R')->reason }, qr/isn't rejected/;
-
-  my $p = p();
-  $p->d_reject('R');
-  is $p->reason, 'R';
-}
+#VALUE: {
+#  like exception { p()->value }, qr/isn't fulfilled/;
+#  like exception { p()->d_reject('R')->value }, qr/isn't fulfilled/;
+#
+#  my $p = p();
+#  $p->d_fulfill('V');
+#  is $p->value, 'V';
+#}
+#
+#REASON: {
+#  like exception { p()->reason }, qr/isn't rejected/;
+#  like exception { p()->d_fulfill('R')->reason }, qr/isn't rejected/;
+#
+#  my $p = p();
+#  $p->d_reject('R');
+#  is $p->reason, 'R';
+#}
 
 CATCH: {
   my @got;
@@ -62,6 +62,14 @@ CATCH: {
   my $root = p();
   my $p    = $root->catch('REJ');
   is_deeply \@got, [$root, undef, 'REJ'];
+}
+
+SPREAD: {
+  my $p = p();
+  my %GOT;
+  my $ch = $p->spread(sub(%opts) { %GOT = %opts });
+  $ch->d_fh->([one => 1, two => 2]);
+  is_deeply \%GOT, {one => 1, two => 2};
 }
 
 done_testing;

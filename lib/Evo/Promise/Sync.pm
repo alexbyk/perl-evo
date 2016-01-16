@@ -1,4 +1,4 @@
-package Evo::Promises::Sync;
+package Evo::Promise::Sync;
 use Evo '-Comp *';
 
 has 'promise', required => 1, is => 'ro';
