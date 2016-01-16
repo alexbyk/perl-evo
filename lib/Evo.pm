@@ -57,13 +57,13 @@ sub import {
 
 =head1 SYNOPSYS
 
-  # enables strict, warnings, utf8, :5.22, signatured, postderef
+  # enables strict, warnings, utf8, :5.22, signatures, postderef
   use Evo;
 
 
 =head1 DESCRIPTION
 
-This framowerk opens new age of perl programming
+This framework opens new age of perl programming
 It provides rewritten and postmodern features like
 
 =over
@@ -81,10 +81,10 @@ Post modern component oriented programming L<Evo::Comp> instead of OO
 Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible. + Nice syntax via experimental L<Evo::Prm>
 
 =item *
-Interesting L<Evo::Realm> design pattern, which is as handy as "Singleton" but without Sintleton's flaws. Testable and mockable alternative of the global class
+Interesting L<Evo::Realm> design pattern, which is as handy as "Singleton" but without Singleton's flaws. Testable and mockable alternative of the global class
 
 =item *
-Exception handling in pure perl: L<Evo::Eval>, "try catch" alternative. Like C<Try::Tiny>, but without it's bugs and much faster
+Exception handling in pure perl: L<Evo::Eval>, "try catch" alternative. Like C<Try::Tiny>, but without its bugs and much faster
 
 =item *
 L<Evo::Ee> - a component role that gives your component "EventEmitter" abilities
@@ -100,7 +100,7 @@ Vim ultisnips with C<Evo> support can be found here: L<https://github.com/alexby
 
 =head1 IMPORTING
 
-Load Module and call it's C<import> method, emulating C<caller>. 
+Load Module and call itss C<import> method, emulating C<caller>.
 
   use Evo 'Evo::SomeComp';
   use Evo 'Evo::SomeComp(function)';
@@ -120,20 +120,20 @@ Used to make package header shorter
 
 =head2 shortcuts
 
-Shortcuts are used to make life easily during code refactoring (and you module shorter) in L<Evo::Export> and L<Evo::Comp/"with">
+Shortcuts are used to make life easier during code refactoring (and your module shorter) in L<Evo::Export> and L<Evo::Comp/"with">
 
 C<-> is replaced by C<Evo>
 
   use Evo '-Promise promise'; # "Evo::Promise promise"
 
-C<:> and C<::> make sense in the package and depends on the package name where is used
+C<:> and C<::> depend on the package name where they're used
 
 C<:> means relative to the current module as a child
 
   package My::App;
   use Evo ':Bar'; # My::App::Bar
 
-C<::> means as sibling (child of the parent of the current module)
+C<::> means it's a sibling module (child of the parent of the current module)
 
   package My::App;
   use Evo '::Bar'; # My::Bar
@@ -150,7 +150,7 @@ With or without options, C<use Evo> loads L<Evo::Default>:
   use experimental 'signatures';
   use feature 'postderef';
 
-I make some test and decided that using 5.22 and experimental features brings many benefits and worth it. This list will be expanded in the future, I hope
+I have decided that using 5.22 and some of the experimental features it brings has many benefits and is worth it. This list will be expanded in the future, I hope
 
 =head2 -Loaded
 
