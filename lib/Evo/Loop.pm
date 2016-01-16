@@ -4,7 +4,9 @@ use Evo ':Comp';
 
 use constant DEFAULT => Evo::Loop::Comp::new();
 
-sub loop_start : Export        { DEFAULT->realm_lord->start(@_) }
+sub loop_start : Export { DEFAULT->realm_lord->start(@_) }
+sub loop_stop : Export  { DEFAULT->realm_lord->stop(@_) }
+
 sub loop_timer : Export        { DEFAULT->realm_lord->timer(@_); }
 sub loop_timer_remove : Export { DEFAULT->realm_lord->timer_remove(@_); }
 

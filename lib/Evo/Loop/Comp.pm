@@ -41,7 +41,12 @@ sub maybe_sleep($self) {
   else { die "something wrong, no events" }
 }
 
+sub stop($self) { $self->is_running(0)};
 
-sub start($self) { local $SIG{PIPE} = 'IGNORE'; $self->maybe_sleep while $self->tick; }
+sub start($self) {
+  $self->is_running(1);
+  local $SIG{PIPE} = 'IGNORE';
+  $self->maybe_sleep while $self->tick && $self->is_running;
+}
 
 1;

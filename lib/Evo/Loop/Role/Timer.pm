@@ -1,5 +1,5 @@
 package Evo::Loop::Role::Timer;
-use Evo '-Role *';
+use Evo '-Role *; Carp croak';
 use List::Util 'first';
 
 requires qw(zone_cb tick_time);
@@ -12,10 +12,14 @@ has timer_queue => sub { [] };
 
 sub timer_count : Role { scalar $_[0]->timer_queue->@* }
 
-sub timer($self, $after, $cb) : Role {
+sub timer : Role {
+  croak "Not enought arguments" if @_ < 3;
+  my ($self, $after, $cb, $period) = (shift, shift, pop, shift);
+  croak "Negative period!" if $period && $period < 0;;
   my $zcb = $self->zone_cb($cb);
 
-  push $self->timer_need_sort(1)->timer_queue->@*, my $slot = [$self->tick_time + $after, $zcb];
+  push $self->timer_need_sort(1)->timer_queue->@*,
+    my $slot = [$self->tick_time + $after, $zcb, $period ? $period : ()];
   $slot;
 }
 
@@ -40,7 +44,15 @@ sub timer_process($self) : Role {
   $self->timer_sort_if_needed();
   my $time        = $self->tick_time;
   my $timer_queue = $self->timer_queue;
-  shift(@$timer_queue)->[1]->() while (@$timer_queue && $timer_queue->[0][0] < $time);
+
+  while (@$timer_queue && $timer_queue->[0][0] < $time) {
+    my $slot = shift(@$timer_queue);
+    if ($slot->[2]) {    # periodic
+      $slot->[0] = $slot->[2] + $time;
+      push $timer_queue->@*, $slot;
+    }
+    $slot->[1]->();
+  }
 }
 
 
