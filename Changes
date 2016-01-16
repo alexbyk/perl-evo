@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0193    2016-01-16 02:46:23+02:00 Europe/Kiev
+
 0.0192    2016-01-15 23:06:43+02:00 Europe/Kiev
 
 Implement promises
