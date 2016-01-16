@@ -78,7 +78,7 @@ Post modern component oriented programming L<Evo::Comp> instead of OO
 (no docs yet) Fast Event-Loop L<Evo::Loop> with unique feature zones (Not ready)
 
 =item *
-Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible
+Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible. + Nice syntax via experimental L<Evo::Prm>
 
 =item *
 Interesting L<Evo::Realm> design pattern, which is as handy as "Singleton" but without Sintleton's flaws. Testable and mockable alternative of the global class

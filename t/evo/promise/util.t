@@ -5,12 +5,14 @@ use Test::More;
 *p = *Evo::Promise::Comp::new;
 
 # is_fulfilled
-ok is_fulfilled_with(0, p()->d_fulfill(0));
+ok is_fulfilled_with(0,     p()->d_fulfill(0));
+ok is_fulfilled_with(undef, p()->d_fulfill(undef));
 ok !is_fulfilled_with(0, p()->d_reject(0));
 ok !is_fulfilled_with(1, p()->d_fulfill(0));
 
 # is_rejected
-ok is_rejected_with(0, p()->d_reject(0));
+ok is_rejected_with(0,     p()->d_reject(0));
+ok is_rejected_with(undef, p()->d_reject(undef));
 ok !is_rejected_with(0, p()->d_fulfill(0));
 ok !is_rejected_with(1, p()->d_fulfill(0));
 
