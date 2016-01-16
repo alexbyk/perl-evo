@@ -126,10 +126,8 @@ sub d_resolve_continue($self, $v) : Role {
 }
 
 # breadth-first
-role_gen d_traverse => sub {
-  my $postpone = shift->can('loop_postpone');
-
-  #assert($postpone);
+role_gen d_traverse => sub($comp) {
+  my $postpone = $comp->can('loop_postpone') or die "Provide loop_postpone function in $comp";
 
   sub($self) {
     my @stack = ($self);
