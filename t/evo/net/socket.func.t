@@ -15,23 +15,23 @@ OPTS: {
 
   # rw sock
   $sock = Evo::Net::Socket::new()->socket_open(AF_INET6);
-  is $sock->socket_reuseaddr(1)->socket_reuseaddr, 1;
-  is $sock->socket_nodelay(1)->socket_nodelay,     1;
+  ok $sock->socket_reuseaddr(1)->socket_reuseaddr;
+  ok $sock->socket_nodelay(1)->socket_nodelay;
 
-  is $sock->socket_reuseport(1)->socket_reuseport, 1 if $CAN_REUSEPORT6;
+  ok $sock->socket_reuseport(1)->socket_reuseport if $CAN_REUSEPORT6;
 
   # rw fcntl
-  is $sock->non_blocking(1)->non_blocking, 1;
+  ok $sock->non_blocking(1)->non_blocking;
 
   # defaults
   $sock = Evo::Net::Socket::new()->socket_open();
   is $sock->socket_domain, AF_INET6 if $HAS_SO_DOMAIN;
   is $sock->socket_type, SOCK_STREAM;
-  is $sock->socket_protocol,  IPPROTO_TCP;
-  is $sock->socket_nodelay,   0;
-  is $sock->non_blocking,     0;
-  is $sock->socket_reuseaddr, 0;
-  is $sock->socket_reuseport, 0 if $HAS_REUSEPORT;
+  is $sock->socket_protocol, IPPROTO_TCP;
+  ok !$sock->socket_nodelay;
+  ok !$sock->non_blocking;
+  ok !$sock->socket_reuseaddr;
+  ok !$sock->socket_reuseport if $HAS_REUSEPORT;
 
 }
 

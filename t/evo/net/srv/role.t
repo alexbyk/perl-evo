@@ -43,13 +43,13 @@ LISTEN_OPTS: {
 
   # passed with ip
   $sock = $srv->srv_listen(ip => '::1', reuseaddr => 0, nodelay => 0);
-  is $sock->socket_reuseaddr, 0;
-  is $sock->socket_nodelay,   0;
+  ok !$sock->socket_reuseaddr;
+  ok !$sock->socket_nodelay;
 
   # reuseport
   if ($HAS_REUSEPORT) {
     $sock = $srv->srv_listen(ip => '::1', reuseport => 1);
-    is $sock->socket_reuseport, 1;
+    ok $sock->socket_reuseport;
   }
 
   # with wildcard
@@ -69,7 +69,7 @@ LISTEN_RUNNING: {
     sub {
       my $sock = $srv->srv_listen(ip => '::1');
       is_deeply $srv->srv_sockets, [$sock];
-      is_deeply $loop->io_count, 1;
+      is $loop->io_count, 1;
     }
   );
 }
@@ -131,10 +131,10 @@ ACCEPT: {
   my $cl1   = Evo::Net::Socket::new()->socket_open();
   connect $cl1, $saddr;
   $srv->srv_accept($sock);
-  is_deeply [$LAST->socket_local], [$cl1->socket_remote];
+  is_deeply [$LAST->socket_local],  [$cl1->socket_remote];
   is_deeply [$LAST->socket_remote], [$cl1->socket_local];
-  is $LAST->non_blocking,   1;
-  is $LAST->socket_nodelay, 1;
+  ok $LAST->non_blocking;
+  ok $LAST->socket_nodelay;
 }
 
 ACCEPT_ERROR: {
