@@ -111,7 +111,7 @@ Usefull for closing connections etc. The idea described here: L<https://github.c
 
 This is a sexy and fast non-recursive implementation of Promise/A+
 
-The end-user library L<Evo::Promise> works with L<Evo::Loop> (promise require event loop because of L<https://promiseaplus.com/#point-34>)
+The end-user library L<Evo::Promise> works with L<Evo::Loop> (promise require event loop because of L<https://promisesaplus.com/#point-34>)
 But the main part (see L<Evo::Promise::Driver>) is designed to be reused and it's ridiculously simple to implement variant for other loops with a few lines of code (see the source code of L<Evo::Promise>)
 
 
