@@ -1,5 +1,5 @@
 package main;
-use Evo '-Promises *; -Loop *';
+use Evo '-Promise *; -Loop *';
 use Test::Evo::Benchmark;
 use Test::More;
 
