@@ -6,7 +6,7 @@ use List::Util 'first';
 requires 'ee_events';
 
 # [name, cb]
-has ee_data => sub { [] };
+has ee_data => sub { {q => [], cur => undef} };
 
 sub ee_check($self, $name) : Role {
   croak qq{Not recognized event "$name"} unless first { $_ eq $name } $self->ee_events;
@@ -14,25 +14,39 @@ sub ee_check($self, $name) : Role {
 }
 
 sub on($self, $name, $fn) : Role {
-  push $self->ee_check($name)->ee_data->@*, [$name, $fn];
+  push $self->ee_check($name)->ee_data->{q}->@*, [$name, $fn];
   $self;
 }
 
-sub ee_remove($self, $name, $fn) : Role {
-  my $data = $self->ee_check($name)->ee_data;
-  defined(my $index = first { $data->[$_][0] eq $name && $data->[$_][1] == $fn } 0 .. $#$data)
-    or return $self;
+sub ee_add($self, $name, $fn) : Role {
+  push $self->ee_check($name)->ee_data->{q}->@*, my $id = [$name, $fn];
+  $id;
+}
+
+sub ee_remove($self, $id) : Role {
+  my $data = $self->ee_data->{q};
+  defined(my $index = first { $data->[$_] == $id } 0 .. $#$data) or croak "$id isn't a listener";
   splice $data->@*, $index, 1;
   $self;
 }
 
+sub ee_remove_current($self) : Role {
+  my ($q, $cur) = @{$self->ee_data}{qw(q cur)};
+  defined(my $index = first { $q->[$_] == $cur } 0 .. $#$q) or croak "Not in the event";
+  splice $q->@*, $index, 1;
+  $self;
+}
+
+
 sub emit($self, $name, @args) : Role {
-  $_->($self, @args) for my @listeners = $self->ee_listeners($name);
-  @listeners;
+  my $data = $self->ee_data;
+  do { local $data->{cur} = $_; $_->[1]->($self, @args) }
+    for grep { $_->[0] eq $name } $self->ee_data->{q}->@*;
+  $self;
 }
 
 sub ee_listeners($self, $name) : Role {
-  map { $_->[1] } grep { $_->[0] eq $name } $self->ee_data->@*;
+  grep { $_->[0] eq $name } $self->ee_data->{q}->@*;
 }
 
 1;
@@ -93,16 +107,27 @@ Emit an event. The component will be passed to the event as the first argument, 
 
   $comp->emit(connection => 'arg1', 'arg2');
 
+=head2 ee_add
+
 =head2 ee_remove
 
-Remove listener from the event by the name and subroutine.
 
-  my $sub;
-  $comp->on(connection => $sub = sub {"here"});
-  $comp->ee_remove(connection => $sub);
+Add and remove listener from the event by the name and subroutine.
+
+  my $id = $comp->ee_add(connection => sub {"here"});
+  $comp->ee_remove($id);
 
 The name of the event will be checked using C<ee_events>, which should be implemented by component and return a list of available names
 
+=head2 ee_remove_current
+
+  $comp->ee_add(
+    connection => sub($self) {
+      $self->ee_remove_current;
+    }
+  );
+
+When called in the event, remove current event. Die outside an event
 
 
 =head2 ee_listeners
@@ -119,5 +144,3 @@ Check the event. If it wasn't in the derivered list returned by C<ee_events>, an
 
 
 =cut
-
-
