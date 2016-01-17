@@ -114,10 +114,12 @@ Emit an event. The component will be passed to the event as the first argument, 
 
 Add and remove listener from the event by the name and subroutine.
 
-  my $id = $comp->ee_add(connection => sub {"here"});
-  $comp->ee_remove($id);
+  my $ref = $comp->ee_add(connection => sub {"here"});
+  $comp->ee_remove($ref);
 
 The name of the event will be checked using C<ee_events>, which should be implemented by component and return a list of available names
+
+Don't use in the event (or weaken ref if you need to use it)
 
 =head2 ee_remove_current
 
