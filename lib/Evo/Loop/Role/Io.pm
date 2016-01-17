@@ -15,45 +15,30 @@ use constant SOCKET_ERR => POLLERR | POLLNVAL | POLLHUP;
 
 sub io_count : Role { scalar keys $_[0]->io_data->%* }
 
-my %MAP = (in => SOCKET_IN, out => SOCKET_OUT);
-my %OPP = (in => "out", out => "in");
 
-sub _mask_fd {
-  my ($self, $handle, $type) = @_;
-  croak qq#bad type "$type"# unless my $mask = $MAP{$type};
-  my $data = $self->io_data;
+sub io_in : Role    { handle(in    => SOCKET_IN,  @_) }
+sub io_out : Role   { handle(out   => SOCKET_OUT, @_) }
+sub io_error : Role { handle(error => SOCKET_ERR, @_) }
+
+sub handle($type, $mask, $self, $handle, $fn) {
   my $fd = fileno $handle or croak "Can't find fileno for $handle";
-  return ($mask, $fd);
-}
-
-sub io_error($self, $handle, $fn) : Role {
-  my $slot = $self->io_data->{fileno($handle)}
-    or croak "Install events for $handle before error";
-  croak "$handle already has error" if exists $slot->{error};
-
-  $slot->{error} = $self->zone_cb($fn);
-}
-
-sub io_in : Role  { handle('in',  @_) }
-sub io_out : Role { handle('out', @_) }
-
-sub handle($type, $self, $handle, $fn) {
-  my ($mask, $fd) = _mask_fd($self, $handle, $type);
   my $data = $self->io_data;
   croak qq#$handle already has "$type"# if $data->{$fd}{$type};
   $data->{$fd}{$type} = $self->zone_cb($fn);
   $data->{$fd}{mask} |= $mask;
 }
 
-sub io_remove_in : Role  { io_remove(in  => @_) }
-sub io_remove_out : Role { io_remove(out => @_) }
+sub io_remove_in : Role    { io_remove(in    => SOCKET_IN,  @_) }
+sub io_remove_out : Role   { io_remove(out   => SOCKET_OUT, @_) }
+sub io_remove_error : Role { io_remove(error => SOCKET_ERR, @_) }
 
-sub io_remove($type, $self, $handle) {
-  my ($mask, $fd) = _mask_fd($self, $handle, $type);
+# if no events, delete slot, else - upgrade mask
+sub io_remove($type, $mask, $self, $handle) {
+  my $fd = fileno $handle or croak "Can't find fileno for $handle";
   my $data = $self->io_data;
   croak qq#$handle hasn't "$type"# unless exists $data->{$fd}{$type};
 
-  if (exists $data->{$fd}{$OPP{$type}}) {
+  if (keys $data->{$fd}->%* > 2) {    # mask + cur => last
     $data->{$fd}{mask} &= ~$mask;
     delete $data->{$fd}{$type};
   }
