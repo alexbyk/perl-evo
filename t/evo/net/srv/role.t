@@ -1,6 +1,6 @@
 package main;
 use Evo '-Net::Util *; -Loop *; -Net::Socket';
-use Evo 'Socket :all; Test::More; Test::Fatal; Errno EINVAL';
+use Evo 'Socket :all; Test::More; Test::Fatal; Errno EBADF';
 
 my $HAS_REUSEPORT = eval { my $v = SO_REUSEPORT(); 1 } or diag "NO REUSEPORT $@";
 my $CAN_REUSEPORT6 = eval { Evo::Net::Socket::new()->socket_open()->socket_reuseport; 1 }
@@ -141,10 +141,11 @@ ACCEPT_ERROR: {
   my $srv   = My::Server::new();
   my $sock  = $srv->srv_listen(ip => '::1');
   my $sock2 = $srv->srv_listen(ip => '::1');
-  shutdown $sock, 2;
   my $e;
+  close $sock;
+  local $SIG{__WARN__} = sub { };
   $srv->on(srv_error => sub { $e = $_[1] })->srv_accept($sock);
-  is $e + 0, EINVAL;
+  is $e + 0, EBADF;
   is_deeply $srv->srv_sockets, [$sock2];
 }
 
