@@ -1,7 +1,7 @@
 use Evo
   '-Loop *; Test::More; Test::Fatal; Test::Evo::Helpers *; Socket :all; -Io::Socket; Symbol gensym';
 
-HAS_IPV6 or plan skip_all => "No IPv6: " . $! || $@;
+CAN_BIND6 or plan skip_all => "No IPv6: " . $! || $@;
 
 
 if (HAS_SO_DOMAIN()) {
