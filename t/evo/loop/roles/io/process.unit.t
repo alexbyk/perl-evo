@@ -1,11 +1,11 @@
 package main;
-use Evo '-Io::Socket; Test::More; -Loop::Comp; -Io::Handle';
+use Evo 'Test::More; -Loop::Comp; -Io *';
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
 
 *newloop = *Evo::Loop::Comp::new;
 
-my $handle = Evo::Io::Handle::open_nb_anon;
+my $handle = io_open_anon;
 
 my $fd = fileno $handle;
 no warnings 'once', 'redefine';

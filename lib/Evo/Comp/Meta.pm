@@ -1,5 +1,5 @@
 package Evo::Comp::Meta;
-use Evo 'Carp croak; -Lib::Internal monkey_patch; Module::Load load; -Lib::Bare';
+use Evo 'Carp croak; -Lib monkey_patch; Module::Load load; -Lib::Bare';
 
 
 our @CARP_NOT = qw(Evo::Comp::Gen::Array Evo::Comp::Gen::Hash Evo::Comp::Gen::HUF);

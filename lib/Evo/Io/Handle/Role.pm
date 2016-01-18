@@ -12,7 +12,7 @@ sub _fopt($flag, $debug, $s, $val=undef) {
   $s;
 }
 
-sub handle_non_blocking : Role { _fopt(O_NONBLOCK, "nb", @_) }
+sub io_non_blocking : Role { _fopt(O_NONBLOCK, "nb", @_) }
 
 sub DESTROY($self) : Role {
   return if ${^GLOBAL_PHASE} eq 'DESTRUCT';

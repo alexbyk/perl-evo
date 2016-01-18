@@ -24,14 +24,14 @@ my $LAST;
 if (HAS_REUSEPORT) {
   my $srv = My::Server::new();
   my $sock = $srv->srv_listen(ip => '::1');
-  ok !$sock->socket_reuseport;
+  ok !$sock->io_reuseport;
   $sock = $srv->srv_listen(ip => '::1', reuseport => 1);
 
   $sock = $srv->srv_listen(ip => '*');
-  ok !$sock->socket_reuseport if HAS_REUSEPORT;
+  ok !$sock->io_reuseport if HAS_REUSEPORT;
 
   $sock = $srv->srv_listen(ip => '::1', reuseport => 1);
-  ok $sock->socket_reuseport;
+  ok $sock->io_reuseport;
 }
 
 LISTEN_OPTS: {
@@ -42,19 +42,19 @@ LISTEN_OPTS: {
   like exception { $srv->srv_listen(ip => '::1', bad => 'foo') }, qr/unknown.+bad.+$0/;
 
   my $sock = $srv->srv_listen(ip => '::1');
-  ok $sock->socket_reuseaddr;
-  ok $sock->handle_non_blocking;
-  ok $sock->socket_nodelay;
-  ok !$sock->socket_reuseport if HAS_REUSEPORT;
+  ok $sock->io_reuseaddr;
+  ok $sock->io_non_blocking;
+  ok $sock->io_nodelay;
+  ok !$sock->io_reuseport if HAS_REUSEPORT;
 
   # passed with ip
   $sock = $srv->srv_listen(ip => '::1');
-  ok $sock->socket_reuseaddr;
+  ok $sock->io_reuseaddr;
 
   # with wildcard
   $sock = $srv->srv_listen(ip => '*');
-  ok $sock->socket_reuseaddr;
-  is [$sock->socket_local]->[0], '::';
+  ok $sock->io_reuseaddr;
+  is [$sock->io_local]->[0], '::';
 }
 
 
@@ -64,7 +64,7 @@ LISTEN_RUNNING: {
   $loop->realm(
     sub {
       my $sock = $srv->srv_listen(ip => '::1');
-      is_deeply $srv->srv_sockets, [$sock];
+      is_deeply $srv->srv_acceptors, [$sock];
       is $loop->io_count, 1;
     }
   );
@@ -76,7 +76,7 @@ LISTEN_STOPPED: {
   $loop->realm(
     sub {
       my $sock = $srv->srv_listen(ip => '::1');
-      is_deeply $srv->srv_sockets, [$sock];
+      is_deeply $srv->srv_acceptors, [$sock];
       is_deeply $loop->io_count, 0;
     }
   );
@@ -110,14 +110,14 @@ SCOPE: {
     my $obj1 = bless {n => 1}, "My::Temp";
     my $obj2 = bless {n => 2}, "My::Temp";
     my $obj3 = bless {n => 3}, "My::Temp";
-    $srv->srv_streams($obj1);
-    is_deeply [$srv->srv_streams], [$obj1];
-    $srv->srv_streams($obj2, $obj3);
-    is_deeply [sort $srv->srv_streams], [sort $obj1, $obj2, $obj3];
+    $srv->srv_connectionss($obj1);
+    is_deeply [$srv->srv_connectionss], [$obj1];
+    $srv->srv_connectionss($obj2, $obj3);
+    is_deeply [sort $srv->srv_connectionss], [sort $obj1, $obj2, $obj3];
   }
 
-  $srv->srv_streams({});
-  is_deeply [$srv->srv_streams], [];
+  $srv->srv_connectionss({});
+  is_deeply [$srv->srv_connectionss], [];
 }
 
 ACCEPT_ERROR: {
@@ -129,7 +129,7 @@ ACCEPT_ERROR: {
   local $SIG{__WARN__} = sub { };
   $srv->on(srv_error => sub { $e = $_[1] })->srv_accept($sock);
   is $e + 0, EBADF;
-  is_deeply $srv->srv_sockets, [$sock2];
+  is_deeply $srv->srv_acceptors, [$sock2];
 }
 
 done_testing;

@@ -1,16 +1,16 @@
 package Evo::Net::Srv::Role;
-use Evo '-Role *; -Loop *; -Io::Socket; -Lib::Net *; Carp croak';
+use Evo '-Role *; -Loop *; -Io *; -Lib::Net *; Carp croak';
 use Errno qw( EAGAIN EWOULDBLOCK );
 use Socket qw( AF_INET AF_INET6 SOL_SOCKET SOMAXCONN);
 use Scalar::Util 'weaken';
 use Hash::Util::FieldHash qw(fieldhash id_2obj);
 
 has srv_is_running => 1;
-has srv_sockets => sub { [] };
+has srv_acceptors => sub { [] };
 
 has _srv_conn_data => sub { fieldhash my %hash; \%hash }, is => 'ro';
 
-sub srv_streams($s, @conns) : Role {
+sub srv_connectionss($s, @conns) : Role {
   my $data = $s->_srv_conn_data;
   return map { id_2obj $_} keys %$data unless @conns;
   $data->{$_}++ for @conns;
@@ -18,10 +18,10 @@ sub srv_streams($s, @conns) : Role {
 
 # nodelay => 1, reuseaddr => 1
 sub _gen_sock($family, $o) {
-  my $sock = Evo::Io::Socket::socket_open_nb($family)->socket_reuseaddr(1);
+  my $sock = io_socket($family)->io_reuseaddr(1);
 
   # not always supported
-  $sock->socket_reuseport(1) if delete $o->{reuseport};
+  $sock->io_reuseport(1) if delete $o->{reuseport};
   $sock;
 }
 
@@ -37,26 +37,26 @@ sub srv_stop_watching($self, $sock) : Role { loop_io_remove_all $sock; }
 sub srv_stop($self) : Role {
   croak "already stopped" unless $self->srv_is_running;
   $self->srv_is_running(0);
-  $self->srv_stop_watching($_) for $self->srv_sockets->@*;
+  $self->srv_stop_watching($_) for $self->srv_acceptors->@*;
 }
 
 sub srv_start($self) : Role {
   croak "already running" if $self->srv_is_running;
   $self->srv_is_running(1);
-  $self->srv_start_watching($_) for $self->srv_sockets->@*;
+  $self->srv_start_watching($_) for $self->srv_acceptors->@*;
 }
 
 sub srv_remove_socket($self, $sock) : Role {
-  $self->srv_sockets([grep { $_ != $sock } $self->srv_sockets->@*]);
+  $self->srv_acceptors([grep { $_ != $sock } $self->srv_acceptors->@*]);
 }
 
 sub srv_accept($self, $sock) : Role {
   my $child;
-  while ($child = $sock->socket_accept()) {
+  while ($child = $sock->io_accept()) {
 
     # handle accept should return new socket, probably bless this one
-    $child = $self->srv_handle_accept($child->handle_non_blocking(1));
-    $self->srv_streams($child);
+    $child = $self->srv_handle_accept($child->io_non_blocking(1));
+    $self->srv_connectionss($child);
   }
   return if $! == EAGAIN || $! == EWOULDBLOCK;
   $self->srv_handle_error($sock, $!);
@@ -73,7 +73,7 @@ sub srv_listen($self, %opts) : Role {
 
   if (($ip ne '*') || $port) {
     my ($saddr, $family) = net_gen_saddr_family($ip, $port);
-    $sock = _gen_sock($family, $remaining)->socket_bind($saddr);
+    $sock = _gen_sock($family, $remaining)->io_bind($saddr);
   }
   else {
     $sock = _gen_sock(AF_INET6, $remaining);
@@ -81,8 +81,8 @@ sub srv_listen($self, %opts) : Role {
 
   croak "unknown options: " . join(',', keys %$remaining) if keys %$remaining;
 
-  $sock->socket_listen($backlog);
-  push $self->srv_sockets->@*, $sock;
+  $sock->io_listen($backlog);
+  push $self->srv_acceptors->@*, $sock;
   $self->srv_start_watching($sock) if $self->srv_is_running;
   $sock;
 }

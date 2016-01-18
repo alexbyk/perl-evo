@@ -26,7 +26,7 @@ sub srv_handle_error($self, $conn, $err) : Override {
 
   $srv->on(
     srv_accept => sub($srv, $sock) {
-      my ($ip, $port) = $sock->socket_remote;
+      my ($ip, $port) = $sock->io_remote;
       say sprintf("New connection from %s[%s], [%s]", $ip, $port, scalar localtime);
     }
   );

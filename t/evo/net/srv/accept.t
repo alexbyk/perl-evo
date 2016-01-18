@@ -1,5 +1,5 @@
 package main;
-use Evo '-Lib::Net *; -Loop *; -Io::Socket; -Lib *';
+use Evo '-Lib::Net *; -Loop *; -Io *; -Lib *';
 use Test::Evo::Helpers '*';
 use Evo 'Socket :all; Test::More; Test::Fatal; Errno EBADF';
 
@@ -24,7 +24,7 @@ ACCEPT: {
 
   # stop
   no warnings 'redefine';
-  my $cl1 = Evo::Io::Socket::socket_open_nb();
+  my $cl1 = io_socket();
 
   local *My::Server::srv_handle_accept = sub {
     $loop->io_data({});
@@ -43,10 +43,10 @@ ACCEPT: {
 
   $loop->start;
 
-  is_deeply [$LAST->socket_local],  [$cl1->socket_remote];
-  is_deeply [$LAST->socket_remote], [$cl1->socket_local];
-  ok $LAST->handle_non_blocking;
-  ok $LAST->socket_nodelay;
+  is_deeply [$LAST->io_local],  [$cl1->io_remote];
+  is_deeply [$LAST->io_remote], [$cl1->io_local];
+  ok $LAST->io_non_blocking;
+  ok $LAST->io_nodelay;
 
 }
 

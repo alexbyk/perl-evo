@@ -1,9 +1,9 @@
-use Evo 'Test::More; -Net::Srv; -Lib *';
+use Evo 'Test::More; -Net::Srv; -Io *';
 
 my $srv = Evo::Net::Srv::new();
 
 my $called = 0;
-my ($sock, $conn) = (socket_open_nb(), socket_open_nb());
+my ($sock, $conn) = (io_socket(), io_socket());
 
 
 $srv->on(
@@ -23,9 +23,9 @@ $srv->on(
 
 $sock = $srv->srv_handle_accept($sock);
 
-$srv->srv_sockets([$conn]);
+$srv->srv_acceptors([$conn]);
 $sock = $srv->srv_handle_error($conn, "MyErr");
-ok !$srv->srv_sockets->@*;
+ok !$srv->srv_acceptors->@*;
 
 is $called, 2;
 

@@ -14,38 +14,38 @@ sub _opt($level, $opt, $debug, $sock, $val=undef) {
 }
 
 
-sub socket_domain : Role   { _opt(SOL_SOCKET, SO_DOMAIN,   domain   => @_); }
-sub socket_type : Role     { _opt(SOL_SOCKET, SO_TYPE,     type     => @_); }
-sub socket_protocol : Role { _opt(SOL_SOCKET, SO_PROTOCOL, protocol => @_); }
-sub socket_rcvbuf : Role   { _opt(SOL_SOCKET, SO_RCVBUF,   rcvbuf   => @_); }
-sub socket_sndbuf : Role   { _opt(SOL_SOCKET, SO_SNDBUF,   sndbuf   => @_); }
+sub io_domain : Role   { _opt(SOL_SOCKET, SO_DOMAIN,   domain   => @_); }
+sub io_type : Role     { _opt(SOL_SOCKET, SO_TYPE,     type     => @_); }
+sub io_protocol : Role { _opt(SOL_SOCKET, SO_PROTOCOL, protocol => @_); }
+sub io_rcvbuf : Role   { _opt(SOL_SOCKET, SO_RCVBUF,   rcvbuf   => @_); }
+sub io_sndbuf : Role   { _opt(SOL_SOCKET, SO_SNDBUF,   sndbuf   => @_); }
 
-sub socket_reuseaddr : Role { _opt(SOL_SOCKET, SO_REUSEADDR, reuseaddr => @_); }
-sub socket_reuseport : Role { _opt(SOL_SOCKET, SO_REUSEPORT, reuseport => @_); }
+sub io_reuseaddr : Role { _opt(SOL_SOCKET, SO_REUSEADDR, reuseaddr => @_); }
+sub io_reuseport : Role { _opt(SOL_SOCKET, SO_REUSEPORT, reuseport => @_); }
 
-sub socket_nodelay : Role { _opt(IPPROTO_TCP, TCP_NODELAY, nodelay => @_); }
+sub io_nodelay : Role { _opt(IPPROTO_TCP, TCP_NODELAY, nodelay => @_); }
 
 
 # bind and listen croak on failures
-sub socket_bind($s, $saddr) : Role { bind($s, $saddr) or _die "bind"; $s }
-sub socket_listen($s, $n) : Role { listen($s, $n) or _die "listen"; $s }
+sub io_bind($s, $saddr) : Role { bind($s, $saddr) or _die "bind"; $s }
+sub io_listen($s, $n) : Role { listen($s, $n) or _die "listen"; $s }
 
-sub socket_local($s) : Role {
+sub io_local($s) : Role {
   my $saddr = getsockname($s) or return;
   net_smart_unpack($saddr);
 }
 
-sub socket_remote($s) : Role {
+sub io_remote($s) : Role {
   my $saddr = getpeername($s) or return;
   net_smart_unpack($saddr);
 }
 
-sub socket_connected($s) : Role { getpeername($s) && 1 }
+sub io_connected($s) : Role { getpeername($s) && 1 }
 
-sub socket_accept($self) : Role {
+sub io_accept($self) : Role {
   my $saddr = accept(my $child, $self) or return;
   bless $child, ref $self;
-  $child->handle_non_blocking(1);
+  $child->io_non_blocking(1);
   $child;
 }
 

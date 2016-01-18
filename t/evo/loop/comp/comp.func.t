@@ -65,8 +65,6 @@ IGNORE_SIGPIPE: {
   $loop->postpone(sub { is $SIG{PIPE}, 'IGNORE'; });
   ok !$SIG{PIPE};
   $loop->start;
-
-  my $sock = socket_open_nb;
 }
 
 
