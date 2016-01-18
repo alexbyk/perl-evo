@@ -1,5 +1,5 @@
 package Evo::Loop;
-use Evo '-Realm *; -Export *';
+use Evo '-Export *';
 use Evo ':Comp';
 
 use constant DEFAULT => Evo::Loop::Comp::new();
