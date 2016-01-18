@@ -1,37 +1,45 @@
-use Evo '-Loop *; Test::More; Test::Fatal; Socket :all; -Io::Socket; Symbol gensym';
+use Evo
+  '-Loop *; Test::More; Test::Fatal; Test::Evo::Helpers *; Socket :all; -Io::Socket; Symbol gensym';
 
-my $HAS_REUSEPORT = eval { my $v = SO_REUSEPORT(); 1 } or diag "NO REUSEPORT $@";
-my $CAN_REUSEPORT6 = eval { Evo::Io::Socket::socket_open()->socket_reuseport; 1 }
-  or diag "CAN'T REUSEPORT6 $@";
-my $HAS_SO_DOMAIN = eval { my $v = SO_DOMAIN(); 1 } or diag "NO SO_DOMAIN $@";
+HAS_IPV6 or plan skip_all => "No IPv6: " . $! || $@;
 
+
+if (HAS_SO_DOMAIN()) {
+  my $sock = Evo::Io::Socket::socket_open(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  is $sock->socket_domain, AF_INET;
+
+  $sock = Evo::Io::Socket::socket_open();
+  is $sock->socket_domain, AF_INET6;
+}
+
+if (HAS_REUSEPORT()) {
+  my $sock = Evo::Io::Socket::socket_open();
+  ok $sock->socket_reuseport(1);
+  ok $sock->socket_reuseport(1)->socket_reuseport;
+}
 
 OPTS: {
   # ro
   my $sock = Evo::Io::Socket::socket_open(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  is $sock->socket_domain, AF_INET if $HAS_SO_DOMAIN;
-  is $sock->socket_type, SOCK_DGRAM;
+  is $sock->socket_type,     SOCK_DGRAM;
   is $sock->socket_protocol, IPPROTO_UDP;
 
   # rw sock
   $sock = Evo::Io::Socket::socket_open(AF_INET6);
-  ok $sock->socket_reuseaddr(1)->socket_reuseaddr;
-  ok $sock->socket_nodelay(1)->socket_nodelay;
-
-  ok $sock->socket_reuseport(1)->socket_reuseport if $CAN_REUSEPORT6;
-
-  # rw fcntl
-  ok $sock->handle_non_blocking(1)->handle_non_blocking;
 
   # defaults
   $sock = Evo::Io::Socket::socket_open();
-  is $sock->socket_domain, AF_INET6 if $HAS_SO_DOMAIN;
-  is $sock->socket_type, SOCK_STREAM;
+  is $sock->socket_type,     SOCK_STREAM;
   is $sock->socket_protocol, IPPROTO_TCP;
   ok $sock->socket_nodelay;
   ok $sock->handle_non_blocking;
   ok !$sock->socket_reuseaddr;
-  ok !$sock->socket_reuseport if $HAS_REUSEPORT;
+
+  ok $sock->socket_reuseaddr(1)->socket_reuseaddr;
+  ok $sock->socket_nodelay(1)->socket_nodelay;
+
+  # rw fcntl
+  ok $sock->handle_non_blocking(1)->handle_non_blocking;
 
 }
 
@@ -61,7 +69,7 @@ BIND_LISTEN_CONNECTv6: {
 
   # accept
   my $ch_s = $serv->socket_accept();
-  is $ch_s->socket_domain, AF_INET6 if $HAS_SO_DOMAIN;
+  is $ch_s->socket_domain, AF_INET6 if HAS_SO_DOMAIN;
   ok $ch_s->socket_reuseaddr;
 
 
