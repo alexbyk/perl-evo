@@ -6,7 +6,9 @@ use Fcntl qw(F_SETFL F_GETFL O_NONBLOCK);
 sub _fopt($flag, $debug, $s, $val=undef) {
   my $flags = fcntl($s, F_GETFL, 0) or die "$debug: $!";
   return !!($flags & $flag) + 0 if @_ == 3;
-  fcntl($s, F_SETFL, $flags | $flag) or _die $debug;
+
+  $flags = $val ? $flags | $flag : $flags & ~$flag or die "$debug: $!";
+  fcntl($s, F_SETFL, $flags) or _die $debug;
   $s;
 }
 

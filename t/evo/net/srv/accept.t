@@ -41,12 +41,13 @@ ACCEPT: {
     }
   );
 
+  $loop->start;
+
   is_deeply [$LAST->socket_local],  [$cl1->socket_remote];
   is_deeply [$LAST->socket_remote], [$cl1->socket_local];
   ok $LAST->handle_non_blocking;
   ok $LAST->socket_nodelay;
 
-  $loop->start;
 }
 
 done_testing;

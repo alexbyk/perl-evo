@@ -65,12 +65,17 @@ BIND_LISTEN_CONNECTv6: {
 
   # cl
   my $cl = Evo::Io::Socket::socket_open_nb;
+
+  $serv->handle_non_blocking(0); # just for test
+  $cl->handle_non_blocking(0); # for test!
+
   connect($cl, pack_sockaddr_in6($port, $naddr6));
 
   # accept
   my $ch_s = $serv->socket_accept();
   is $ch_s->socket_domain, AF_INET6 if HAS_SO_DOMAIN;
   ok $ch_s->socket_reuseaddr;
+  ok $ch_s->handle_non_blocking;
 
 
   is_deeply [$cl->socket_local],  [$ch_s->socket_remote];

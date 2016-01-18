@@ -42,12 +42,12 @@ sub socket_remote($s) : Role {
 
 sub socket_connected($s) : Role { getpeername($s) && 1 }
 
-role_gen socket_accept => sub($class) {
-  sub($s) {
-    my $saddr = accept(my $child, $s) or return;
-    bless $child, $class;
-  };
-};
+sub socket_accept($self) : Role {
+  my $saddr = accept(my $child, $self) or return;
+  bless $child, ref $self;
+  $child->handle_non_blocking(1);
+  $child;
+}
 
 
 1;

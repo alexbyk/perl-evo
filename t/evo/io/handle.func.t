@@ -7,7 +7,6 @@ BEGIN {
 
 plan skip_all => 'Looks like a ro system' unless open_nb_anon;
 
-
 OPEN: {
   my $str = "hello";
   my ($fh, $filename) = tempfile();
@@ -18,6 +17,8 @@ OPEN: {
   # anon
   $io = open_nb_anon ok fileno $io;
   ok $io->handle_non_blocking(1);
+  ok !$io->handle_non_blocking(0)->handle_non_blocking;
+  ok $io->handle_non_blocking(1)->handle_non_blocking;
 }
 
 WATCH_IGNORE: {
