@@ -43,10 +43,9 @@ sub io_remote($s) : Role {
 sub io_connected($s) : Role { getpeername($s) && 1 }
 
 sub io_accept($self) : Role {
-  my $saddr = accept(my $child, $self) or return;
+  accept(my $child, $self) or return;
   bless $child, ref $self;
   $child->io_non_blocking(1);
-  $child;
 }
 
 
