@@ -1,0 +1,21 @@
+package Evo::Io::Handle::Role;
+use Evo '-Role *; -Loop *; Symbol gensym';
+
+use Fcntl qw(F_SETFL F_GETFL O_NONBLOCK);
+
+sub _fopt($flag, $debug, $s, $val=undef) {
+  my $flags = fcntl($s, F_GETFL, 0) or die "$debug: $!";
+  return !!($flags & $flag) + 0 if @_ == 3;
+  fcntl($s, F_SETFL, $flags | $flag) or _die $debug;
+  $s;
+}
+
+sub handle_non_blocking : Role { _fopt(O_NONBLOCK, "nb", @_) }
+
+sub DESTROY($self) : Role {
+  return if ${^GLOBAL_PHASE} eq 'DESTRUCT';
+  my $fd = fileno $self or return;
+  loop_io_remove_fd $fd;
+}
+
+1;

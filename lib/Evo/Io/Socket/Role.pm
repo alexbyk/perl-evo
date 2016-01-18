@@ -1,18 +1,11 @@
-package Evo::Net::Socket::Role;
-use Evo '-Role *; -Net::Util *; Symbol gensym; Carp croak';
+package Evo::Io::Socket::Role;
+use Evo '-Role *; -Lib::Net *; Symbol gensym; Carp croak';
 use Socket qw(
   SOCK_STREAM AF_INET AF_INET6 SOL_SOCKET IPPROTO_TCP TCP_NODELAY
   SO_REUSEADDR SO_REUSEPORT SO_DOMAIN SO_TYPE SO_PROTOCOL SO_SNDBUF SO_RCVBUF
 );
 
 sub _die($type) : prototype($) { croak "$type: $!" }
-
-sub socket_open : Role {
-  my ($s, $family, $type, $proto) = @_;
-  croak "Already opened" if fileno $s;
-  socket($s, $family || AF_INET6, $type || SOCK_STREAM, $proto || IPPROTO_TCP) || die "socket: $!";
-  $s;
-}
 
 sub _opt($level, $opt, $debug, $sock, $val=undef) {
   return unpack('i', getsockopt($sock, $level, $opt) || _die $debug) if @_ == 4;

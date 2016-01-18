@@ -3,7 +3,7 @@ use Evo '-Export';
 use Test::More;
 use Test::Fatal;
 
-*find_subnames = *Evo::Util::find_subnames;
+*find_subnames = *Evo::Lib::Bare::find_subnames;
 
 {
 

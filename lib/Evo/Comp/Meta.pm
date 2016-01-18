@@ -1,9 +1,5 @@
 package Evo::Comp::Meta;
-use Evo;
-use Carp 'croak';
-use Evo::Lib 'monkey_patch';
-use Module::Load 'load';
-use Evo::Util;
+use Evo 'Carp croak; -Lib::Internal monkey_patch; Module::Load load; -Lib::Bare';
 
 
 our @CARP_NOT = qw(Evo::Comp::Gen::Array Evo::Comp::Gen::Hash Evo::Comp::Gen::HUF);
@@ -98,7 +94,7 @@ sub install_roles($self, $comp, @roles) {
   my $rex = $self->{rex} or die "no rex";
   no strict 'refs';    ## no critic
   my @hslots;
-  foreach my $role (map { Evo::Util::resolve_package($comp, $_) } @roles) {
+  foreach my $role (map { Evo::Lib::Bare::resolve_package($comp, $_) } @roles) {
     load $role;
 
     my %attrs   = $rex->attrs($role);

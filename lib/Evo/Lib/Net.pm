@@ -1,4 +1,4 @@
-package Evo::Net::Util;
+package Evo::Lib::Net;
 use Evo '-Export *';
 use Socket qw(AF_INET6 AF_INET INADDR_ANY IN6ADDR_ANY
   inet_pton inet_ntop
@@ -8,12 +8,6 @@ use Socket qw(AF_INET6 AF_INET INADDR_ANY IN6ADDR_ANY
 
 use Carp 'croak';
 
-
-=head2 net_gen_saddr_family
-
-Takes ip and port and returns C<saddr> and C<family>. C<saddr> can be used to bind, C<family> to call C<socket>
-
-=cut
 
 sub net_gen_saddr_family($ip, $port) : Export {
   $port ||= 0;
@@ -29,13 +23,6 @@ sub net_gen_saddr_family($ip, $port) : Export {
 }
 
 
-=head2 net_parse
-
-Parse string C<address> and return C<naddr> and C<AF_INET> or C<AF_INET>.
-If address isn't valid ipv4|6, return empty list
-
-=cut
-
 # return address and family(AF_INET6 AF_INET)
 sub net_parse($str) : Export {
   my $addr = inet_pton(AF_INET, $str);
@@ -47,12 +34,6 @@ sub net_parse($str) : Export {
   return ();
 }
 
-
-=head2 net_smart_unpack
-
-returns C<address> as string and port from the saddr structure. Die if addres isn't IVp6 or IPv4
-
-=cut
 
 sub net_smart_unpack($saddr) : Export {
   my $family = sockaddr_family($saddr) or croak "sockaddr_family: $!";
@@ -70,3 +51,18 @@ sub net_smart_unpack($saddr) : Export {
 }
 
 1;
+
+=head2 net_gen_saddr_family
+
+Takes ip and port and returns C<saddr> and C<family>. C<saddr> can be used to bind, C<family> to call C<socket>
+
+=head2 net_parse
+
+Parse string C<address> and return C<naddr> and C<AF_INET> or C<AF_INET6>.
+If address isn't valid ipv4|6, return empty list
+
+=head2 net_smart_unpack
+
+returns C<address> as string and port from the saddr structure. Die if addres isn't IVp6 or IPv4
+
+=cut

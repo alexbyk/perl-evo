@@ -1,8 +1,8 @@
 use Evo;
-use Evo::Util;
+use Evo::Lib::Bare;
 use Test::More;
 
-my $fn = Evo::Util::inject(
+my $fn = Evo::Lib::Bare::inject(
   package  => 'My::Module',
   line     => 33,
   filename => 'my.pl',

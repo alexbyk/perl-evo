@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Carp 'croak';
 use Module::Load 'load';
-use Evo::Util;
+use Evo::Lib::Bare;
 use feature 'say';
 
 
@@ -15,9 +15,9 @@ sub _parse {
   $val =~ tr/\n/ /;
   $val =~ s/^\s+|\s+$//g;
 
-  $val =~ /^ ((\-|\:\:|\:)? $Evo::Util::RX_PKG_NOT_FIRST*) (.*)$/x;
+  $val =~ /^ ((\-|\:\:|\:)? $Evo::Lib::Bare::RX_PKG_NOT_FIRST*) (.*)$/x;
   croak qq#Can't parse string "$orig"# unless $1;
-  my ($class, $args) = (Evo::Util::resolve_package($caller, $1), $3);
+  my ($class, $args) = (Evo::Lib::Bare::resolve_package($caller, $1), $3);
 
   $args =~ s/^$ARGS_RX$/$1/;
   return ($class) unless $args;
@@ -38,7 +38,7 @@ sub import {
     my ($class, @args) = _parse($target, $key);
     load($class);
     if (my $import = $class->can('import')) {
-      Evo::Util::inject(package => $target, line => $line, filename => $filename, code => $import)
+      Evo::Lib::Bare::inject(package => $target, line => $line, filename => $filename, code => $import)
         ->($class, @args);
     }
     elsif (@args) {

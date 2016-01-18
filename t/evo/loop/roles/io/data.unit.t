@@ -38,7 +38,19 @@ ADD_REMOVE: {
 
   $loop->io_remove_error($handle);
   is $loop->io_count, 0;
+}
 
+REMOVE_ALL: {
+  my $loop = Evo::Loop::Comp::new();
+  my $data = $loop->io_data;
+
+  $loop->io_in($handle, 'IN');
+  $loop->io_remove_all($handle);
+  is $loop->io_count, 0;
+
+  $loop->io_in($handle, 'IN');
+  $loop->io_remove_fd(fileno $handle);
+  is $loop->io_count, 0;
 }
 
 done_testing;

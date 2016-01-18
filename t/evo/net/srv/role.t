@@ -1,17 +1,16 @@
 package main;
-use Evo '-Net::Util *; -Loop *; -Net::Socket';
+use Evo '-Lib::Net *; -Loop *; -Io::Socket; -Lib *';
+use Test::Evo::Helpers '*';
 use Evo 'Socket :all; Test::More; Test::Fatal; Errno EBADF';
 
-my $HAS_REUSEPORT = eval { my $v = SO_REUSEPORT(); 1 } or diag "NO REUSEPORT $@";
-my $CAN_REUSEPORT6 = eval { Evo::Net::Socket::new()->socket_open()->socket_reuseport; 1 }
-  or diag "CAN'T REUSEPORT6 $@";
+HAS_IPV6 or plan skip_all => "No IPv6: " . $! || $@;
 
 my $LAST;
 {
 
   package My::Stream;
   use Evo '-Comp *';
-  with -Ee, -Net::Socket::Role;
+  with -Ee, -Io::Socket::Role;
   sub ee_events { }
 
 
@@ -28,6 +27,19 @@ my $LAST;
   }
 }
 
+if (HAS_REUSEPORT) {
+  my $srv = My::Server::new();
+  my $sock = $srv->srv_listen(ip => '::1');
+  ok !$sock->socket_reuseport;
+  $sock = $srv->srv_listen(ip => '::1', reuseport => 1);
+
+  $sock = $srv->srv_listen(ip => '*');
+  ok !$sock->socket_reuseport if HAS_REUSEPORT;
+
+  $sock = $srv->srv_listen(ip => '::1', reuseport => 1);
+  ok $sock->socket_reuseport;
+}
+
 LISTEN_OPTS: {
 
   my $srv = My::Server::new();
@@ -37,27 +49,17 @@ LISTEN_OPTS: {
 
   my $sock = $srv->srv_listen(ip => '::1');
   ok $sock->socket_reuseaddr;
-  ok $sock->io_non_blocking;
+  ok $sock->handle_non_blocking;
   ok $sock->socket_nodelay;
-  ok !$sock->socket_reuseport if $HAS_REUSEPORT;
+  ok !$sock->socket_reuseport if HAS_REUSEPORT;
 
   # passed with ip
-  $sock = $srv->srv_listen(ip => '::1', reuseaddr => 0, nodelay => 0);
-  ok !$sock->socket_reuseaddr;
-  ok !$sock->socket_nodelay;
-
-  # reuseport
-  if ($HAS_REUSEPORT) {
-    $sock = $srv->srv_listen(ip => '::1', reuseport => 1);
-    ok $sock->socket_reuseport;
-  }
+  $sock = $srv->srv_listen(ip => '::1');
+  ok $sock->socket_reuseaddr;
 
   # with wildcard
   $sock = $srv->srv_listen(ip => '*');
   ok $sock->socket_reuseaddr;
-  ok $sock->io_non_blocking;
-  ok $sock->socket_nodelay;
-  ok !$sock->socket_reuseport if $HAS_REUSEPORT;
   is [$sock->socket_local]->[0], '::';
 }
 
@@ -128,12 +130,12 @@ ACCEPT: {
   my $srv   = My::Server::new();
   my $sock  = $srv->srv_listen(ip => '::1');
   my $saddr = getsockname $sock;
-  my $cl1   = Evo::Net::Socket::new()->socket_open();
+  my $cl1   = Evo::Io::Socket::socket_open();
   connect $cl1, $saddr;
   $srv->srv_accept($sock);
   is_deeply [$LAST->socket_local],  [$cl1->socket_remote];
   is_deeply [$LAST->socket_remote], [$cl1->socket_local];
-  ok $LAST->io_non_blocking;
+  ok $LAST->handle_non_blocking;
   ok $LAST->socket_nodelay;
 }
 

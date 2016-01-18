@@ -1,13 +1,11 @@
 package main;
-use Evo '-Net::Socket; Test::More; -Loop::Comp';
+use Evo '-Io::Socket; Test::More; -Loop::Comp; -Io::Handle';
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
 
 *newloop = *Evo::Loop::Comp::new;
 
-
-my $handle = Evo::Net::Socket::new()->socket_open() or die "Cannot construct handle - $@";
-
+my $handle = Evo::Io::Handle::open_anon_nb;
 
 my $fd = fileno $handle;
 no warnings 'once', 'redefine';

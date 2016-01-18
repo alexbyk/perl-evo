@@ -1,9 +1,9 @@
 package main;
 use Evo;
-use Evo::Util;
+use Evo::Lib::Bare;
 use Test::More;
 
-sub undef_symbols { Evo::Util::undef_symbols(@_) }
+sub undef_symbols { Evo::Lib::Bare::undef_symbols(@_) }
 
 {
 
@@ -15,7 +15,7 @@ sub undef_symbols { Evo::Util::undef_symbols(@_) }
 }
 
 ok grep  { $_ eq 'Child::' } keys %My::Src::;
-ok !grep { $_ eq 'Child::' } Evo::Util::list_symbols('My::Src');
+ok !grep { $_ eq 'Child::' } Evo::Lib::Bare::list_symbols('My::Src');
 
 done_testing;
 

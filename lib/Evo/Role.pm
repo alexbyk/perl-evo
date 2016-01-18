@@ -2,10 +2,10 @@ package Evo::Role;
 use Evo '-Export *';
 use Evo::Role::Exporter;
 use Carp 'croak';
-use Evo::Util;
+use Evo::Lib::Bare;
 use Module::Load 'load';
 
-our @CARP_NOT = ('Evo::Util');
+our @CARP_NOT = ('Evo::Lib::Bare');
 
 use constant ROLE_EXPORTER => Evo::Role::Exporter::new();
 export 'ROLE_EXPORTER';
@@ -43,8 +43,8 @@ export_anon MODIFY_CODE_ATTRIBUTES => sub($class, $code, @attrs) {
   my @bad = grep { $_ ne 'Role' } @attrs;
   return @bad if @bad;
 
-  Evo::Util::find_subnames($class, $code);
-  ROLE_EXPORTER->add_methods($class, Evo::Util::find_subnames($class, $code));
+  Evo::Lib::Bare::find_subnames($class, $code);
+  ROLE_EXPORTER->add_methods($class, Evo::Lib::Bare::find_subnames($class, $code));
   return;
 };
 

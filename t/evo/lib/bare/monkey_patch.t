@@ -1,5 +1,5 @@
 package main;
-use Evo -Util;
+use Evo -Lib::Bare;
 use Test::More;
 
 {
@@ -13,11 +13,11 @@ use Test::More;
 
 my %hash = (foo => sub {'pfoo'}, bar => sub {'pbar'});
 
-Evo::Util::monkey_patch('Foo', %hash);
+Evo::Lib::Bare::monkey_patch('Foo', %hash);
 is Foo::foo(), 'pfoo';
 is Foo::bar(), 'pbar';
 
-my $restore = Evo::Util::monkey_patch_silent('Bar', foo => sub {'pfoo'}, bar => sub {'pbar'});
+my $restore = Evo::Lib::Bare::monkey_patch_silent('Bar', foo => sub {'pfoo'}, bar => sub {'pbar'});
 is Bar::foo(), 'pfoo';
 is Bar::bar(), 'pbar';
 
@@ -26,7 +26,7 @@ ok exists $restore->{bar};
 ok !$restore->{bar};
 
 delete $restore->{bar};
-Evo::Util::monkey_patch_silent('Bar', %$restore);
+Evo::Lib::Bare::monkey_patch_silent('Bar', %$restore);
 is Bar::foo(), 'foo';
 
 done_testing;

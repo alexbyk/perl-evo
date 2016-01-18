@@ -1,31 +1,13 @@
 package Evo::Lib;
-use Evo '-Export *', -Util;
-use Time::HiRes qw(CLOCK_MONOTONIC);
+use Evo '-Export *; -Io::Handle; -Io::Socket';
 
-PATCH: {
-  no warnings 'once';
-  *Evo::Lib::debug        = *Evo::Util::debug{CODE};
-  *Evo::Lib::monkey_patch = *Evo::Util::monkey_patch{CODE};
-}
+no warnings 'once';
+*open_nb      = *Evo::Io::Handle::open_nb;
+*open_anon_nb = *Evo::Io::Handle::open_anon_nb;
+*socket_open  = *Evo::Io::Socket::socket_open;
 
-export qw(debug monkey_patch);
+export qw(socket_open open_nb open_anon_nb);
+export_proxy ':Internal', 'ws_combine';
 
-
-my $HAS_M_TIME = eval { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); 1; };
-
-export_anon steady_time => $HAS_M_TIME
-  ? sub { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); }
-  : \&Time::HiRes::time;
-
-sub ws_combine : Export {
-  return unless @_;
-  return $_[0] if @_ == 1;
-  my @wrappers = reverse @_;
-  sub {
-    my $w = $_[0];
-    $w = $_->($w) for @wrappers;
-    $w;
-  };
-}
 
 1;

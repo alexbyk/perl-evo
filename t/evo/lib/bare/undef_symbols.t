@@ -1,9 +1,9 @@
 package main;
 use Evo;
-use Evo::Util;
+use Evo::Lib::Bare;
 use Test::More;
 
-sub undef_symbols { Evo::Util::undef_symbols(@_) }
+sub undef_symbols { Evo::Lib::Bare::undef_symbols(@_) }
 
 {
 

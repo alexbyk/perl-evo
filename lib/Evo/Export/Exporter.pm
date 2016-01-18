@@ -1,12 +1,12 @@
 package Evo::Export::Exporter;
 use Evo;
-use Evo::Util;
+use Evo::Lib::Bare;
 use Carp 'croak';
 use Module::Load 'load';
 
 # most of the method accept hash with key src(module), name(method), orig_src, orig_name, dst
 
-our @CARP_NOT = ('Evo::Util');
+our @CARP_NOT = ('Evo::Lib::Bare');
 sub new { bless {data => {}}, __PACKAGE__ }
 
 sub data { shift->{data} }
@@ -22,7 +22,7 @@ sub install($self, $src, $dst, @xlist) {
     $patch{$as} = $fn;
   }
 
-  Evo::Util::monkey_patch $dst, %patch;
+  Evo::Lib::Bare::monkey_patch $dst, %patch;
 }
 
 sub request_gen($self, $epkg, $name, $dpkg) {
@@ -62,7 +62,7 @@ sub add_sub($self, $src, $name_as) {
 }
 
 sub proxy($self, $epkg, $spkg, @xlist) {
-  $spkg = Evo::Util::resolve_package($epkg, $spkg);
+  $spkg = Evo::Lib::Bare::resolve_package($epkg, $spkg);
   load $spkg;
   my @list = $self->expand_wildcards($spkg, @xlist);
 

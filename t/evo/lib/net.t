@@ -1,4 +1,4 @@
-use Evo 'Test::More; Test::Fatal; Evo::Net::Util *, net_gen_saddr_family:gen';
+use Evo 'Test::More; Test::Fatal; Evo::Lib::Net *, net_gen_saddr_family:gen';
 use Socket ':all';
 
 # net_parse

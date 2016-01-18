@@ -1,15 +1,15 @@
 package main;
-use Evo '-Net::Socket; Test::More; -Loop::Comp; Socket :all';
+use Evo '-Io::Socket; Test::More; -Loop::Comp; Socket :all; -Lib *';
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
 
 *newloop = *Evo::Loop::Comp::new;
 
-my ($foo, $bar) = (Evo::Net::Socket::new(), Evo::Net::Socket::new());
+my ($foo, $bar) = (socket_open(), socket_open());
 socketpair($foo, $bar, AF_UNIX, SOCK_STREAM, PF_UNSPEC) || die "socketpair: $!";
 
-$foo->io_non_blocking(1);
-$bar->io_non_blocking(1);
+$foo->handle_non_blocking(1);
+$bar->handle_non_blocking(1);
 
 my $buf;
 sysread($bar, $buf, 2, length($buf) || 0);

@@ -1,10 +1,10 @@
-use Evo 'Test::More; -Net::Srv';
+use Evo 'Test::More; -Net::Srv; -Lib *';
 
 my $srv = Evo::Net::Srv::new();
 
 my $called = 0;
-my $sock   = Evo::Net::Socket::new()->socket_open;
-my $conn   = Evo::Net::Socket::new()->socket_open;
+my ($sock, $conn) = (socket_open(), socket_open());
+
 
 $srv->on(
   srv_accept => sub($_srv, $_sock) {

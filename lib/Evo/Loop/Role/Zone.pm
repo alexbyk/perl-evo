@@ -1,6 +1,5 @@
 package Evo::Loop::Role::Zone;
-use Evo '-Role *';
-use Evo::Lib '*';
+use Evo '-Role *; -Lib::Internal *';
 use Carp 'croak';
 
 has zone_data => sub { {} };

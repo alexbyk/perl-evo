@@ -16,6 +16,7 @@ sub loop_io_error : Export      { DEFAULT->realm_lord->io_error(@_) }
 sub loop_io_remove_in : Export  { DEFAULT->realm_lord->io_remove_in(@_); }
 sub loop_io_remove_out : Export { DEFAULT->realm_lord->io_remove_out(@_); }
 sub loop_io_remove_all : Export { DEFAULT->realm_lord->io_remove_all(@_); }
+sub loop_io_remove_fd : Export { DEFAULT->realm_lord->io_remove_fd(@_); }
 
 sub loop_zone : Export                    { DEFAULT->realm_lord->zone(@_) }
 sub loop_postpone : prototype(&) : Export { DEFAULT->realm_lord->postpone(@_) }

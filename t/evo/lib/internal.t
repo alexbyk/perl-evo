@@ -1,12 +1,15 @@
 package main;
 BEGIN { $ENV{EVO_DEBUG} = 1 }    ## no critic
-use Evo;
-use Test::More;
+use Evo '-Lib::Internal *; Test::More';
 
+STEADY_TIME: { ok steady_time() }
+
+
+# DEBUG
 {
 
   package Foo;
-  use Evo::Lib 'debug';
+  use Evo::Lib::Internal 'debug';
 
   sub foo { debug(shift); }
 }

@@ -1,6 +1,6 @@
 package Evo::Role::Exporter;
 use Evo;
-use Evo::Util;
+use Evo::Lib::Bare;
 use Carp 'croak';
 use Module::Load;
 
@@ -36,7 +36,7 @@ sub request_gen($self, $role, $name, $comp) {
 }
 
 sub add_attr($self, $role, $name, @opts) {
-  Evo::Util::check_subname($name) || croak(qq{Attribute "$name" invalid});
+  Evo::Lib::Bare::check_subname($name) || croak(qq{Attribute "$name" invalid});
   $self->init_slot($role, $name, {type => 'attr', value => \@opts});
 }
 

@@ -1,4 +1,4 @@
-package Evo::Io;
+package Evo::Io::Handle;
 use Evo '-Comp::Out *; Symbol gensym';
 
 with ':Role';

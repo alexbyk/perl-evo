@@ -1,8 +1,6 @@
 package Evo::Comp::Hash;
 use Evo '-Export *';
-use Evo::Lib 'monkey_patch';
-use Evo '::Gen::Hash GEN; -Role ROLE_EXPORTER';
-use Evo '::Meta';
+use Evo '::Gen::Hash GEN; -Role ROLE_EXPORTER; ::Meta';
 
 my $META = Evo::Comp::Meta::new(gen => GEN, rex => ROLE_EXPORTER);
 
@@ -24,8 +22,8 @@ export_anon MODIFY_CODE_ATTRIBUTES => sub($class, $code, @attrs) {
   my @bad = grep { $_ ne 'Override' } @attrs;
   return @bad if @bad;
 
-  Evo::Util::find_subnames($class, $code);
-  $META->mark_overriden($class, Evo::Util::find_subnames($class, $code));
+  Evo::Lib::Bare::find_subnames($class, $code);
+  $META->mark_overriden($class, Evo::Lib::Bare::find_subnames($class, $code));
   return;
 };
 

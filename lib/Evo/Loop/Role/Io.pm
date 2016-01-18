@@ -45,9 +45,9 @@ sub io_remove($type, $mask, $self, $handle) {
   else { delete $data->{$fd}; }
 }
 
-sub io_remove_all($self, $handle) : Role {
-  delete $self->io_data->{fileno $handle};
-}
+sub io_remove_all($self, $handle) : Role { delete $self->io_data->{fileno $handle}; }
+
+sub io_remove_fd($self, $fd) : Role { delete $self->io_data->{$fd}; }
 
 sub io_process($self, $timeout_float=undef) : Role {
   my $data = $self->io_data;

@@ -1,4 +1,4 @@
-use Evo -Loop::Comp, -Net::Socket;
+use Evo -Loop::Comp, '-Lib *';
 use Test::More;
 use Evo::W::Eval 'w_eval_run';
 
@@ -66,8 +66,7 @@ IGNORE_SIGPIPE: {
   ok !$SIG{PIPE};
   $loop->start;
 
-  my $sock = Evo::Net::Socket::new();
-  $sock->socket_open();
+  my $sock = socket_open;
 }
 
 

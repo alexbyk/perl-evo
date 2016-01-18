@@ -1,7 +1,7 @@
 package Evo::Export;
 use Evo -Export::Exporter;
 use Carp 'croak';
-use Evo::Util;
+use Evo::Lib::Bare;
 
 my $EXPORTER;
 sub EXPORTER() {$EXPORTER}
@@ -30,7 +30,7 @@ sub MODIFY_CODE_ATTRIBUTES($pkg, $code, @attrs) {
   return @bad if @bad;
 
   foreach my $name (@good) {
-    my @names = $name ? ($name) : Evo::Util::find_subnames($pkg, $code);
+    my @names = $name ? ($name) : Evo::Lib::Bare::find_subnames($pkg, $code);
     EXPORTER->add_gen($pkg, $_, sub {$code}) for @names;
   }
 

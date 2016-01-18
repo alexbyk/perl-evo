@@ -1,6 +1,6 @@
 package Evo::Realm;
-use Evo '-Export *', '-Lib *';
-use Evo::Util;
+use Evo '-Export *';
+use Evo::Lib::Bare;
 use Carp 'croak';
 use Scalar::Util qw(refaddr blessed);
 

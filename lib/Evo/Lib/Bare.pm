@@ -1,4 +1,4 @@
-package Evo::Util;
+package Evo::Lib::Bare;
 use strict;
 use warnings;
 use experimental 'signatures';
@@ -112,6 +112,6 @@ sub resolve_package($caller, $pkg) {
 
 =head1 DESCRIPTION
 
-Utilites for package. For internal usage. Not a component
+This is bare internal collection, this functions are used by Exporter, so we need this module and can't export them
 
 =cut
