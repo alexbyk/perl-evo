@@ -9,7 +9,7 @@ sub open_nb($mode, $expr, @list) {
   $fh->handle_non_blocking(1);
 }
 
-sub open_anon_nb {
+sub open_nb_anon {
   my $fh = Evo::Io::Handle::init(gensym());
   open($fh, '>', undef);
   $fh->handle_non_blocking(1);

@@ -5,30 +5,30 @@ HAS_IPV6 or plan skip_all => "No IPv6: " . $! || $@;
 
 
 if (HAS_SO_DOMAIN()) {
-  my $sock = Evo::Io::Socket::socket_open(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  my $sock = Evo::Io::Socket::socket_open_nb(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   is $sock->socket_domain, AF_INET;
 
-  $sock = Evo::Io::Socket::socket_open();
+  $sock = Evo::Io::Socket::socket_open_nb();
   is $sock->socket_domain, AF_INET6;
 }
 
 if (HAS_REUSEPORT()) {
-  my $sock = Evo::Io::Socket::socket_open();
+  my $sock = Evo::Io::Socket::socket_open_nb();
   ok $sock->socket_reuseport(1);
   ok $sock->socket_reuseport(1)->socket_reuseport;
 }
 
 OPTS: {
   # ro
-  my $sock = Evo::Io::Socket::socket_open(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  my $sock = Evo::Io::Socket::socket_open_nb(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   is $sock->socket_type,     SOCK_DGRAM;
   is $sock->socket_protocol, IPPROTO_UDP;
 
   # rw sock
-  $sock = Evo::Io::Socket::socket_open(AF_INET6);
+  $sock = Evo::Io::Socket::socket_open_nb(AF_INET6);
 
   # defaults
-  $sock = Evo::Io::Socket::socket_open();
+  $sock = Evo::Io::Socket::socket_open_nb();
   is $sock->socket_type,     SOCK_STREAM;
   is $sock->socket_protocol, IPPROTO_TCP;
   ok $sock->socket_nodelay;
@@ -44,7 +44,7 @@ OPTS: {
 }
 
 FUNCS: {
-  my $sock = Evo::Io::Socket::socket_open();
+  my $sock = Evo::Io::Socket::socket_open_nb();
   my ($addr, $port) = $sock->socket_remote;
   ok !$sock->socket_remote;
   ok !$sock->socket_local;
@@ -57,14 +57,14 @@ BIND_LISTEN_CONNECTv6: {
   my $naddr6 = inet_pton(AF_INET6, '::1');
   my $saddr6 = pack_sockaddr_in6(0, $naddr6);
   my $serv
-    = Evo::Io::Socket::socket_open()->socket_reuseaddr(1)->socket_bind($saddr6)->socket_listen(1);
+    = Evo::Io::Socket::socket_open_nb()->socket_reuseaddr(1)->socket_bind($saddr6)->socket_listen(1);
 
   my ($ip, $port) = $serv->socket_local();
   ok $port;
   is $ip, '::1';
 
   # cl
-  my $cl = Evo::Io::Socket::socket_open;
+  my $cl = Evo::Io::Socket::socket_open_nb;
   connect($cl, pack_sockaddr_in6($port, $naddr6));
 
   # accept

@@ -3,7 +3,7 @@ use Evo 'Test::More; -Net::Srv; -Lib *';
 my $srv = Evo::Net::Srv::new();
 
 my $called = 0;
-my ($sock, $conn) = (socket_open(), socket_open());
+my ($sock, $conn) = (socket_open_nb(), socket_open_nb());
 
 
 $srv->on(

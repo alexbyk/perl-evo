@@ -5,7 +5,7 @@ use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
 *newloop = *Evo::Loop::Comp::new;
 
-my $handle = Evo::Io::Handle::open_anon_nb;
+my $handle = Evo::Io::Handle::open_nb_anon;
 
 my $fd = fileno $handle;
 no warnings 'once', 'redefine';

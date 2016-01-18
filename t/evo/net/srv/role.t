@@ -133,7 +133,7 @@ ACCEPT: {
   # stop
   no warnings 'redefine';
   local *My::Server::srv_handle_accept = sub { $loop->io_data({}); $LAST = $_[1]; };
-  my $cl1 = Evo::Io::Socket::socket_open();
+  my $cl1 = Evo::Io::Socket::socket_open_nb();
 
   $loop->realm(
     sub {

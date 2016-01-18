@@ -66,7 +66,7 @@ IGNORE_SIGPIPE: {
   ok !$SIG{PIPE};
   $loop->start;
 
-  my $sock = socket_open;
+  my $sock = socket_open_nb;
 }
 
 

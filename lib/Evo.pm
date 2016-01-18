@@ -38,15 +38,18 @@ sub import {
     my ($class, @args) = _parse($target, $key);
     load($class);
     if (my $import = $class->can('import')) {
-      Evo::Lib::Bare::inject(package => $target, line => $line, filename => $filename, code => $import)
-        ->($class, @args);
+      Evo::Lib::Bare::inject(
+        package  => $target,
+        line     => $line,
+        filename => $filename,
+        code     => $import
+      )->($class, @args);
     }
     elsif (@args) {
       croak qq#Got import arguments but $class hasn't "import" method#;
     }
   }
 }
-
 
 
 1;
@@ -60,6 +63,9 @@ sub import {
   # enables strict, warnings, utf8, :5.22, signatures, postderef
   use Evo;
 
+=head1 STATE
+
+This module is under active development. It changes often and a lot! Don't use in production. Get involved L<https://github.com/alexbyk/perl-evo>
 
 =head1 DESCRIPTION
 
@@ -155,7 +161,7 @@ I have decided that using 5.22 and some of the experimental features it brings h
 =head2 -Loaded
 
 This marks inline or generated classes as loaded, so can be used with
-C<require> or C<use>. So this code won't die
+C<require> or C<use>. So this code won't die. Used for test and examples in the documentation
 
   require My::Inline;
 

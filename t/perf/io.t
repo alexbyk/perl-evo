@@ -9,7 +9,7 @@ my $EXPECT = 730 * $ENV{TEST_EVO_PERF};
 
 my $N = 1000;
 
-my @cons = map { Evo::Io::Socket::new()->socket_open(AF_INET) } 0 .. 1000;
+my @cons = map { Evo::Io::Socket::new()->socket_open_nb(AF_INET) } 0 .. 1000;
 my $comp = Evo::Loop::Comp::new();
 $comp->io_in($_, sub { }) for @cons;
 $comp->io_out($_, sub { }) for @cons;

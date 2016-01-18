@@ -4,9 +4,9 @@ use Evo '-Comp::Meta; Socket :all; -Role::Exporter; -Lib *; -Lib::Net *; Socket 
 
 use constant HAS_IPV6 => eval {
   my ($saddr, $family) = net_gen_saddr_family('*', undef);
-  socket_open()->socket_bind($saddr);
+  socket_open_nb()->socket_bind($saddr);
 };
-use constant HAS_REUSEPORT => eval { socket_open()->socket_reuseport; 1; };
+use constant HAS_REUSEPORT => eval { socket_open_nb()->socket_reuseport; 1; };
 use constant HAS_SO_DOMAIN => eval { my $v = SO_DOMAIN(); 1 };
 
 export qw(HAS_IPV6 HAS_REUSEPORT HAS_SO_DOMAIN);

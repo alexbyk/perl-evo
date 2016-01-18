@@ -6,7 +6,7 @@ with ':Role', '-Io::Handle::Role';
 
 our @CARP_NOT = qw(Evo::Net::Server::Role);
 
-sub socket_open {
+sub socket_open_nb {
   my ($family, $type, $proto) = @_;
   $proto ||= IPPROTO_TCP;
   my $s = gensym;
@@ -21,7 +21,7 @@ sub socket_open {
 
 =head1 SYNOPSYS
 
-  my $sock = Evo::Io::Socket::new()->socket_open();
+  my $sock = Evo::Io::Socket::new()->socket_open_nb();
   $sock->socket_reuseaddr(1)->socket_listen(100);
 
 Socket doesn't have any attached data in this role, so you can safely bless it to another package with L<Evo::Io::Socket::Role> role
@@ -32,7 +32,7 @@ Socket doesn't have any attached data in this role, so you can safely bless it t
 
 Opens socket just like C<socket>. If already opened, dies
 
-  my $sock = Evo::Io::Socket::new()->socket_open(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+  my $sock = Evo::Io::Socket::new()->socket_open_nb(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 
 =cut
 

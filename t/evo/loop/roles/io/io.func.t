@@ -5,7 +5,7 @@ use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
 *newloop = *Evo::Loop::Comp::new;
 
-my ($foo, $bar) = (socket_open(), socket_open());
+my ($foo, $bar) = (socket_open_nb(), socket_open_nb());
 socketpair($foo, $bar, AF_UNIX, SOCK_STREAM, PF_UNSPEC) || die "socketpair: $!";
 
 $foo->handle_non_blocking(1);

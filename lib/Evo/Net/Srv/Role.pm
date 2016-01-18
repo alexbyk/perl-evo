@@ -18,7 +18,7 @@ sub srv_streams($s, @conns) : Role {
 
 # nodelay => 1, reuseaddr => 1
 sub _gen_sock($family, $o) {
-  my $sock = Evo::Io::Socket::socket_open($family)->socket_reuseaddr(1);
+  my $sock = Evo::Io::Socket::socket_open_nb($family)->socket_reuseaddr(1);
 
   # not always supported
   $sock->socket_reuseport(1) if delete $o->{reuseport};
