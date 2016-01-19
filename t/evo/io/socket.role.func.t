@@ -2,20 +2,19 @@ use Evo
   '-Loop *; Test::More; Test::Fatal; Test::Evo::Helpers *; Socket :all; -Io *; Symbol gensym';
 
 CAN_BIND6     or plan skip_all => "No IPv6: " . $!      || $@;
-HAS_SO_DOMAIN or plan skip_all => "No SO_DOMAIN: " . $! || $@;
 HAS_REUSEPORT or plan skip_all => "No REUSEPORT: " . $! || $@;
 
 # ro
 my $sock = io_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 is $sock->io_type,     SOCK_DGRAM;
 is $sock->io_protocol, IPPROTO_UDP;
-is $sock->io_domain,   AF_INET;
+is $sock->io_domain,   AF_INET if HAS_SO_DOMAIN;
 
 # defaults
 $sock = io_socket();
 is $sock->io_type,     SOCK_STREAM;
 is $sock->io_protocol, IPPROTO_TCP;
-is $sock->io_domain,   AF_INET6;
+is $sock->io_domain,   AF_INET6 if HAS_SO_DOMAIN;
 ok $sock->io_nodelay;
 ok $sock->io_non_blocking;
 ok !$sock->io_reuseaddr;

@@ -4,7 +4,6 @@ use Test::Evo::Helpers '*';
 use Evo 'Socket :all; Test::More; Test::Fatal; Errno EBADF';
 
 CAN_BIND6     or plan skip_all => "No IPv6: " . $!      || $@;
-HAS_SO_DOMAIN or plan skip_all => "No SO_DOMAIN: " . $! || $@;
 HAS_REUSEPORT or plan skip_all => "No REUSEPORT: " . $! || $@;
 
 my $LAST;

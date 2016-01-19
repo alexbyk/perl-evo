@@ -1,7 +1,6 @@
 use Evo 'Test::More; Test::Fatal; Socket :all; -Io *; File::Temp tempfile; Test::Evo::Helpers *';
 
 CAN_BIND6     or plan skip_all => "No IPv6: " . $!      || $@;
-HAS_SO_DOMAIN or plan skip_all => "No SO_DOMAIN: " . $! || $@;
 HAS_REUSEPORT or plan skip_all => "No REUSEPORT: " . $! || $@;
 
 HANDLE: {
@@ -72,7 +71,6 @@ BIND_LISTEN_CONNECTv6: {
   connect($cl, pack_sockaddr_in6($port, $naddr6)) or die $!;
   my $conn6 = $serv->io_accept();
 
-  is $conn6->io_domain, AF_INET6;
   ok $conn6->io_reuseaddr;
   ok $conn6->io_non_blocking;
 
@@ -82,7 +80,6 @@ BIND_LISTEN_CONNECTv6: {
   my $naddr4 = inet_pton(AF_INET, '127.0.0.1');
   connect($cl4, pack_sockaddr_in($port, $naddr4)) or die $!;
   my $conn4 = $serv->io_accept();
-  is $conn4->io_domain, AF_INET6;
   ok $conn4->io_reuseaddr;
   ok $conn4->io_non_blocking;
 
