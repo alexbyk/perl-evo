@@ -52,9 +52,10 @@ sub io_listen(%opts) : Export {
 
 =head2 io_open
 
-  my $io = io_open('>', $filename);
+  # 'r', 'w', 'rw', or constants from Fcntl
+  my $io = io_open('r', $filename);
 
-Open file and make it non blocking using C<sysopen>
+Open file and make it non blocking using C<sysopen>, you can use shortcuts C<"r", "rw", "w">
 
 =head2 io_open_anon
 
