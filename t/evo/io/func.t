@@ -33,7 +33,7 @@ SOCKET: {
 # listen
 OPTS: {
   like exception { io_listen() }, qr/provide ip.+$0/i;
-  like exception { io_listen(ip => '*', bad => 33) }, qr/unknown.+bad.+$0/i;
+  like exception { io_listen(ip => '::', bad => 33) }, qr/unknown.+bad.+$0/i;
 
   # ip, anyport
   my $sock = io_listen(ip => '::1', reuseport => 1);
@@ -53,7 +53,7 @@ OPTS: {
   ok !$sock->io_reuseport;
 
   # default with any
-  $sock = io_listen(ip => '*');
+  $sock = io_listen(ip => '::');
   ok $sock->io_reuseaddr;
   ok !$sock->io_reuseport;
   is [$sock->io_local]->[0], '::';

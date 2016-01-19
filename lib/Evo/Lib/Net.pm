@@ -12,9 +12,6 @@ use Carp 'croak';
 sub net_gen_saddr_family($ip, $port) : Export {
   $port ||= 0;
 
-  # wildcard => V6
-  return (pack_sockaddr_in6($port, IN6ADDR_ANY), AF_INET6) if $ip eq '*';
-
   my ($naddr, $family) = net_parse($ip);
   croak "bad ip $ip" unless $naddr;
   my $saddr

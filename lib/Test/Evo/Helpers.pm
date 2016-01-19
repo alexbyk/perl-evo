@@ -3,7 +3,7 @@ use Evo '-Export *';
 use Evo '-Comp::Meta; Socket :all; -Role::Exporter; -Io *; -Lib::Net *; Socket AF_INET6';
 
 use constant CAN_BIND6 => eval {
-  my ($saddr, $family) = net_gen_saddr_family('*', undef);
+  my ($saddr, $family) = net_gen_saddr_family('::1', undef);
   io_socket()->io_bind($saddr);
 };
 use constant HAS_REUSEPORT => eval { io_socket()->io_reuseport; 1; };

@@ -33,9 +33,14 @@ GEN_SAF: {
   is $family, AF_INET;
 
   # anyv6 port
-  ($saddr, $family) = gen('*', 80);
+  ($saddr, $family) = gen('::', 80);
   is_deeply [net_smart_unpack($saddr)], ['::', 80];
   is $family, AF_INET6;
+
+  # anyv4 port
+  ($saddr, $family) = gen('0.0.0.0', 80);
+  is_deeply [net_smart_unpack($saddr)], ['0.0.0.0', 80];
+  is $family, AF_INET;
 
   # ipv6 gen
   ($saddr, $family) = gen('::1', undef);
