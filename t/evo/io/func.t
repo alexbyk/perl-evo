@@ -55,14 +55,11 @@ OPTS: {
 }
 
 BIND_LISTEN_CONNECTv6: {
-  my $serv = io_listen(ip => '*');
+  my $serv = io_listen(ip => '::');
 
-
-  my $cl  = io_socket;
-  my $cl4 = io_socket(AF_INET);
+  my $cl = io_socket;
   $serv->io_non_blocking(0);    # just for test
   $cl->io_non_blocking(0);      # for test!
-  $cl4->io_non_blocking(0);     # for test!
 
   my ($ip, $port) = $serv->io_local;
 
@@ -73,20 +70,30 @@ BIND_LISTEN_CONNECTv6: {
 
   ok $conn6->io_reuseaddr;
   ok $conn6->io_non_blocking;
+  ok $conn6->io_v6only;
 
   is_deeply [$cl->io_local],  [$conn6->io_remote];
   is_deeply [$cl->io_remote], [$conn6->io_local];
-
-  my $naddr4 = inet_pton(AF_INET, '127.0.0.1');
-  connect($cl4, pack_sockaddr_in($port, $naddr4)) or die $!;
-  my $conn4 = $serv->io_accept();
-  ok $conn4->io_reuseaddr;
-  ok $conn4->io_non_blocking;
-
-  is [$cl4->io_remote]->[1],  $port;
-  is [$conn4->io_local]->[1], $port;
-
 }
 
+BIND_LISTEN_CONNECTv4: {
+  my $serv = io_listen(ip => '127.0.0.1');
+  my $cl = io_socket(AF_INET);
+
+  $serv->io_non_blocking(0);    # just for test
+  $cl->io_non_blocking(0);      # for test!
+
+  my ($ip, $port) = $serv->io_local;
+
+  my $naddr = inet_pton(AF_INET, '127.0.0.1');
+  connect($cl, pack_sockaddr_in($port, $naddr)) or die "Connect: $!";
+  my $conn = $serv->io_accept();
+
+  ok $conn->io_reuseaddr;
+  ok $conn->io_non_blocking;
+
+  is_deeply [$cl->io_local],  [$conn->io_remote];
+  is_deeply [$cl->io_remote], [$conn->io_local];
+}
 
 done_testing;

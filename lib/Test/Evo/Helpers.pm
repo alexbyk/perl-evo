@@ -7,9 +7,10 @@ use constant CAN_BIND6 => eval {
   io_socket()->io_bind($saddr);
 };
 use constant HAS_REUSEPORT => eval { io_socket()->io_reuseport; 1; };
+use constant CAN_CHANGEV6ONLY => eval { !io_socket()->io_v6only(0)->io_v6only; };
 use constant HAS_SO_DOMAIN => eval { my $v = SO_DOMAIN(); 1 };
 
-export qw(CAN_BIND6 HAS_REUSEPORT HAS_SO_DOMAIN);
+export qw(CAN_BIND6 CAN_CHANGEV6ONLY HAS_REUSEPORT HAS_SO_DOMAIN);
 
 sub comp_meta : Export {
   my %gen;

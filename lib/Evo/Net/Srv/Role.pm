@@ -84,7 +84,7 @@ Create a socket and call listen.
 
 =item ip
 
-Ip to bind to. C<'*'> or C<'::'> for "all", C<'0.0.0.0.> for ipv4 only.
+Ip to bind to. Use C<'0.0.0.0'> or C<'::'> for "all"
 
 =item port
 

@@ -1,7 +1,7 @@
 package Evo::Io::Socket::Role;
 use Evo '-Role *; -Lib::Net *; Symbol gensym; Carp croak';
 use Socket qw(
-  SOCK_STREAM AF_INET AF_INET6 SOL_SOCKET IPPROTO_TCP TCP_NODELAY
+  SOCK_STREAM AF_INET AF_INET6 SOL_SOCKET IPPROTO_TCP IPPROTO_IPV6 IPV6_V6ONLY TCP_NODELAY
   SO_REUSEADDR SO_REUSEPORT SO_DOMAIN SO_TYPE SO_PROTOCOL SO_SNDBUF SO_RCVBUF
 );
 
@@ -14,7 +14,11 @@ sub _opt($level, $opt, $debug, $sock, $val=undef) {
 }
 
 
-sub io_domain : Role   { _opt(SOL_SOCKET, SO_DOMAIN,   domain   => @_); }
+# not portable
+sub io_v6only : Role { _opt(IPPROTO_IPV6, IPV6_V6ONLY, v6only => @_); }
+sub io_domain : Role { _opt(SOL_SOCKET,   SO_DOMAIN,   domain => @_); }
+
+
 sub io_type : Role     { _opt(SOL_SOCKET, SO_TYPE,     type     => @_); }
 sub io_protocol : Role { _opt(SOL_SOCKET, SO_PROTOCOL, protocol => @_); }
 sub io_rcvbuf : Role   { _opt(SOL_SOCKET, SO_RCVBUF,   rcvbuf   => @_); }

@@ -2,12 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0202    2016-01-18 12:34:50+02:00 Europe/Kiev
-
-0.0201    2016-01-18 11:08:23+02:00 Europe/Kiev
-
-0.0200    2016-01-17 14:21:06+02:00 Europe/Kiev
-
+  - Start supporting FreeBSD
   - Change Ee behaviour
   - Added Evo::Io namespace
   - Added periodic timers
