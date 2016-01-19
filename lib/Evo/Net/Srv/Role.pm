@@ -16,15 +16,6 @@ sub srv_connectionss($s, @conns) : Role {
   $data->{$_}++ for @conns;
 }
 
-# nodelay => 1, reuseaddr => 1
-sub _gen_sock($family, $o) {
-  my $sock = io_socket($family)->io_reuseaddr(1);
-
-  # not always supported
-  $sock->io_reuseport(1) if delete $o->{reuseport};
-  $sock;
-}
-
 sub srv_handle_error($self, $sock, $err) : Role { $self->srv_remove_socket($sock); }
 sub srv_handle_accept($self, $sock) : Role      {$sock}
 
@@ -64,24 +55,15 @@ sub srv_accept($self, $sock) : Role {
 
 
 sub srv_listen($self, %opts) : Role {
-  my $port    = delete $opts{port}    || 0;
-  my $backlog = delete $opts{backlog} || SOMAXCONN;
-  my $ip      = delete $opts{ip}      || croak "Provide ip or * for wildcards";
-  my $remaining = \%opts;
+  my @conn_keys = qw(port ip backlog reuseport);
+  my %conn      = %opts{@conn_keys};
+  delete $opts{$_} for @conn_keys;
 
-  my $sock;
+  croak "unknown options: " . join(',', keys %opts) if keys %opts;
 
-  if (($ip ne '*') || $port) {
-    my ($saddr, $family) = net_gen_saddr_family($ip, $port);
-    $sock = _gen_sock($family, $remaining)->io_bind($saddr);
-  }
-  else {
-    $sock = _gen_sock(AF_INET6, $remaining);
-  }
+  my $sock = io_listen(%conn);
 
-  croak "unknown options: " . join(',', keys %$remaining) if keys %$remaining;
 
-  $sock->io_listen($backlog);
   push $self->srv_acceptors->@*, $sock;
   $self->srv_start_watching($sock) if $self->srv_is_running;
   $sock;

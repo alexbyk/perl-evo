@@ -3,7 +3,9 @@ use Evo '-Lib::Net *; -Loop *; -Io::Socket; -Lib *';
 use Test::Evo::Helpers '*';
 use Evo 'Socket :all; Test::More; Test::Fatal; Errno EBADF';
 
-CAN_BIND6 or plan skip_all => "No IPv6: " . $! || $@;
+CAN_BIND6     or plan skip_all => "No IPv6: " . $!      || $@;
+HAS_SO_DOMAIN or plan skip_all => "No SO_DOMAIN: " . $! || $@;
+HAS_REUSEPORT or plan skip_all => "No REUSEPORT: " . $! || $@;
 
 my $LAST;
 {
@@ -21,40 +23,15 @@ my $LAST;
   }
 }
 
-if (HAS_REUSEPORT) {
-  my $srv = My::Server::new();
-  my $sock = $srv->srv_listen(ip => '::1');
-  ok !$sock->io_reuseport;
-  $sock = $srv->srv_listen(ip => '::1', reuseport => 1);
-
-  $sock = $srv->srv_listen(ip => '*');
-  ok !$sock->io_reuseport if HAS_REUSEPORT;
-
-  $sock = $srv->srv_listen(ip => '::1', reuseport => 1);
-  ok $sock->io_reuseport;
-}
 
 LISTEN_OPTS: {
-
   my $srv = My::Server::new();
-
-  # default with ip
   like exception { $srv->srv_listen(ip => '::1', bad => 'foo') }, qr/unknown.+bad.+$0/;
 
-  my $sock = $srv->srv_listen(ip => '::1');
-  ok $sock->io_reuseaddr;
-  ok $sock->io_non_blocking;
-  ok $sock->io_nodelay;
-  ok !$sock->io_reuseport if HAS_REUSEPORT;
-
-  # passed with ip
-  $sock = $srv->srv_listen(ip => '::1');
-  ok $sock->io_reuseaddr;
-
-  # with wildcard
-  $sock = $srv->srv_listen(ip => '*');
-  ok $sock->io_reuseaddr;
-  is [$sock->io_local]->[0], '::';
+  my $sock = $srv->srv_listen(ip => '::1', reuseport => 1);
+  ok $sock->io_reuseport;
+  my ($ip, $port) = $sock->io_local;
+  is $ip, '::1';
 }
 
 
