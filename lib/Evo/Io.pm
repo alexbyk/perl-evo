@@ -1,13 +1,18 @@
 package Evo::Io;
-use Evo '-Export *; -Lib::Net *; Symbol gensym; :Handle; :Socket; Carp croak';
+use Evo '-Export *; -Lib::Net *; Symbol gensym; :Handle; :Socket; Carp croak; File::Temp tempfile';
 use Socket qw( SOCK_STREAM AF_INET AF_INET6 IPPROTO_TCP SOMAXCONN);
 
 our @CARP_NOT = qw(Evo::Net::Server::Role);
 
-sub io_open($mode, $expr, @list) : Export {
+use Fcntl qw(O_NONBLOCK O_RDONLY O_WRONLY O_RDWR);
+
+my %MAP = (r => O_RDONLY, w => O_WRONLY, rw => O_RDWR);
+
+sub io_open($mode, $filename, @extra) : Export {
   my $fh = Evo::Io::Handle::init(gensym());
-  open($fh, $mode, $expr, @list) || die "open: $!";    ## no critic
-  $fh->io_non_blocking(1);
+  $mode = $MAP{lc $mode} if exists $MAP{lc $mode};
+  sysopen($fh, $filename, $mode | O_NONBLOCK, @extra) || die "open: $!";    ## no critic
+  $fh;
 }
 
 sub io_open_anon : Export {
@@ -49,9 +54,12 @@ sub io_listen(%opts) : Export {
 
   my $io = io_open('>', $filename);
 
-Open file and make it non blocking
+Open file and make it non blocking using C<sysopen>
 
 =head2 io_open_anon
+
+Open temp file, make it non_blocking, using C<open $fh, $extr, undef>
+
 
 =head2 io_socket
 

@@ -6,14 +6,20 @@ HAS_REUSEPORT or plan skip_all => "No REUSEPORT: " . $! || $@;
 HANDLE: {
   my $str = "hello";
   my ($fh, $filename) = tempfile();
-  my $io = io_open('>', $filename);
+  my $io = io_open('r', $filename);
+
+  ($fh, $filename) = tempfile();
+  $io = io_open('W', $filename);
+
+  ($fh, $filename) = tempfile();
+  $io = io_open('Rw', $filename);
   ok fileno $io;
-  ok $io->io_non_blocking(1);
+  ok $io->io_non_blocking;
 
   # anon
   $io = io_open_anon;
   ok fileno $io;
-  ok $io->io_non_blocking(1);
+  ok $io->io_non_blocking;
   ok !$io->io_non_blocking(0)->io_non_blocking;
   ok $io->io_non_blocking(1)->io_non_blocking;
 }
