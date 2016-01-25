@@ -6,12 +6,10 @@ use Test::Fatal;
 {
 
   package My::Empty;
-  use Evo;
-  use Evo::Comp '*';
+  use Evo '-Comp *';
 
   package Foo;
-  use Evo;
-  use Evo::Comp '*';
+  use Evo '-Comp *';
 
   has 'foo', is => 'ro';
   has 'gt10', check => sub { $_[0] > 10 }, is => 'ro';

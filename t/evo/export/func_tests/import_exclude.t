@@ -15,7 +15,7 @@ use Test::More;
   }
 }
 
-use My::Lib qw(* -foo foo:foo_renamed);
+use Evo 'My::Lib * -foo foo:foo_renamed';
 is foo_renamed(), 'FOO';
 is bar(),         'BAR';
 ok !main::->can('foo');

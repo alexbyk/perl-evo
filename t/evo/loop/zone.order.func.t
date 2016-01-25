@@ -1,6 +1,6 @@
 use Evo;
 use Test::More;
-use Evo::Loop qw(
+use Evo '-Loop 
   loop_start
   loop_timer loop_timer_remove
   loop_io_error loop_io_remove_all
@@ -8,7 +8,7 @@ use Evo::Loop qw(
   loop_io_out loop_io_remove_out
   loop_postpone
   loop_zone
-);
+';
 
 my ($counter, @debug);
 sub debug($m) { push @debug, $m }

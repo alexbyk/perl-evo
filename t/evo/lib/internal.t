@@ -9,7 +9,7 @@ ok steady_time();
 {
 
   package Foo;
-  use Evo::Lib 'debug';
+  use Evo '-Lib debug';
 
   sub foo { debug(shift); }
 }

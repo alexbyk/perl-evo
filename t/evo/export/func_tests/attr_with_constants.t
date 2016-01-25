@@ -16,7 +16,7 @@ use Test::More;
   sub foo : Export { 'FOO'; }
 }
 
-use My::Lib '*';
+use Evo 'My::Lib *';
 is foo(),     'FOO';
 is MYCONST(), 22;
 

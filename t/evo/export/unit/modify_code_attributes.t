@@ -1,6 +1,7 @@
 package main;
-use Evo '-Export MODIFY_CODE_ATTRIBUTES', '-Export EXPORTER';
+use Evo '-Export MODIFY_CODE_ATTRIBUTES';
 use Test::More;
+sub EXPORTER {Evo::Export::Exporter::DEFAULT}
 
 my $code = sub { };
 

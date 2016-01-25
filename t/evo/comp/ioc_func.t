@@ -7,10 +7,10 @@ use Evo::Comp::Gen::HUF '*';
 {
 
   package My::Empty;
-  use Evo::Comp::Out '*';
+  use Evo '-Comp::Out *';
 
   package Foo;
-  use Evo::Comp::Out '*', 'with';
+  use Evo '-Comp::Out *';
 
   has 'foo', is => 'ro';
   has 'gt10', check => sub { $_[0] > 10 }, is => 'ro';

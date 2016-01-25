@@ -1,13 +1,15 @@
 package Evo::Export::Exporter;
-use Evo;
+use strict;
+use warnings;
+use feature 'signatures';
+no warnings "experimental::signatures";
 use Evo::Lib::Bare;
 use Carp 'croak';
 use Module::Load 'load';
 
-# most of the method accept hash with key src(module), name(method), orig_src, orig_name, dst
-
-our @CARP_NOT = ('Evo::Lib::Bare');
+our @CARP_NOT = qw(Evo Evo::Lib::Bare);
 sub new { bless {data => {}}, __PACKAGE__ }
+use constant DEFAULT => new();
 
 sub data { shift->{data} }
 
@@ -30,7 +32,7 @@ sub request_gen($self, $epkg, $name, $dpkg) {
 
   # it's important to return same function for the same module
   return $slot->{cache}{$dpkg} if $slot->{cache}{$dpkg};
-  return $slot->{cache}->{$dpkg} = $slot->{gen}->($dpkg);
+  return $slot->{cache}{$dpkg} = $slot->{gen}->($dpkg);
 }
 
 # traverse to find gen via links, return Module, name, gen

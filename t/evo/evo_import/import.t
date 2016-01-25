@@ -5,12 +5,35 @@ use Evo 'MyExternalNoEvoImport';
 use Test::More;
 use Test::Fatal;
 
+# just load
+ok do { Evo::->import('MyExternalNoEvoImport'); 1 };
 
-# no import method
-like exception {
-  Evo::->import('MyExternalNoEvoImport(foo)');
-},
-  qr/MyExternalNoEvoImport hasn't "import" method/;
+HAS_IMPORT_PASS_ARGS: {
+  my @got = @_;
+  my $caller;
+  local *MyExternalNoEvoImport::import = sub { $caller = caller; push @got, @_ };
+  Evo::->import('MyExternalNoEvoImport foo bar');
+  is_deeply \@got, [qw(MyExternalNoEvoImport foo bar)];
+  is $caller, 'main';
+}
+HAS_IMPORT_NO_ARGS: {
+  my @got = @_;
+  my $caller;
+  local *MyExternalNoEvoImport::import = sub { $caller = caller; push @got, @_ };
+  Evo::->import('MyExternalNoEvoImport');
+  is_deeply \@got, [qw(MyExternalNoEvoImport)];
+  is $caller, 'main';
+}
+
+NO_IMPORT_NO_ARGS: {
+  local *MyExternalNoEvoImport::import;
+  Evo::->import('MyExternalNoEvoImport');
+  pass "just load";
+}
+
+# neither import method no exporting
+like exception { Evo::->import('MyExternalNoEvoImport(foo)'); },
+  qr/MyExternalNoEvoImport.+"foo".+$0/;
 
 
 # order
@@ -51,6 +74,7 @@ use Evo 'My::Foo; -My::Bar';
 
 # one string
 {
+
   package My::Foo;
   use Evo '-Export *; -Realm ';
   use Evo '-Export *; -Realm;';

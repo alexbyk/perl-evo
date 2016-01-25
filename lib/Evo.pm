@@ -4,6 +4,7 @@ use warnings;
 use Carp 'croak';
 use Module::Load 'load';
 use Evo::Lib::Bare;
+use Evo::Export::Exporter;
 use feature 'say';
 
 
@@ -35,18 +36,18 @@ sub import {
   # trim
   @list = grep {$_} map { my $s = $_; $s =~ s/^\s+|\s+$//g; $s } map { split ';', $_ } @list;
   foreach my $key (@list) {
-    my ($class, @args) = _parse($target, $key);
-    load($class);
-    if (my $import = $class->can('import')) {
+    my ($src, @args) = _parse($target, $key);
+    load($src);
+    if (my $import = $src->can('import')) {
       Evo::Lib::Bare::inject(
         package  => $target,
         line     => $line,
         filename => $filename,
         code     => $import
-      )->($class, @args);
+      )->($src, @args);
     }
     elsif (@args) {
-      croak qq#Got import arguments but $class hasn't "import" method#;
+      Evo::Export::Exporter::DEFAULT->install($src, $target, @args);
     }
   }
 }

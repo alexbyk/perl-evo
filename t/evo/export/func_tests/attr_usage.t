@@ -3,7 +3,7 @@ use Test::More;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
-use MyLib '*';
+use Evo 'MyLib *';
 
 is foo(),   'FOO';
 is fooa1(), 'FOO';

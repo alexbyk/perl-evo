@@ -1,6 +1,5 @@
-use Evo -Loop::Comp, '-Lib *';
+use Evo -Loop::Comp, '-Lib *', '-W::Eval w_eval_run';
 use Test::More;
-use Evo::W::Eval 'w_eval_run';
 
 no warnings 'redefine';
 

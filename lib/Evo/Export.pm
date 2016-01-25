@@ -1,24 +1,13 @@
 package Evo::Export;
-use Evo -Export::Exporter;
-use Carp 'croak';
-use Evo::Lib::Bare;
-
-my $EXPORTER;
-sub EXPORTER() {$EXPORTER}
-
-BEGIN {
-  $EXPORTER = Evo::Export::Exporter::new();
-}
+use Evo '-Export::Exporter; Carp croak; -Lib::Bare';
 
 # + export export_gen export_anon export_proxy export_requires export_hooks
-my @EXPORT = qw(
-  import export_install_in
-  MODIFY_CODE_ATTRIBUTES EXPORTER);
-EXPORTER->add_sub(__PACKAGE__, $_) for @EXPORT;
+my @EXPORT = qw( export_install_in MODIFY_CODE_ATTRIBUTES);
+Evo::Export::Exporter::DEFAULT->add_sub(__PACKAGE__, $_) for @EXPORT;
 
 sub import { export_install_in(scalar caller, @_); }
 
-sub export_install_in($dst, $src, @list) { EXPORTER->install($src, $dst, @list) if @list; }
+sub export_install_in($dst, $src, @list) { Evo::Export::Exporter::DEFAULT->install($src, $dst, @list) if @list; }
 
 # pay attention: without provided name all aliases will be found by _find_subnames and exported
 sub MODIFY_CODE_ATTRIBUTES($pkg, $code, @attrs) {
@@ -31,7 +20,7 @@ sub MODIFY_CODE_ATTRIBUTES($pkg, $code, @attrs) {
 
   foreach my $name (@good) {
     my @names = $name ? ($name) : Evo::Lib::Bare::find_subnames($pkg, $code);
-    EXPORTER->add_gen($pkg, $_, sub {$code}) for @names;
+    Evo::Export::Exporter::DEFAULT->add_gen($pkg, $_, sub {$code}) for @names;
   }
 
   return;
@@ -43,25 +32,25 @@ sub _parse_attr($attr) {
 }
 
 
-sub _add_gen($name, $gen) { EXPORTER->add_gen(__PACKAGE__, $name, $gen); }
+sub _add_gen($name, $gen) { Evo::Export::Exporter::DEFAULT->add_gen(__PACKAGE__, $name, $gen); }
 
 _add_gen export_gen => sub($dst) {
-  sub($name, $gen) { EXPORTER->add_gen($dst, $name, $gen) }
+  sub($name, $gen) { Evo::Export::Exporter::DEFAULT->add_gen($dst, $name, $gen) }
 };
 
 _add_gen export_anon => sub($dst) {
   sub {
     my ($name, $fn) = @_;
-    EXPORTER->add_gen($dst, $name, sub {$fn});
+    Evo::Export::Exporter::DEFAULT->add_gen($dst, $name, sub {$fn});
   };
 };
 
 _add_gen export => sub($dst) {
-  sub { EXPORTER->add_sub($dst, $_) for @_ }
+  sub { Evo::Export::Exporter::DEFAULT->add_sub($dst, $_) for @_ }
 };
 
 _add_gen export_proxy => sub($dst) {
-  sub($epkg,@list) { EXPORTER->proxy($dst, $epkg, @list); }
+  sub($epkg,@list) { Evo::Export::Exporter::DEFAULT->proxy($dst, $epkg, @list); }
 };
 
 1;
@@ -84,20 +73,19 @@ Standart L<Exporter> wasn't good enough for me, so I've written a new one from t
 
   # test.pl
   package main;
-  use Evo;
-  use My::Lib '*';
+  use Evo 'My::Lib *';
   foo();
   bar();
 
 =head1 IMPORTING
 
   use Evo;
-  use Evo::Eval 'eval_try';
-  use Evo::Promise 'promise', 'deferred';
+  use Evo 'Evo::Eval eval_try';
+  use Evo '-Promise promise deferred';
 
 For convenient, you can load all above in one line
 
-  use Evo '-Eval eval_try; -Promise promise, deferred';
+  use Evo '-Eval eval_try; -Promise promise deferred';
 
 C<*> means load all. C<-> is a shortcut. See L<Evo/"shortcuts>
 
@@ -138,7 +126,7 @@ Using attribute C<Export>
 
   }
 
-  use My::Lib 'foo';
+  use Evo 'My::Lib foo';
   foo();
 
 Pay attention that module should export '*', to install all unneccessary stuff, including C<MODIFY_CODE_ATTRIBUTES> and C<import>. But if you want, you can import them by hand, and this isn't recommended
@@ -205,8 +193,8 @@ Very powefull and most exciting feature. C<Evo::Export> exports generators, that
 
 Implementation garanties that one module will get the same (cashed) generated unit (if it'l import twice or import from module that reimport the same thing), but different module will get another one
 
-  use Evo::Comp 'has'; 
-  use Evo::Comp 'has'; 
+  use Evo 'Evo::Comp has'; 
+  use Evo 'Evo::Comp has'; 
 
 C<has> was imported twice, but generated only once. If some class will do something C<export_proxy 'Evo::Comp', 'has'>, you can export that C<has> and it will be the same subroutine
 
