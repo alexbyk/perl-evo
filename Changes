@@ -2,8 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0203    2016-01-19 12:52:00+02:00 Europe/Kiev
+0.020x    2016-01-19 12:52:00+02:00 Europe/Kiev
 
+  - Change import semantic
   - Start supporting FreeBSD
   - Change Ee behaviour
   - Added Evo::Io namespace

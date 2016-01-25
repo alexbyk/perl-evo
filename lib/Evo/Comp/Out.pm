@@ -4,6 +4,8 @@ use Evo '::Gen::HUF GEN; -Role ROLE_EXPORTER; ::Meta';
 
 my $META = Evo::Comp::Meta::new(gen => GEN, rex => ROLE_EXPORTER);
 
+sub import($me, @args) { export_install_in(scalar caller, $me, @args ? @args : '*') }
+
 export_gen init => sub { $META->compile_builder(shift); };
 
 export_gen has => sub($class) {

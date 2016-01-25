@@ -1,6 +1,9 @@
 package Evo::Comp;
-use Evo '-Export *', ':Hash';
+use Evo '-Export *';
+use Evo::Comp::Hash ();
 export_proxy('Evo::Comp::Hash', '*');
+
+sub import($me, @args) { export_install_in(scalar caller, $me, @args ? @args : '*') }
 
 1;
 
@@ -133,7 +136,7 @@ Attribute will be filled with this value if isn't provided to the C<new> constru
 =head4 lazy
 
 Like default, but will be filled at the first invocation, not in constructor, and an instance will be passed as the argument
- 
+
   # pay attention, an instance is passed
   has foo => lazy => sub($self) { [] };
 

@@ -7,6 +7,8 @@ use Module::Load 'load';
 
 our @CARP_NOT = ('Evo::Lib::Bare');
 
+sub import($me, @args) { export_install_in(scalar caller, $me, @args ? @args : '*') }
+
 use constant ROLE_EXPORTER => Evo::Role::Exporter::new();
 export 'ROLE_EXPORTER';
 
