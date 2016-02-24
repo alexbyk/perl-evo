@@ -11,6 +11,14 @@ sub closure() {
 
 my $POSITIVE = sub { return 1 if shift > 0; (0, "OOPS!") };
 
+OVERWRITE_CLASS: {
+  my $new = GEN->{new}->('MyComp', {});
+  my $obj = closure();
+  isa_ok $new->($obj), 'MyComp';
+  isa_ok $new->('My::Over', $obj), 'My::Over';
+  isa_ok $new->($obj), 'MyComp';
+}
+
 RDCH: {
 
   my $new = GEN->{new}->(

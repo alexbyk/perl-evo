@@ -7,6 +7,13 @@ my $GEN = GEN;
 
 my $POSITIVE = sub { return 1 if shift > 0; (0, "OOPS!") };
 
+OVERWRITE_CLASS: {
+  my $new = $GEN->{new}->('MyComp', {});
+  isa_ok $new->(), 'MyComp';
+  isa_ok $new->('My::Over'), 'My::Over';
+  isa_ok $new->(), 'MyComp';
+}
+
 RDCH: {
 
   my $new = $GEN->{new}->(

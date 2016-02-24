@@ -14,9 +14,10 @@ my $GEN = {map { ($_, *{"gen_$_"}{CODE}) } qw(gs gsch gs_value gsch_value gs_cod
 
 sub GEN : Export {$GEN}
 
-sub gen_new($class, $opts) {
+sub gen_new($_class, $opts) {
 
   sub {
+    my $class = @_ % 2 ? $_class : shift;
     my ($obj, %attrs) = @_;
     exists $attrs{$_} or croak qq#Attribute "$_" is required# for $opts->{required}->@*;
 

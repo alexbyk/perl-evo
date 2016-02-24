@@ -2,10 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0204    2016-01-25 10:55:23+02:00 Europe/Kiev
-
-0.020x    2016-01-19 12:52:00+02:00 Europe/Kiev
-
+  - Add support for Some::Comp->new syntax
   - Change import semantic
   - Start supporting FreeBSD
   - Change Ee behaviour
