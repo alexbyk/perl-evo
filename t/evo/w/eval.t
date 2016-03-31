@@ -8,12 +8,12 @@ my $catch = sub { $e = shift; };
 
 # die
 $e = '';
-ws_combine(w_eval_run($catch))->(sub { die "foo\n" })->();
+ws_fn(w_eval_run($catch))->(sub { die "foo\n" })->();
 is $e, "foo\n";
 
 # live
 $e = '';
-my @res = ws_combine(w_eval_run($catch))->(sub { ok wantarray })->();
+my @res = ws_fn(w_eval_run($catch))->(sub { ok wantarray })->();
 ok !$e;
 
 done_testing;

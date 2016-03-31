@@ -2,12 +2,10 @@ use Evo;
 use Test::More;
 use Evo '-Loop 
   loop_start
-  loop_timer loop_timer_remove
-  loop_io_error loop_io_remove_all
-  loop_io_in loop_io_remove_in
-  loop_io_out loop_io_remove_out
   loop_postpone
   loop_zone
+  loop_timer
+  loop_zone_middleware
 ';
 
 my ($counter, @debug);
@@ -26,9 +24,11 @@ sub w_debug($name) {
 
 
 loop_zone sub {
-  loop_zone w_debug(1), w_debug(2), sub {
-    loop_zone w_debug(3), sub {
+  loop_zone sub {
+    loop_zone_middleware w_debug(1), w_debug(2);
+    loop_zone sub {
 
+      loop_zone_middleware w_debug(3);
       loop_timer 0, sub {
 
         loop_postpone sub {

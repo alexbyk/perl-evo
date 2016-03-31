@@ -1,5 +1,5 @@
 package Evo::Lib;
-use Evo '-Export *; :Bare';
+use Evo '-Export *; Carp croak; :Bare';
 use Time::HiRes qw(CLOCK_MONOTONIC);
 
 PATCH: {
@@ -16,15 +16,12 @@ export_anon steady_time => $HAS_M_TIME
   ? sub { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); }
   : \&Time::HiRes::time;
 
-sub ws_combine : Export {
-  return unless @_;
-  return $_[0] if @_ == 1;
-  my @wrappers = reverse @_;
-  sub {
-    my $w = $_[0];
-    $w = $_->($w) for @wrappers;
-    $w;
-  };
+
+sub ws_fn : Export {
+  my $cb = pop or croak "Provide a function";
+  return $cb unless @_;
+  $cb = $_->($cb) for reverse @_;
+  $cb;
 }
 
 

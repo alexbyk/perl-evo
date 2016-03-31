@@ -8,8 +8,8 @@ EVAL: {
 
   my $catched;
   $loop->zone(
-    w_eval_run(sub { $catched = shift }),
     sub {
+      $loop->zone_middleware(w_eval_run(sub { $catched = shift }));
       $loop->postpone(sub { die "Foo\n" });
     }
   );
@@ -26,7 +26,7 @@ TIMER_LIKE_ZONE: {
   };
 
   my $reg = sub { $t_called++ };
-  $loop->zone($w_log, sub { $loop->timer(0, $reg); });
+  $loop->zone(sub { $loop->zone_middleware($w_log); $loop->timer(0, $reg); });
   ok !$w_called;
 
   $loop->tick();

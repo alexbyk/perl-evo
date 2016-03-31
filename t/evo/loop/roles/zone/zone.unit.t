@@ -1,49 +1,50 @@
-use Evo;
-use Test::More;
-use Test::Fatal;
-use FindBin;
+package main;
+use Evo 'Test::More tests 6; Test::Fatal; FindBin';
 use lib "$FindBin::Bin";
-use MyZone;
-
-my $w = sub {shift};
 
 
-CB_WITHOUT_W: {
-  my $obj = MyZone::new();
-  my $zcb = $obj->zone_cb(
+{
+
+  package MyZone;
+  use Evo '-Comp *';
+  with 'Evo::Loop::Role::Zone';
+
+}
+
+ZONE_CB: {
+  my $comp = MyZone::new();
+
+  my $mw = sub($next) {$next};
+  push $comp->zone_middleware->@*, $mw;
+  my ($zcb1, $zcb2);
+  $zcb1 = $comp->zone_cb(
     sub {
-      ok !$obj->zone_data->{w};
-      $_[0];
+      is_deeply $comp->zone_middleware, [$mw];
+      $zcb2 = $comp->zone_cb(sub { is_deeply $comp->zone_middleware, [$mw]; });
     }
   );
-  $obj->zone_data->{w} = sub { fail "prev w should be restored" };
-  is $zcb->(33), 33;
+
+  $comp->zone_middleware->@* = ('bad');
+  $zcb1->();
+  is_deeply $comp->zone_middleware, ['bad'];
+  $zcb2->();
 }
 
-CB_WITH_W: {
-  my $obj = MyZone::new();
-  my $w = sub {shift};
-  $obj->zone_data->{w} = sub {shift};
-  my $zcb = $obj->zone_cb(
+ZONE_FORK: {
+  my ($m0, $m1, $m2);
+  my $comp = MyZone::new();
+  $m0 = $comp->zone_middleware;
+  $comp->zone(
     sub {
-      ok $obj->zone_data->{w};
+      $m1 = $comp->zone_middleware;
+      push $comp->zone_middleware->@*, '1';
+      $comp->zone(sub { $m2 = $comp->zone_middleware; push $comp->zone_middleware->@*, '2'; });
     }
   );
-  $obj->zone_data->{w} = sub { fail "prev w should be restored" };
-  $zcb->();
-}
 
-ZONE_WITHOUT_WS: {
-  my $obj = MyZone::new();
-  ok !$obj->zone_data->{w};
-  $obj->zone(sub { ok !$obj->zone_data->{w}; });
+  is_deeply $m0, [];
+  is_deeply $m1, [1];
+  is_deeply $m2, [1, 2];
 }
-
-ZONE_LOCALIZATION: {
-  my $obj = MyZone::new();
-  $obj->zone($w, sub { $obj->zone_data->{w} = 'bad'; });
-  ok !$obj->zone_data->{w};
-}
-
 
 done_testing;

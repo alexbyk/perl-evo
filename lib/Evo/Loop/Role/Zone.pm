@@ -2,29 +2,30 @@ package Evo::Loop::Role::Zone;
 use Evo '-Role *; -Lib *';
 use Carp 'croak';
 
-has zone_data => sub { {} };
+has zone_data => sub { {middleware => []} };
 
 # calls callback with passed ws, and combines prev + passed for wcb
 sub zone : Role {
   my ($self, $fn) = (shift, pop);
   my $data = $self->zone_data;
-  local $data->{w} = ws_combine($data->{w} ? ($data->{w}) : (), @_);
+  local $data->{middleware} = [$data->{middleware}->@*];
   $fn->();
 }
 
-sub zone_cb($self, $cb) : Role {
+sub zone_cb ($self, $cb) : Role {
   my $data = $self->zone_data;
-  my $w    = $data->{w};
+  my @ws   = $data->{middleware}->@*;
 
-  # restore(or restore empty) in zcb
-  $w and return sub {
-    local $data->{w} = $w;
-    $w->($cb)->(@_);
-  };
   sub {
-    local $data->{w};
-    $cb->(@_);
+    local $data->{middleware} = \@ws;
+    ws_fn(@ws, $cb)->();
   };
+}
+
+sub zone_middleware($self, @mw) : Role {
+  my $mw = $self->zone_data->{middleware};
+  push $mw->@*, @mw if @mw;
+  $mw;
 }
 
 
