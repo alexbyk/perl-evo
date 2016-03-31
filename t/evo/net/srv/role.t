@@ -13,10 +13,10 @@ my $LAST;
   use Evo '-Comp *';
   sub ee_events {qw(srv_error)}
   with -Net::Srv::Role, -Ee;
-  sub srv_handle_accept($self, $sock) :
-    Override { $LAST = Evo::Net::Srv::Role::srv_handle_accept($self, $sock) }
+  sub srv_handle_accept ($self, $sock)
+    : Override { $LAST = Evo::Net::Srv::Role::srv_handle_accept($self, $sock) }
 
-  sub srv_handle_error($self, $sock, $err) : Override {
+  sub srv_handle_error ($self, $sock, $err) : Override {
     $self->emit(srv_error => $err);
     Evo::Net::Srv::Role::srv_handle_error(@_);
   }
@@ -35,49 +35,36 @@ LISTEN_OPTS: {
 
 
 LISTEN_RUNNING: {
-  my $loop = Evo::Loop::Comp::new();
-  my $srv  = My::Server::new();
-  $loop->realm(
-    sub {
-      my $sock = $srv->srv_listen(ip => '::1');
-      is_deeply $srv->srv_acceptors, [$sock];
-      is $loop->io_count, 1;
-    }
-  );
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Comp::new();
+  my $srv = My::Server::new();
+  my $sock = $srv->srv_listen(ip => '::1');
+  is_deeply $srv->srv_acceptors, [$sock];
+  is $loop->io_count, 1;
 }
 
 LISTEN_STOPPED: {
-  my $loop = Evo::Loop::Comp::new();
-  my $srv  = My::Server::new()->srv_is_running(0);
-  $loop->realm(
-    sub {
-      my $sock = $srv->srv_listen(ip => '::1');
-      is_deeply $srv->srv_acceptors, [$sock];
-      is_deeply $loop->io_count, 0;
-    }
-  );
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Comp::new();
+  my $srv = My::Server::new()->srv_is_running(0);
+  my $sock = $srv->srv_listen(ip => '::1');
+  is_deeply $srv->srv_acceptors, [$sock];
+  is_deeply $loop->io_count, 0;
 }
 
 START_STOP: {
-  my $loop = Evo::Loop::Comp::new();
-  my $srv  = My::Server::new();
-  $loop->realm(
-    sub {
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Comp::new();
+  my $srv = My::Server::new();
+  $srv->srv_listen(ip => '::1') for 1 .. 3;
 
-      $srv->srv_listen(ip => '::1') for 1 .. 3;
+  $srv->srv_stop();
+  like exception { $srv->srv_stop }, qr/already/;
+  ok !$srv->srv_is_running;
+  is $loop->io_count, 0;
 
-      $srv->srv_stop();
-      like exception { $srv->srv_stop }, qr/already/;
-      ok !$srv->srv_is_running;
-      is $loop->io_count, 0;
+  $srv->srv_start();
+  like exception { $srv->srv_start }, qr/already/;
+  ok $srv->srv_is_running;
+  is $loop->io_count, 3;
 
-      $srv->srv_start();
-      like exception { $srv->srv_start }, qr/already/;
-      ok $srv->srv_is_running;
-      is $loop->io_count, 3;
-
-    }
-  );
 }
 
 CONNECTIONS: {

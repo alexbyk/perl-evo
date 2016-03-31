@@ -13,7 +13,7 @@ my $LAST;
 
   with -Net::Srv::Role;
   has 'last';
-  sub srv_handle_accept($self, $sock) : Override { $self->last($sock); $sock }
+  sub srv_handle_accept ($self, $sock) : Override { $self->last($sock); $sock }
 
 }
 
@@ -27,19 +27,20 @@ ACCEPT: {
   my $cl1 = io_socket();
 
   local *My::Server::srv_handle_accept = sub {
+    use Data::Dumper;
+    ok keys $loop->io_data->%*;
     $loop->io_data({});
     $LAST = $_[1];
   };
 
-  $loop->realm(
-    sub {
-      my $srv   = My::Server::new();
-      my $sock  = $srv->srv_listen(ip => '::1');
-      my $saddr = getsockname $sock;
-      connect $cl1, $saddr;
-      $srv->srv_accept($sock);
-    }
-  );
+MOCK: {
+    local $Evo::Loop::SINGLE = $loop;
+    my $srv   = My::Server::new();
+    my $sock  = $srv->srv_listen(ip => '::1');
+    my $saddr = getsockname $sock;
+    connect $cl1, $saddr;
+    $srv->srv_accept($sock);
+  }
 
   $loop->start;
 

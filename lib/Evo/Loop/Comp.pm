@@ -1,5 +1,5 @@
 package Evo::Loop::Comp;
-use Evo '-Comp *', '-Lib steady_time', '-Realm *';
+use Evo '-Comp *', '-Lib steady_time';
 use List::Util 'first';
 use Time::HiRes 'usleep';
 

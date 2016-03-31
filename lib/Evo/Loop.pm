@@ -2,23 +2,23 @@ package Evo::Loop;
 use Evo '-Export *';
 use Evo ':Comp';
 
-use constant DEFAULT => Evo::Loop::Comp::new();
+our $SINGLE = Evo::Loop::Comp::new();
 
-sub loop_start : Export { DEFAULT->realm_lord->start(@_) }
-sub loop_stop : Export  { DEFAULT->realm_lord->stop(@_) }
+sub loop_start : Export { $SINGLE->start(@_) }
+sub loop_stop : Export  { $SINGLE->stop(@_) }
 
-sub loop_timer : Export        { DEFAULT->realm_lord->timer(@_); }
-sub loop_timer_remove : Export { DEFAULT->realm_lord->timer_remove(@_); }
+sub loop_timer : Export        { $SINGLE->timer(@_); }
+sub loop_timer_remove : Export { $SINGLE->timer_remove(@_); }
 
-sub loop_io_in : Export         { DEFAULT->realm_lord->io_in(@_) }
-sub loop_io_out : Export        { DEFAULT->realm_lord->io_out(@_) }
-sub loop_io_error : Export      { DEFAULT->realm_lord->io_error(@_) }
-sub loop_io_remove_in : Export  { DEFAULT->realm_lord->io_remove_in(@_); }
-sub loop_io_remove_out : Export { DEFAULT->realm_lord->io_remove_out(@_); }
-sub loop_io_remove_all : Export { DEFAULT->realm_lord->io_remove_all(@_); }
-sub loop_io_remove_fd : Export { DEFAULT->realm_lord->io_remove_fd(@_); }
+sub loop_io_in : Export         { $SINGLE->io_in(@_) }
+sub loop_io_out : Export        { $SINGLE->io_out(@_) }
+sub loop_io_error : Export      { $SINGLE->io_error(@_) }
+sub loop_io_remove_in : Export  { $SINGLE->io_remove_in(@_); }
+sub loop_io_remove_out : Export { $SINGLE->io_remove_out(@_); }
+sub loop_io_remove_all : Export { $SINGLE->io_remove_all(@_); }
+sub loop_io_remove_fd : Export  { $SINGLE->io_remove_fd(@_); }
 
-sub loop_zone : Export                    { DEFAULT->realm_lord->zone(@_) }
-sub loop_postpone : prototype(&) : Export { DEFAULT->realm_lord->postpone(@_) }
+sub loop_zone : Export                    { $SINGLE->zone(@_) }
+sub loop_postpone : prototype(&) : Export { $SINGLE->postpone(@_) }
 
 1;
