@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0207    2016-04-01 07:38:41+03:00 Europe/Kiev
+
   - Add support for Some::Comp->new syntax
   - Change import semantic
   - Start supporting FreeBSD
