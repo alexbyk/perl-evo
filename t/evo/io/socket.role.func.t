@@ -6,18 +6,22 @@ HAS_REUSEPORT or plan skip_all => "No REUSEPORT: " . $! || $@;
 
 # ro
 my $sock = io_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-is $sock->io_type,     SOCK_DGRAM;
-is $sock->io_protocol, IPPROTO_UDP;
-is $sock->io_domain,   AF_INET if HAS_SO_DOMAIN;
+is $sock->io_type, SOCK_DGRAM;
+is $sock->io_domain, AF_INET if HAS_SO_DOMAIN;
 
+# darwin
+SKIP: {
+  skip "NO SO_PROTOCOL", 1 unless HAS_SO_PROTOCOL;
+  is $sock->io_protocol, IPPROTO_UDP;
+}
 
 # freebsd
 SKIP: {
   $sock = io_socket();
-  skip "NO_SO_DOMAIN", 1 unless HAS_SO_DOMAIN;
+  skip "NO SO_DOMAIN", 3 unless HAS_SO_DOMAIN;
   is $sock->io_domain, AF_INET6;
 
-  skip "Can't change IPV6_V6ONLY", 1 unless CAN_CHANGEV6ONLY;
+  skip "Can't change IPV6_V6ONLY", 2 unless CAN_CHANGEV6ONLY;
   ok !$sock->io_v6only(0)->io_v6only;
   ok $sock->io_v6only(1)->io_v6only;
 }
@@ -25,8 +29,12 @@ SKIP: {
 # defaults
 $sock = io_socket();
 
-is $sock->io_type,     SOCK_STREAM;
-is $sock->io_protocol, IPPROTO_TCP;
+is $sock->io_type, SOCK_STREAM;
+
+SKIP: {
+  skip "NO SO_PROTOCOL", 1 unless HAS_SO_PROTOCOL;
+  is $sock->io_protocol, IPPROTO_TCP;
+}
 ok $sock->io_nodelay;
 ok $sock->io_non_blocking;
 ok !$sock->io_reuseaddr;
