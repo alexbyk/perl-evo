@@ -71,12 +71,13 @@ BIND_LISTEN_CONNECTv6: {
 
   # 6
   my $naddr6 = inet_pton(AF_INET6, '::1');
-  connect($cl, pack_sockaddr_in6($port, $naddr6)) or die $!;
+  connect $cl, pack_sockaddr_in6($port, $naddr6);
   my $conn6 = $serv->io_accept();
 
   ok $conn6->io_reuseaddr;
   ok $conn6->io_non_blocking;
-  ok $conn6->io_v6only;
+
+  diag 'should v6only be settled? ok $conn6->io_v6only';
 
   is_deeply [$cl->io_local],  [$conn6->io_remote];
   is_deeply [$cl->io_remote], [$conn6->io_local];

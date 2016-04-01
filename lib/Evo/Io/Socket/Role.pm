@@ -7,7 +7,7 @@ use Socket qw(
 
 sub _die($type) : prototype($) { croak "$type: $!" }
 
-sub _opt($level, $opt, $debug, $sock, $val=undef) {
+sub _opt ($level, $opt, $debug, $sock, $val = undef) {
   return unpack('i', getsockopt($sock, $level, $opt) || _die $debug) if @_ == 4;
   setsockopt($sock, $level, $opt, $val) || _die $debug;
   $sock;
@@ -31,8 +31,8 @@ sub io_nodelay : Role { _opt(IPPROTO_TCP, TCP_NODELAY, nodelay => @_); }
 
 
 # bind and listen croak on failures
-sub io_bind($s, $saddr) : Role { bind($s, $saddr) or _die "bind"; $s }
-sub io_listen($s, $n) : Role { listen($s, $n) or _die "listen"; $s }
+sub io_bind ($s, $saddr) : Role { bind($s, $saddr) or _die "bind"; $s }
+sub io_listen ($s, $n) : Role { listen($s, $n) or _die "listen"; $s }
 
 sub io_local($s) : Role {
   my $saddr = getsockname($s) or return;
