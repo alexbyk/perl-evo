@@ -51,10 +51,11 @@ TIMER_TICK: {
   ok $loop->timer_need_sort;
   is $t_called, 1;
 
-  my $time = $loop->steady_time;
+  my $time = $loop->tick_time;
   local *Evo::Loop::Comp::steady_time = sub { $time + 1 };
   is $loop->tick(), 0;
   is $t_called, 3;
+  is $loop->tick_time, $time + 1;
 }
 
 IGNORE_SIGPIPE: {
