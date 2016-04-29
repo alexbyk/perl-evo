@@ -1,8 +1,9 @@
 package Evo::Comp::Hash;
-use Evo '-Export *';
-use Evo '::Gen::Hash GEN; -Role ROLE_EXPORTER; ::Meta';
+use Evo '::Gen::Hash GEN; -Role ROLE_EXPORTER; ::Meta; -Export::Core *';
 
-sub import($me, @args) { export_install_in(scalar caller, $me, @args ? @args : '*') }
+sub import ($me, @args) {
+  export_install_in(scalar caller, $me, @args ? @args : '*');
+}
 
 my $META = Evo::Comp::Meta::new(gen => GEN, rex => ROLE_EXPORTER);
 
@@ -20,7 +21,7 @@ export_gen overrides => sub($class) {
   sub { $META->mark_overriden($class, @_); };
 };
 
-export_anon MODIFY_CODE_ATTRIBUTES => sub($class, $code, @attrs) {
+export_anon MODIFY_CODE_ATTRIBUTES => sub ($class, $code, @attrs) {
   my @bad = grep { $_ ne 'Override' } @attrs;
   return @bad if @bad;
 

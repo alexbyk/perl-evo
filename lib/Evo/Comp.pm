@@ -1,9 +1,11 @@
 package Evo::Comp;
-use Evo '-Export *';
+use Evo '-Export::Core *';
 use Evo::Comp::Hash ();
 export_proxy('Evo::Comp::Hash', '*');
 
-sub import($me, @args) { export_install_in(scalar caller, $me, @args ? @args : '*') }
+sub import ($me, @args) {
+  export_install_in(scalar caller, $me, @args ? @args : '*');
+}
 
 1;
 

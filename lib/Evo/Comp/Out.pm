@@ -1,10 +1,11 @@
 package Evo::Comp::Out;
-use Evo '-Export *';
-use Evo '::Gen::HUF GEN; -Role ROLE_EXPORTER; ::Meta';
+use Evo '::Gen::HUF GEN; -Role ROLE_EXPORTER; ::Meta; -Export::Core *';
 
 my $META = Evo::Comp::Meta::new(gen => GEN, rex => ROLE_EXPORTER);
 
-sub import($me, @args) { export_install_in(scalar caller, $me, @args ? @args : '*') }
+sub import ($me, @args) {
+  export_install_in(scalar caller, $me, @args ? @args : '*');
+}
 
 export_gen init => sub { $META->compile_builder(shift); };
 
@@ -21,7 +22,7 @@ export_gen overrides => sub($class) {
 };
 
 
-export_anon MODIFY_CODE_ATTRIBUTES => sub($class, $code, @attrs) {
+export_anon MODIFY_CODE_ATTRIBUTES => sub ($class, $code, @attrs) {
   my @bad = grep { $_ ne 'Override' } @attrs;
   return @bad if @bad;
 

@@ -1,8 +1,5 @@
 package Evo::Role;
-use Evo '-Export *';
-use Evo::Role::Exporter;
-use Carp 'croak';
-use Evo::Lib::Bare;
+use Evo '-Export::Core *; -Role::Exporter; Carp croak; -Lib::Bare';
 use Module::Load 'load';
 
 our @CARP_NOT = ('Evo::Lib::Bare');
