@@ -33,7 +33,7 @@ NO_IMPORT_NO_ARGS: {
 
 # neither import method no exporting
 like exception { Evo::->import('MyExternalNoEvoImport(foo)'); },
-  qr/MyExternalNoEvoImport.+"foo".+$0/;
+  qr/MyExternalNoEvoImport.+"import".+$0/;
 
 
 # order

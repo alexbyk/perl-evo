@@ -47,7 +47,7 @@ sub import {
       )->($src, @args);
     }
     elsif (@args) {
-      Evo::Export::Exporter::DEFAULT->install($src, $target, @args);
+      croak qq{Got import arguments but "$src" doesn't have an "import" method};
     }
   }
 }
