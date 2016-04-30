@@ -1,5 +1,5 @@
 package Evo::Lib;
-use Evo '-Export *; Carp croak; :Bare';
+use Evo '-Export *; Carp croak; ::Bare';
 use Time::HiRes qw(CLOCK_MONOTONIC);
 
 PATCH: {

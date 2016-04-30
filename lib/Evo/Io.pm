@@ -1,5 +1,5 @@
 package Evo::Io;
-use Evo '-Export *; -Lib::Net *; Symbol gensym; :Handle; :Socket; Carp croak; File::Temp tempfile';
+use Evo '-Export *; -Lib::Net *; Symbol gensym; ::Handle; ::Socket; Carp croak; File::Temp tempfile';
 use Socket qw( SOCK_STREAM AF_INET AF_INET6 IPPROTO_TCP SOMAXCONN);
 
 our @CARP_NOT = qw(Evo::Net::Server::Role);

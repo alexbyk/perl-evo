@@ -19,19 +19,19 @@ sub debug { return unless $DEBUG; carp "[${\(caller)[0]}]: $_[0]"; }
 
 
 # usefull?
-sub find_caller_except($skip_ns, $i, $caller) {
+sub find_caller_except ($skip_ns, $i, $caller) {
   while ($caller = (caller($i++))[0]) {
     return $caller if $caller ne $skip_ns;
   }
 }
 
-sub monkey_patch($pkg, %hash) {
+sub monkey_patch ($pkg, %hash) {
   no strict 'refs';    ## no critic
   *{"${pkg}::$_"} = $NAME->("${pkg}::$_", $hash{$_}) for keys %hash;
 }
 
 #todo: decide what to do with empty subroutins
-sub monkey_patch_silent($pkg, %hash) {
+sub monkey_patch_silent ($pkg, %hash) {
   no strict 'refs';    ## no critic
   no warnings 'redefine';
   my %restore;
@@ -72,7 +72,7 @@ sub inject(%opts) {
   );
 }
 
-sub find_subnames($pkg, $code) {
+sub find_subnames ($pkg, $code) {
   no strict 'refs';    ## no critic
   my %symbols = %{$pkg . "::"};
 
@@ -84,26 +84,28 @@ sub find_subnames($pkg, $code) {
 our $RX_PKG_NOT_FIRST = qr/[0-9A-Z_a-z]+(?:::[0-9A-Z_a-z]+)*/;
 our $RX_PKG           = qr/^[A-Z_a-z]$RX_PKG_NOT_FIRST*$/;
 
-sub _parent($caller, $rel) {
+sub _parent ($caller) {
   my @arr = split /::/, $caller;
   pop @arr;
-  push @arr, $rel if $rel;
   join '::', @arr;
 }
 
-sub resolve_package($caller, $pkg) {
+sub resolve_package ($caller, $pkg) {
+
   return $pkg if $pkg =~ $RX_PKG;
 
-  if ($pkg =~ /^\-($RX_PKG_NOT_FIRST)$/) {
-    return "Evo::$1";
+  return "Evo::$1" if $pkg =~ /^\-($RX_PKG_NOT_FIRST)$/;
+
+  # parent. TODO: many //
+  if ($pkg =~ /^\/(.*)$/) {
+    my $rest   = $1;
+    my $parent = _parent($caller)
+      or croak "Can't resolve $pkg: can't find parent of caller $caller";
+
+    return "$parent$rest" if "$parent$rest" =~ /^$RX_PKG$/;
   }
-  elsif ($pkg =~ /^:($RX_PKG_NOT_FIRST)$/) {
-    return "${caller}::$1";
-  }
-  elsif ($pkg =~ /^::($RX_PKG_NOT_FIRST*)$/) {
-    my $resolved = _parent($caller, $1);
-    return $resolved if $resolved =~ /^$RX_PKG$/;
-  }
+
+  return "${caller}::$1" if $pkg =~ /^::($RX_PKG_NOT_FIRST)$/;
 
   croak "Can't resolve $pkg for caller $caller";
 }

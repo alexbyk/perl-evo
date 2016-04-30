@@ -16,9 +16,9 @@ sub _parse {
   $val =~ tr/\n/ /;
   $val =~ s/^\s+|\s+$//g;
 
-  $val =~ /^ ((\-|\:\:|\:)? $Evo::Lib::Bare::RX_PKG_NOT_FIRST*) (.*)$/x;
+  $val =~ /^ ((\-|\/?(:{2})?)? $Evo::Lib::Bare::RX_PKG_NOT_FIRST*) (.*)$/x;
   croak qq#Can't parse string "$orig"# unless $1;
-  my ($class, $args) = (Evo::Lib::Bare::resolve_package($caller, $1), $3);
+  my ($class, $args) = (Evo::Lib::Bare::resolve_package($caller, $1), $4);
 
   $args =~ s/^$ARGS_RX$/$1/;
   return ($class) unless $args;
@@ -118,8 +118,8 @@ Used to make package header shorter
 
 =head2 SHORTCUTS
 
-  : => . (append to current)
-  :: => .. (append to parent)
+  :: => (append to current)
+  /:: => (append to parent)
   - => Evo (append to Evo)
 
 =head2 shortcuts
@@ -132,15 +132,15 @@ C<-> is replaced by C<Evo>
 
 C<:> and C<::> depend on the package name where they're used
 
-C<:> means relative to the current module as a child
+C<::> means relative to the current module as a child
 
   package My::App;
-  use Evo ':Bar'; # My::App::Bar
+  use Evo '::Bar'; # My::App::Bar
 
-C<::> means it's a sibling module (child of the parent of the current module)
+C</> means parent and C</::> means it's a sibling module (child of the parent of the current module)
 
   package My::App;
-  use Evo '::Bar'; # My::Bar
+  use Evo '/::Bar'; # My::Bar
 
 =head1 IMPORTS
 

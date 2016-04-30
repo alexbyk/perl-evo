@@ -1,7 +1,7 @@
 package Evo::Promise;
-use Evo '-Export *; :Deferred; :Comp; :Util *';
+use Evo '-Export *; ::Deferred; ::Comp; ::Util *';
 
-export_proxy ':Util', qw(promise_resolve promise_reject promise_all promise_race);
+export_proxy '::Util', qw(promise_resolve promise_reject promise_all promise_race);
 
 sub promise($fn) : Export {
   my $d = Evo::Promise::Deferred::new(promise => my $p = Evo::Promise::Comp::new());

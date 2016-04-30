@@ -1,5 +1,5 @@
 package Evo::Comp::Out;
-use Evo '::Gen::HUF GEN; -Role ROLE_EXPORTER; ::Meta; -Export::Core *';
+use Evo '/::Gen::HUF GEN; -Role ROLE_EXPORTER; /::Meta; -Export::Core *';
 
 my $META = Evo::Comp::Meta::new(gen => GEN, rex => ROLE_EXPORTER);
 

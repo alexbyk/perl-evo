@@ -1,6 +1,6 @@
 package Evo::Io::Socket;
 use Evo '-Comp::Out *';
-with ':Role', '-Io::Handle::Role';
+with '::Role', '-Io::Handle::Role';
 
 1;
 

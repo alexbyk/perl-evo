@@ -1,5 +1,5 @@
 package Evo::Eval;
-use Evo '-Export *; :Call';
+use Evo '-Export *; ::Call';
 
 sub eval_want : Export {
   my ($want, $fn) = (shift, pop);

@@ -1,5 +1,5 @@
 package Evo::Export;
-use Evo ':Core *';
+use Evo '::Core *';
 
 export_proxy 'Evo::Export::Core', '*';
 

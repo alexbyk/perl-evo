@@ -1,7 +1,7 @@
 package Evo::Net::Srv;
 use Evo '-Comp *';
 
-with ':Role', -Ee;
+with '::Role', -Ee;
 
 sub ee_events {qw(srv_accept srv_error)}
 

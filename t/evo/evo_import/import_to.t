@@ -29,7 +29,7 @@ Evo::->import('-My(-foo, bar)');
 Evo::->import('Evo::My foo1 foo2; Evo::My bar1 bar2 ; -My opa');
 
 # multi imports from other package
-Evo::My2::makeimport("::My foo1 foo2;\n Evo::My bar");
+Evo::My2::makeimport("/::My foo1 foo2;\n Evo::My bar");
 
 is_deeply \@called, [
   [qw(main Evo::My)], [qw(main Evo::My bar baz)], [qw(main Evo::My bar baz)], [qw(main Evo::My)],

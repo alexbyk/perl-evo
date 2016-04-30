@@ -1,6 +1,6 @@
 package Evo::Loop;
 use Evo '-Export *';
-use Evo ':Comp';
+use Evo '::Comp';
 
 our $SINGLE = Evo::Loop::Comp::new();
 

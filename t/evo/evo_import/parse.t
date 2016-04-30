@@ -48,16 +48,15 @@ is_deeply parse("Foo \nbar\n\nbaz"), [qw(Foo  bar baz)];
 is_deeply parse(' My::Foo '),         [qw(My::Foo)];
 is_deeply parse(' My::Foo bar baz '), [qw(My::Foo bar baz)];
 
-# :: => parent
-is_deeply parse_from('main',    '::Foo'),             [qw(Foo)];
-is_deeply parse_from('My::Foo', '::Bar::Baz'),        [qw(My::Bar::Baz)];
-is_deeply parse_from('My::Foo', '::Bar hello there'), [qw(My::Bar hello there)];
-is_deeply parse_from('My::Foo', ':: hello there'),    [qw(My hello there)];
-is_deeply parse_from('My::Foo', '::33 hello there'),  [qw(My::33 hello there)];
+# /:: => parent
+is_deeply parse_from('My::Foo', '/::Bar::Baz'),        [qw(My::Bar::Baz)];
+is_deeply parse_from('My::Foo', '/::Bar hello there'), [qw(My::Bar hello there)];
+is_deeply parse_from('My::Foo', '/ hello there'),      [qw(My hello there)];
+is_deeply parse_from('My::Foo', '/::33 hello there'),  [qw(My::33 hello there)];
 
 # : => current
-is_deeply parse_from('My::Foo', ':Bar::Baz'),        [qw(My::Foo::Bar::Baz)];
-is_deeply parse_from('My::Foo', ':Bar hello there'), [qw(My::Foo::Bar hello there)];
-is_deeply parse_from('My::Foo', ':33 hello there'),  [qw(My::Foo::33 hello there)];
+is_deeply parse_from('My::Foo', '::Bar::Baz'),        [qw(My::Foo::Bar::Baz)];
+is_deeply parse_from('My::Foo', '::Bar hello there'), [qw(My::Foo::Bar hello there)];
+is_deeply parse_from('My::Foo', '::33 hello there'),  [qw(My::Foo::33 hello there)];
 
 done_testing;

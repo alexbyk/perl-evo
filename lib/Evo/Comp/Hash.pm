@@ -1,5 +1,5 @@
 package Evo::Comp::Hash;
-use Evo '::Gen::Hash GEN; -Role ROLE_EXPORTER; ::Meta; -Export::Core *';
+use Evo '/::Gen::Hash GEN; -Role ROLE_EXPORTER; /::Meta; -Export::Core *';
 
 sub import ($me, @args) {
   export_install_in(scalar caller, $me, @args ? @args : '*');
