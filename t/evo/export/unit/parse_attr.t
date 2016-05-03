@@ -2,7 +2,7 @@ package main;
 use Evo '-Export';
 use Test::More;
 
-*parse = *Evo::Export::Core::_parse_attr;
+*parse = *Evo::Export::_parse_attr;
 
 is_deeply [parse('Export')],         ['Export', undef];
 is_deeply [parse('Export()')],       ['Export', undef];
