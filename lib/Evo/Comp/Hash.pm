@@ -1,15 +1,8 @@
 package Evo::Comp::Hash;
-use Evo '/::Gen::Hash GEN; -Role ROLE_EXPORTER; /::Meta; -Export::Core *';
-
-use Evo '-Attr *';
-export_proxy '-Attr', 'MODIFY_CODE_ATTRIBUTES';
+use Evo '/::Gen::Hash GEN; -Role ROLE_EXPORTER; /::Meta; -Attr *';
+use Evo '-Export *, -import, import_all:import';
 
 my $META = Evo::Comp::Meta::new(gen => GEN, rex => ROLE_EXPORTER);
-
-sub import ($me, @args) {
-  export_install_in(scalar caller, $me, @args ? @args : '*');
-  attr_install_code_handler_in(scalar caller);
-}
 
 export_gen new => sub($class) { $META->compile_builder($class); };
 
@@ -35,7 +28,7 @@ sub _attr_handler ($class, $code, @attrs) {
   return grep { $_ ne 'Override' } @attrs;
 }
 
-attr_register_code_handler \&_attr_handler;
+attr_handler \&_attr_handler;
 
 1;
 

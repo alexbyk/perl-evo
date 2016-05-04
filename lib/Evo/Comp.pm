@@ -1,9 +1,8 @@
 package Evo::Comp;
-use Evo '-Export::Core *';
-use Evo::Comp::Hash ();
-export_proxy('Evo::Comp::Hash', '*');
+use Evo '-Export *, -import, import_all:import';
+use Evo '-Comp::Hash ()';
 
-*import = *Evo::Comp::Hash::import;
+export_proxy('Evo::Comp::Hash', '*');
 
 1;
 

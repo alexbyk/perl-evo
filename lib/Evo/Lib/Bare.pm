@@ -14,9 +14,13 @@ my $NAME = do {
 use constant SUBRE => qr/^[a-zA-Z_]\w*$/;
 sub check_subname { $_[0] =~ SUBRE }
 
-my $DEBUG = $ENV{EVO_DEBUG};
+my $DEBUG;
 sub debug { return unless $DEBUG; carp "[${\(caller)[0]}]: $_[0]"; }
 
+sub enable_debug($on) {
+  $DEBUG = $on;
+}
+enable_debug($ENV{EVO_DEBUG});
 
 # usefull?
 sub find_caller_except ($skip_ns, $i, $caller) {

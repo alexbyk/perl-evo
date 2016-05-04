@@ -1,36 +1,31 @@
 package Evo::Attr;
 use Evo::Attr::Class;
-use Evo '-Export::Core *';
-
-
-sub import {
-  my $caller = caller;
-  export_install_in($caller, @_);
-}
+use Evo '-Export::Core *';    # because Evo::Export relies on me
 
 *DEFAULT = *Evo::Attr::Class::DEFAULT;
 
-export_gen MODIFY_CODE_ATTRIBUTES => sub($dest) {
-  sub { DEFAULT()->run_code_handlers(@_); };
-};
+my $MODIFY_CODE_ATTRIBUTES = sub { DEFAULT()->run_code_handlers(@_); };
 
-
-export_gen attr_register_code_handler => sub($provider) {
+export_gen attr_handler => sub($provider) {
   sub($handler) {
-    DEFAULT()->register_code_handler($provider, $handler);
-  };
+    my $EXP  = Evo::Export::Exporter::DEFAULT;
+    my $ATTR = Evo::Attr::Class::DEFAULT;
 
+    # register handler
+    $ATTR->register_code_handler($provider, $handler);
+
+    # add MODIFY_CODE_ATTRIBUTES for provider's export list
+    $EXP->add_gen(
+      $provider,
+      'MODIFY_CODE_ATTRIBUTES',
+      sub($dpkg) {
+        $ATTR->install_code_handler_in($dpkg, $provider);
+        $MODIFY_CODE_ATTRIBUTES;
+      }
+    );
+
+  };
 };
 
-export_gen attr_install_code_handler_in => sub($provider) {
-  sub($dest) {
-    DEFAULT()->install_code_handler_in($dest, $provider);
-  };
-};
 
-export_gen attr_run_code_handlers => sub($provider) {
-  sub($dest) {
-    DEFAULT()->install_code_handler_in($dest, $provider);
-  };
-};
 1;

@@ -2,14 +2,6 @@ package Evo::Export;
 use Evo '-Attr *; ::Core *';
 
 export_proxy 'Evo::Export::Core', '*';
-export_proxy 'Evo::Attr',         'MODIFY_CODE_ATTRIBUTES';
-
-sub import {
-  export_install_in(scalar caller, @_);
-  attr_install_code_handler_in(scalar caller);
-}
-
-export qw(import);
 
 sub _attr_handler ($pkg, $code, @attrs) {
   my (@bad, @good);
@@ -25,11 +17,11 @@ sub _attr_handler ($pkg, $code, @attrs) {
 
 
   return @bad;
-};
+}
 
 
 # pay attention: without provided name all aliases will be found by _find_subnames and exported
-attr_register_code_handler \&_attr_handler;
+attr_handler \&_attr_handler;
 
 sub _parse_attr($attr) {
   $attr =~ /(\w+) ( \( \s* (\w+) \s* \) )?/x;
@@ -188,5 +180,15 @@ For example, you can use it to check, if requester component has some methods an
       my $method = $class->can("name") or die "provide name";
       sub { say $method->() };
     };
+
+=head4 import
+
+By default, this method will be exported and do the stuff. If you need replace C<import> of your module, exclude it by C<use Evo '-Export *, -import'>
+
+=head4 import_all
+
+  use Evo '-Export *, -import, import_all:import';
+
+Just like C</import> but treats empty list as '*'.
 
 =cut

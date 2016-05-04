@@ -35,6 +35,10 @@ like exception { $m->install_code_handler_in("Dest", 'Provider404') },
 # install
 $m->install_code_handler_in("Dest", "Provider1");
 $m->install_code_handler_in("Dest", "Provider2");
+
+# install not existing
+like exception { $m->install_code_handler_in("Dest", 'Provider1') },
+  qr/"Provider1" has been already installed in "Dest".+$0/;
 my @res = $m->run_code_handlers('Dest', $SUB, qw(A1 A2 A3));
 is_deeply \@res, ['A3'];
 
