@@ -6,12 +6,11 @@ This framework opens new age of perl programming
 It provides rewritten and postmodern features like
 
 - Rewritten sexy [Evo::Export](https://metacpan.org/pod/Evo::Export)
-- Post modern component oriented programming [Evo::Comp](https://metacpan.org/pod/Evo::Comp) instead of OO
+- Post modern object oriented programming with code injections [Evo::Class](https://metacpan.org/pod/Evo::Class) instead of traditional OO
 - (no docs yet) Fast Event-Loop [Evo::Loop](https://metacpan.org/pod/Evo::Loop) with unique feature zones (Not ready)
-- Fast non recursive [Evo::Promises](https://metacpan.org/pod/Evo::Promises), 100% Promises/Spec A compatible. + Nice syntax with [Evo::Prm](https://metacpan.org/pod/Evo::Prm)
-- (no docs yet) Interesting [Evo::Realm](https://metacpan.org/pod/Evo::Realm) design pattern, which is as handy as "Singleton" but without Singleton's flaws. Testable and mockable alternative of the global class
+- Fast non recursive [Evo::Promise](https://metacpan.org/pod/Evo::Promise), 100% Promises/Spec A compatible. + Nice syntax with [Evo::Prm](https://metacpan.org/pod/Evo::Prm)
 - Exception handling in pure perl: [Evo::Eval](https://metacpan.org/pod/Evo::Eval), "try catch" alternative. Like `Try::Tiny`, but without its bugs and much faster
-- [Evo::Ee](https://metacpan.org/pod/Evo::Ee) - a component role that gives your component "EventEmitter" abilities
+- [Evo::Ee](https://metacpan.org/pod/Evo::Ee) - a class role that gives your component "EventEmitter" abilities
 
 ![GIF Demo](https://raw.github.com/alexbyk/perl-evo/master/demo.gif)
 
