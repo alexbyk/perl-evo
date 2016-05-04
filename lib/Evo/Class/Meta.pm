@@ -11,12 +11,16 @@ sub data { shift->{data} }
 sub new { bless {data => {}, @_}, __PACKAGE__; }
 
 
-sub builder_options($self, $class) { $self->data->{$class}{bo} ||= {}; }
+sub builder_options ($self, $class) {
+  $self->data->{$class}{bo} ||= {};
+}
 
 # allow comp to override this methods
-sub mark_overriden($self, $comp, @list) { $self->data->{$comp}{override}{$_}++ for @list }
+sub mark_overriden ($self, $comp, @list) {
+  $self->data->{$comp}{override}{$_}++ for @list;
+}
 
-sub install_attr($self, $class, $name, @xopts) {
+sub install_attr ($self, $class, $name, @xopts) {
   my $data = $self->data->{$class} ||= {};
   croak qq{"$class" already has attribute "$name"} if $data->{attrs}{$name};
 
@@ -31,7 +35,7 @@ sub install_attr($self, $class, $name, @xopts) {
 }
 
 # ro just adds chet wrapper
-sub compile_attr($self, $name, %opts) {
+sub compile_attr ($self, $name, %opts) {
   my $gen = $self->{gen} || croak "No gen";
   my $lt = exists $opts{lazy} && (ref $opts{lazy} ? 'CODE' : 'VALUE');
   my $ch = $opts{check};
@@ -55,7 +59,7 @@ sub compile_attr($self, $name, %opts) {
   $res;
 }
 
-sub update_builder_options($self, $class) {
+sub update_builder_options ($self, $class) {
   my $bo = $self->builder_options($class);
 
   # !!!reset by ref
@@ -70,12 +74,12 @@ sub update_builder_options($self, $class) {
   }
 }
 
-sub compile_builder($self, $class) {
+sub compile_builder ($self, $class) {
   $self->update_builder_options($class);
   return $self->{gen}{new}->($class, $self->builder_options($class));
 }
 
-sub parse_style($self, @attr) {
+sub parse_style ($self, @attr) {
   my %unknown = my %opts = (@attr % 2 ? (default => @attr) : @attr);
   delete $unknown{$_} for @KNOWN;
   croak "unknown options: " . join(',', sort keys %unknown) if keys %unknown;
@@ -90,7 +94,7 @@ sub parse_style($self, @attr) {
 
 sub rex($self) { $self->{rex} }
 
-sub install_roles($self, $comp, @roles) {
+sub install_roles ($self, $comp, @roles) {
   my $rex = $self->{rex} or die "no rex";
   no strict 'refs';    ## no critic
   my @hslots;
@@ -127,7 +131,7 @@ sub gen_check_ro($name) {
   sub { croak qq#Attribute "$name" is readonly#; }
 }
 
-sub process_is($name, %res) {
+sub process_is ($name, %res) {
   my $is = delete($res{is}) || 'rw';
   croak qq#invalid "is": "$is"# unless $is eq 'ro' || $is eq 'rw';
 
@@ -135,7 +139,7 @@ sub process_is($name, %res) {
   return %res;
 }
 
-sub _scalar_or_code($opts, $what) {
+sub _scalar_or_code ($opts, $what) {
   croak qq#"$what" should be either a code reference or a scalar value#
     if ref $opts->{$what} && ref $opts->{$what} ne 'CODE';
 }

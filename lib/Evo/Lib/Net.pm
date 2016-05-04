@@ -4,12 +4,12 @@ use Socket qw(AF_INET6 AF_INET INADDR_ANY IN6ADDR_ANY
   inet_pton inet_ntop
   pack_sockaddr_in pack_sockaddr_in6 unpack_sockaddr_in unpack_sockaddr_in6
   sockaddr_family
-  );
+);
 
 use Carp 'croak';
 
 
-sub net_gen_saddr_family($ip, $port) : Export {
+sub net_gen_saddr_family ($ip, $port) : Export {
   $port ||= 0;
 
   my ($naddr, $family) = net_parse($ip);

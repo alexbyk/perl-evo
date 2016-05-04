@@ -71,7 +71,9 @@ REJECT_BY_PROMISE: {
 RESOLVE_BY_THENABLE: {
   no warnings 'once';
   my $resolve;
-  local *My::Thenable::then = sub($th, $res, $rej) { $resolve = $res; };
+  local *My::Thenable::then = sub ($th, $res, $rej) {
+    $resolve = $res;
+  };
   my $thenable = bless {}, 'My::Thenable';
   my ($d1, $d2) = (deferred, deferred);
   my $p = promise_race($d1->promise, $d2->promise, $thenable);
@@ -92,7 +94,9 @@ RESOLVE_BY_THENABLE: {
 REJECT_BY_THENABLE: {
   no warnings 'once';
   my $reject;
-  local *My::Thenable::then = sub($th, $res, $rej) { $reject = $rej; };
+  local *My::Thenable::then = sub ($th, $res, $rej) {
+    $reject = $rej;
+  };
   my $thenable = bless {}, 'My::Thenable';
   my ($d1, $d2) = (deferred, deferred);
   my $p = promise_race($d1->promise, $d2->promise, $thenable);

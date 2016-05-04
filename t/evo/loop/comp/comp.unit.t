@@ -22,7 +22,7 @@ TICK_CALL_UTT: {
 
 NOTHING: {
   local *Evo::Loop::Class::timer_count    = sub {0};
-  local *Evo::Loop::Class::io_count   = sub {0};
+  local *Evo::Loop::Class::io_count       = sub {0};
   local *Evo::Loop::Class::postpone_count = sub {0};
   ok !$loop->tick;
 }

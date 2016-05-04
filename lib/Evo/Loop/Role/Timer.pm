@@ -15,7 +15,7 @@ sub timer_count : Role { scalar $_[0]->timer_queue->@* }
 sub timer : Role {
   croak "Not enought arguments" if @_ < 3;
   my ($self, $after, $cb, $period) = (shift, shift, pop, shift);
-  croak "Negative period!" if $period && $period < 0;;
+  croak "Negative period!" if $period && $period < 0;
   my $zcb = $self->zone_cb($cb);
 
   push $self->timer_need_sort(1)->timer_queue->@*,
@@ -23,7 +23,7 @@ sub timer : Role {
   $slot;
 }
 
-sub timer_remove($self, $ref) : Role {
+sub timer_remove ($self, $ref) : Role {
   my $que = $self->timer_queue;
 
   defined(my $index = first { $que->[$_] == $ref } 0 .. $#$que) or return;

@@ -8,22 +8,22 @@ requires 'ee_events';
 # [name, cb]
 has ee_data => sub { {q => [], cur => undef} };
 
-sub ee_check($self, $name) : Role {
+sub ee_check ($self, $name) : Role {
   croak qq{Not recognized event "$name"} unless first { $_ eq $name } $self->ee_events;
   $self;
 }
 
-sub on($self, $name, $fn) : Role {
+sub on ($self, $name, $fn) : Role {
   push $self->ee_check($name)->ee_data->{q}->@*, [$name, $fn];
   $self;
 }
 
-sub ee_add($self, $name, $fn) : Role {
+sub ee_add ($self, $name, $fn) : Role {
   push $self->ee_check($name)->ee_data->{q}->@*, my $id = [$name, $fn];
   $id;
 }
 
-sub ee_remove($self, $id) : Role {
+sub ee_remove ($self, $id) : Role {
   my $data = $self->ee_data->{q};
   defined(my $index = first { $data->[$_] == $id } 0 .. $#$data) or croak "$id isn't a listener";
   splice $data->@*, $index, 1;
@@ -38,14 +38,14 @@ sub ee_remove_current($self) : Role {
 }
 
 
-sub emit($self, $name, @args) : Role {
+sub emit ($self, $name, @args) : Role {
   my $data = $self->ee_data;
   do { local $data->{cur} = $_; $_->[1]->($self, @args) }
     for grep { $_->[0] eq $name } $self->ee_data->{q}->@*;
   $self;
 }
 
-sub ee_listeners($self, $name) : Role {
+sub ee_listeners ($self, $name) : Role {
   grep { $_->[0] eq $name } $self->ee_data->{q}->@*;
 }
 

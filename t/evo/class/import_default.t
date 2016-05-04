@@ -22,7 +22,6 @@ use Test::Fatal;
   has 'foo';
 
 
-
   package My::Foo4;
   use Evo -Class;
   has 'foo';

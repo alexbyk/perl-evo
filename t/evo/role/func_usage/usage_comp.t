@@ -12,9 +12,9 @@ is $obj->foo_bar, 'foobar';
 is $obj->FOO_BAR, 'FOOBAR';
 is $obj->gm('V'), 'MyClassV';
 
-is $obj->overriden1, 'OVER1';
-is $obj->overriden2, 'OVER2';
-is $obj->overriden3, 'OVER3';
+is $obj->overriden1,     'OVER1';
+is $obj->overriden2,     'OVER2';
+is $obj->overriden3,     'OVER3';
 is $obj->overriden_attr, 'OVER4';
 
 like exception { require MyBadClass; }, qr/MyRole.+MyBadClass.+rmethod/;

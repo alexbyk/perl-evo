@@ -8,12 +8,12 @@ use Module::Load;
 sub data { shift->{data} }
 sub new { bless {data => {}}, __PACKAGE__ }
 
-sub init_slot($self, $src, $name, $val) {
+sub init_slot ($self, $src, $name, $val) {
   croak "$src already adds $name" if $self->data->{$src}{export}{$name};
   $self->data->{$src}{export}{$name} = $val;
 }
 
-sub add_methods($self, $role, @methods) {
+sub add_methods ($self, $role, @methods) {
   no strict 'refs';    ## no critic
   foreach my $m (@methods) {
     my $full = "${role}::$m";
@@ -22,11 +22,11 @@ sub add_methods($self, $role, @methods) {
   }
 }
 
-sub add_gen($self, $role, $name, $gen) {
+sub add_gen ($self, $role, $name, $gen) {
   $self->init_slot($role, $name, {type => 'gen', value => $gen});
 }
 
-sub request_gen($self, $role, $name, $comp) {
+sub request_gen ($self, $role, $name, $comp) {
   my $slot = $self->data->{$role}{export}{$name}
     or croak qq#"$role" doesn't provide method "$name"#;
 
@@ -35,25 +35,27 @@ sub request_gen($self, $role, $name, $comp) {
   return $slot->{cache}{$comp} = $slot->{value}->($comp);
 }
 
-sub add_attr($self, $role, $name, @opts) {
+sub add_attr ($self, $role, $name, @opts) {
   Evo::Lib::Bare::check_subname($name) || croak(qq{Attribute "$name" invalid});
   $self->init_slot($role, $name, {type => 'attr', value => \@opts});
 }
 
-sub _map($self, $type, $role) {
+sub _map ($self, $type, $role) {
   my $all = $self->data->{$role}{export};
   map { ($_, $all->{$_}->{value}) } grep { $all->{$_}->{type} eq $type } keys %$all;
 }
 
-sub methods($self, $role, $comp) {
+sub methods ($self, $role, $comp) {
   my %gens = $self->_map('gen', $role);
   my %gms = map { $_ => $gens{$_}->($comp) } keys %gens;
   (%gms, $self->_map('method', $role),);
 }
 
-sub attrs($self, $role) { $self->_map('attr', $role); }
+sub attrs ($self, $role) {
+  $self->_map('attr', $role);
+}
 
-sub hooks($self, $role, @hooks) {
+sub hooks ($self, $role, @hooks) {
 
   return $self->data->{$role}
     && $self->data->{$role}{hooks} ? ($self->data->{$role}{hooks}->@*) : ()
@@ -61,7 +63,7 @@ sub hooks($self, $role, @hooks) {
   push @{($self->data->{$role}{hooks} ||= [])}, @hooks;
 }
 
-sub proxy($self, $dst, $src) {
+sub proxy ($self, $dst, $src) {
   load $src;
 
   my $data_src = $self->data->{$src} || {};

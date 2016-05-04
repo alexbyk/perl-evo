@@ -12,7 +12,11 @@ my $N = 5_000;
 my $k = 0;
 
 my $fn = sub {
-  my $p = promise(sub($res, $rej) { $res->(undef) });
+  my $p = promise(
+    sub ($res, $rej) {
+      $res->(undef);
+    }
+  );
   $p = $p->then(sub { $k++ }) for 1 .. 10;
   $p = $p->then(sub { $k-- }) for 1 .. 9;
   loop_start;

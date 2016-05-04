@@ -13,7 +13,7 @@ use constant DEFAULT => new();
 
 sub data { shift->{data} }
 
-sub install($self, $src, $dst, @xlist) {
+sub install ($self, $src, $dst, @xlist) {
   my @list = $self->expand_wildcards($src, @xlist);
 
   my %patch;
@@ -27,7 +27,7 @@ sub install($self, $src, $dst, @xlist) {
   Evo::Lib::Bare::monkey_patch $dst, %patch;
 }
 
-sub request_gen($self, $epkg, $name, $dpkg) {
+sub request_gen ($self, $epkg, $name, $dpkg) {
   my $slot = $self->find_slot($epkg, $name);
 
   # it's important to return same function for the same module
@@ -36,25 +36,25 @@ sub request_gen($self, $epkg, $name, $dpkg) {
 }
 
 # traverse to find gen via links, return Module, name, gen
-sub find_slot($self, $pkg, $name) {
+sub find_slot ($self, $pkg, $name) {
   croak qq{"$pkg" doesn't export "$name"} unless my $slot = $self->data->{$pkg}{$name};
 }
 
-sub init_slot($self, $src, $name, $val) {
+sub init_slot ($self, $src, $name, $val) {
   croak "$src already exports $name" if $self->data->{$src}{$name};
   $self->data->{$src}{$name} = $val;
 }
 
-sub add_proxy($self, $epkg, $ename, $spkg, $sname) {
+sub add_proxy ($self, $epkg, $ename, $spkg, $sname) {
   my $slot = $self->find_slot($spkg, $sname);
   $self->init_slot($epkg, $ename, $slot);
 }
 
-sub add_gen($self, $src, $name, $gen) {
+sub add_gen ($self, $src, $name, $gen) {
   $self->init_slot($src, $name, {gen => $gen});
 }
 
-sub add_sub($self, $src, $name_as) {
+sub add_sub ($self, $src, $name_as) {
   my ($name, $as) = split ':', $name_as;
   $as ||= $name;
   my $full = "${src}::$name";
@@ -63,7 +63,7 @@ sub add_sub($self, $src, $name_as) {
   $self->add_gen($src, $as, sub {$sub});
 }
 
-sub proxy($self, $epkg, $spkg, @xlist) {
+sub proxy ($self, $epkg, $spkg, @xlist) {
   $spkg = Evo::Lib::Bare::resolve_package($epkg, $spkg);
   load $spkg;
   my @list = $self->expand_wildcards($spkg, @xlist);
@@ -76,7 +76,7 @@ sub proxy($self, $epkg, $spkg, @xlist) {
 
 }
 
-sub expand_wildcards($self, $src, @list) {
+sub expand_wildcards ($self, $src, @list) {
   croak "Empty list" unless @list;
 
   my $data = $self->data->{$src};

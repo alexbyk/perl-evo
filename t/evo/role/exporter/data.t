@@ -29,7 +29,8 @@ ERRORS: {
   like exception { $obj->add_attr('My::Role', 'attr1', is => 'rw') for 1 .. 2 },
     qr/My::Role.+already.+attr1.+$0/;
 
-  like exception { $obj->request_gen('My::Role', 'not_existing', 'MyClass') }, qr/My::Role.+not_existing.+$0/;
+  like exception { $obj->request_gen('My::Role', 'not_existing', 'MyClass') },
+    qr/My::Role.+not_existing.+$0/;
 }
 
 GEN: {

@@ -3,7 +3,7 @@ use Evo '-Role *; -Loop *; Symbol gensym';
 
 use Fcntl qw(F_SETFL F_GETFL O_NONBLOCK);
 
-sub _fopt($flag, $debug, $s, $val=undef) {
+sub _fopt ($flag, $debug, $s, $val = undef) {
   my $flags = fcntl($s, F_GETFL, 0) or die "$debug: $!";
   return !!($flags & $flag) + 0 if @_ == 3;
 

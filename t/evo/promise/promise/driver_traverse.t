@@ -51,8 +51,12 @@ REJECT: {
 
 # --- handlers
 no warnings 'redefine', 'once';
-local *My::P::d_resolve_continue = sub($self, $x) { $self->x_res($x) };
-local *My::P::d_reject_continue  = sub($self, $x) { $self->x_rej($x) };
+local *My::P::d_resolve_continue = sub ($self, $x) {
+  $self->x_res($x);
+};
+local *My::P::d_reject_continue = sub ($self, $x) {
+  $self->x_rej($x);
+};
 
 CLEAR_FHS: {
   my $root = p->d_fulfill('V');

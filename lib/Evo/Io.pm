@@ -1,5 +1,6 @@
 package Evo::Io;
-use Evo '-Export *; -Lib::Net *; Symbol gensym; ::Handle; ::Socket; Carp croak; File::Temp tempfile';
+use Evo
+  '-Export *; -Lib::Net *; Symbol gensym; ::Handle; ::Socket; Carp croak; File::Temp tempfile';
 use Socket qw( SOCK_STREAM AF_INET AF_INET6 IPPROTO_TCP SOMAXCONN);
 
 our @CARP_NOT = qw(Evo::Net::Server::Role);
@@ -8,7 +9,7 @@ use Fcntl qw(O_NONBLOCK O_RDONLY O_WRONLY O_RDWR);
 
 my %MAP = (r => O_RDONLY, w => O_WRONLY, rw => O_RDWR);
 
-sub io_open($mode, $filename, @extra) : Export {
+sub io_open ($mode, $filename, @extra) : Export {
   my $fh = Evo::Io::Handle::init(gensym());
   $mode = $MAP{lc $mode} if exists $MAP{lc $mode};
   sysopen($fh, $filename, $mode | O_NONBLOCK, @extra) || die "open: $!";    ## no critic

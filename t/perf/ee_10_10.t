@@ -18,7 +18,7 @@ my $k            = 0;
   package My::Obj;
   use Evo '-Class *';
   with 'Evo::Ee';
-  sub ee_events {'event', 'ev2', 'ev3', 'ev4'}
+  sub ee_events { 'event', 'ev2', 'ev3', 'ev4' }
 }
 
 my $fn = sub {

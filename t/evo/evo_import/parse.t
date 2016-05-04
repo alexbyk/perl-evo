@@ -6,7 +6,7 @@ sub parse { [Evo::_parse('My::Caller', @_)] }
 sub parse_from { [Evo::_parse(@_)] }
 
 
-is_deeply parse('Foo'),      ['Foo', 0];
+is_deeply parse('Foo'),      ['Foo',      0];
 is_deeply parse('Foo::Bar'), ['Foo::Bar', 0];
 
 is_deeply parse('Foo(bar baz)'),       [qw(Foo 0 bar baz)];
@@ -39,7 +39,7 @@ is_deeply parse('-Foo(bar, baz)'), [qw(Evo::Foo 0 bar baz)];
 is_deeply parse('-Foo(bar,baz)'),  [qw(Evo::Foo 0 bar baz)];
 
 # empty args
-is_deeply parse('-Foo ()'), [qw(Evo::Foo 1)];
+is_deeply parse('-Foo ()'),  [qw(Evo::Foo 1)];
 is_deeply parse('-Foo( ) '), [qw(Evo::Foo 1)];
 
 # new lines

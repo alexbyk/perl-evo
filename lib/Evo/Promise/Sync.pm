@@ -4,21 +4,21 @@ use Evo '-Class *';
 has 'promise', required => 1, is => 'ro';
 has $_ for qw(called v blocking should_resolve);
 
-sub reject($self, $r) {
+sub reject ($self, $r) {
   return if $self->called;
   $self->called(1);
   $self->blocking ? $self->promise->d_reject($r) : $self->promise->d_reject_continue($r);
   $self;
 }
 
-sub resolve($self, $v) {
+sub resolve ($self, $v) {
   return if $self->called;
   $self->called(1);
   $self->blocking ? $self->should_resolve(1)->v($v) : $self->promise->d_resolve_continue($v);
   $self;
 }
 
-sub try_thenable($self, $thenable) {
+sub try_thenable ($self, $thenable) {
   $self->blocking(1);
 
   # reject drain second time, so don't bother checking "called"

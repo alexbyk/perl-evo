@@ -22,7 +22,7 @@ sub zone_cb ($self, $cb) : Role {
   };
 }
 
-sub zone_middleware($self, @mw) : Role {
+sub zone_middleware ($self, @mw) : Role {
   my $mw = $self->zone_data->{middleware};
   push $mw->@*, @mw if @mw;
   $mw;

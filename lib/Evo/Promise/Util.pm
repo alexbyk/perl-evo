@@ -7,12 +7,12 @@ use constant {PENDING => 'PENDING', REJECTED => 'REJECTED', FULFILLED => 'FULFIL
 
 export qw(PENDING REJECTED FULFILLED);
 
-sub is_locked_in($parent, $child) : Export {
+sub is_locked_in ($parent, $child) : Export {
   croak unless defined wantarray;
   first { $_ == $child } $parent->d_children->@*;
 }
 
-sub is_fulfilled_with($v, $p) : Export {
+sub is_fulfilled_with ($v, $p) : Export {
   croak unless defined wantarray;
   return unless $p->d_settled && $p->{state} eq FULFILLED;
   my $dv = $p->d_v;
@@ -20,7 +20,7 @@ sub is_fulfilled_with($v, $p) : Export {
   return defined $dv ? $v eq $dv : !defined $v;
 }
 
-sub is_rejected_with($v, $p) : Export {
+sub is_rejected_with ($v, $p) : Export {
   croak unless defined wantarray;
   return unless $p->d_settled && $p->{state} eq REJECTED;
   my $dv = $p->d_v;
@@ -85,7 +85,6 @@ sub promise_all : Export {
   }
   $d->promise;
 }
-
 
 
 1;

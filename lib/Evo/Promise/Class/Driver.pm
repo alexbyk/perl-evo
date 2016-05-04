@@ -23,7 +23,7 @@ has 'state' => PENDING;
 #}
 
 
-sub fin($self, $fn) : Role {
+sub fin ($self, $fn) : Role {
   my $d = Evo::Promise::Deferred::new(promise => $self->can('new')->());
   my $onF = sub($v) {
     $d->resolve($fn->());    # need pass result because it can be a promise
@@ -36,9 +36,9 @@ sub fin($self, $fn) : Role {
   $self->then($onF, $onR);
 }
 
-sub catch($self, $cfn) : Role { $self->then(undef, $cfn) }
+sub catch ($self, $cfn) : Role { $self->then(undef, $cfn) }
 
-sub spread($self, $fn) : Role {
+sub spread ($self, $fn) : Role {
   $self->then(sub($ref) { $fn->($ref->@*) });
 }
 
@@ -63,13 +63,13 @@ sub d_lock_in ($self, $parent) : Role {
   unshift $parent->d_children->@*, $self->d_locked(1);
 }
 
-sub d_fulfill($self, $v) : Role {
+sub d_fulfill ($self, $v) : Role {
 
   #assert(!$self->d_settled);
   $self->d_settled(1)->state(FULFILLED)->d_v($v);
 }
 
-sub d_reject($self, $r) : Role {
+sub d_reject ($self, $r) : Role {
 
   #assert(!$_[0]->d_settled);
   $self->d_settled(1)->state(REJECTED)->d_v($r);
@@ -78,7 +78,7 @@ sub d_reject($self, $r) : Role {
 # 2.3 The Promise Resolution Procedure
 # 2.3.3.2, 2.3.3.4 doesn't make sense in perl (in real world)
 # Changed term obj or func to blessed obj and can "then"
-sub d_resolve($self, $x) : Role {
+sub d_resolve ($self, $x) : Role {
 
   #assert(!$self->d_settled);
 
@@ -114,12 +114,12 @@ sub d_resolve($self, $x) : Role {
 }
 
 # reject promise and call traverse with the stack of children
-sub d_reject_continue($self, $reason) : Role {
+sub d_reject_continue ($self, $reason) : Role {
   $self->d_reject($reason);
   $self->d_traverse;
 }
 
-sub d_resolve_continue($self, $v) : Role {
+sub d_resolve_continue ($self, $v) : Role {
   $self->d_resolve($v);
   return unless $self->d_settled;
   $self->d_traverse;

@@ -6,7 +6,7 @@ my ($v, $r);
 
 # promise
 promise(
-  sub($resolve, $reject) {
+  sub ($resolve, $reject) {
     $resolve->('hello');
   }
 )->then(sub { $v = shift; die "Foo\n" })->catch(sub { $r = shift });

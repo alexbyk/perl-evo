@@ -10,20 +10,20 @@ has srv_acceptors => sub { [] };
 
 has _srv_conn_data => sub { fieldhash my %hash; \%hash }, is => 'ro';
 
-sub srv_connectionss($s, @conns) : Role {
+sub srv_connectionss ($s, @conns) : Role {
   my $data = $s->_srv_conn_data;
   return map { id_2obj $_} keys %$data unless @conns;
   $data->{$_}++ for @conns;
 }
 
-sub srv_handle_error($self, $sock, $err) : Role { $self->srv_remove_socket($sock); }
-sub srv_handle_accept($self, $sock) : Role      {$sock}
+sub srv_handle_error ($self, $sock, $err) : Role { $self->srv_remove_socket($sock); }
+sub srv_handle_accept ($self, $sock) : Role {$sock}
 
-sub srv_start_watching($self, $sock) : Role {
+sub srv_start_watching ($self, $sock) : Role {
   loop_io_in $sock, sub { $self->srv_accept($sock) };
   loop_io_error $sock, sub { $self->srv_handle_error($sock, "Unknown") };
 }
-sub srv_stop_watching($self, $sock) : Role { loop_io_remove_all $sock; }
+sub srv_stop_watching ($self, $sock) : Role { loop_io_remove_all $sock; }
 
 sub srv_stop($self) : Role {
   croak "already stopped" unless $self->srv_is_running;
@@ -37,11 +37,11 @@ sub srv_start($self) : Role {
   $self->srv_start_watching($_) for $self->srv_acceptors->@*;
 }
 
-sub srv_remove_socket($self, $sock) : Role {
+sub srv_remove_socket ($self, $sock) : Role {
   $self->srv_acceptors([grep { $_ != $sock } $self->srv_acceptors->@*]);
 }
 
-sub srv_accept($self, $sock) : Role {
+sub srv_accept ($self, $sock) : Role {
   my $child;
   while ($child = $sock->io_accept()) {
 
@@ -54,7 +54,7 @@ sub srv_accept($self, $sock) : Role {
 }
 
 
-sub srv_listen($self, %opts) : Role {
+sub srv_listen ($self, %opts) : Role {
   my @conn_keys = qw(port ip backlog reuseport);
   my %conn      = %opts{@conn_keys};
   delete $opts{$_} for @conn_keys;

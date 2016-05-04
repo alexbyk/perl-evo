@@ -14,7 +14,7 @@ my $GEN = {map { ($_, *{"gen_$_"}{CODE}) } qw(gs gsch gs_value gsch_value gs_cod
 
 sub GEN : Export {$GEN}
 
-sub gen_new($_class, $opts) {
+sub gen_new ($_class, $opts) {
 
   sub {
     my $class = @_ % 2 ? $_class : shift;
@@ -46,7 +46,7 @@ sub gen_gs($name) {
   };
 }
 
-sub gen_gs_value($name, $value) {
+sub gen_gs_value ($name, $value) {
   sub {
     return exists $DATA{$_[0]}{$name} ? $DATA{$_[0]}{$name} : $value if @_ == 1;
     $DATA{$_[0]}{$name} = $_[1];
@@ -54,7 +54,7 @@ sub gen_gs_value($name, $value) {
   };
 }
 
-sub gen_gs_code($name, $fn) {
+sub gen_gs_code ($name, $fn) {
   sub {
     return exists $DATA{$_[0]}{$name} ? $DATA{$_[0]}{$name} : $fn->($_[0]) if @_ == 1;
     $DATA{$_[0]}{$name} = $_[1];
@@ -63,7 +63,7 @@ sub gen_gs_code($name, $fn) {
 }
 
 
-sub gen_gsch($name, $ch) {
+sub gen_gsch ($name, $ch) {
   sub {
     return $DATA{$_[0]}{$name} if @_ == 1;
     my ($ok, $msg) = $ch->($_[1]);
@@ -73,7 +73,7 @@ sub gen_gsch($name, $ch) {
   };
 }
 
-sub gen_gsch_value($name, $ch, $value) {
+sub gen_gsch_value ($name, $ch, $value) {
   sub {
     return exists $DATA{$_[0]}{$name} ? $DATA{$_[0]}{$name} : $value if @_ == 1;
     my ($ok, $msg) = $ch->($_[1]);
@@ -83,7 +83,7 @@ sub gen_gsch_value($name, $ch, $value) {
   };
 }
 
-sub gen_gsch_code($name, $ch, $code) {
+sub gen_gsch_code ($name, $ch, $code) {
   sub {
     return exists $DATA{$_[0]}{$name} ? $DATA{$_[0]}{$name} : $code->($_[0]) if @_ == 1;
     my ($ok, $msg) = $ch->($_[1]);

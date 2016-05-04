@@ -7,13 +7,13 @@ my ($sock, $conn) = (io_socket(), io_socket());
 
 
 $srv->on(
-  srv_accept => sub($_srv, $_sock) {
+  srv_accept => sub ($_srv, $_sock) {
     $called++;
     is $_srv,  $srv;
     is $_sock, $sock;
   }
   )->on(
-  srv_error => sub($_srv, $_conn, $err) {
+  srv_error => sub ($_srv, $_conn, $err) {
     is $_srv,  $srv;
     is $_conn, $conn;
     is $err,   "MyErr";

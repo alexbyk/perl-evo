@@ -22,7 +22,9 @@ RESOLVE_ORDER: {
   my ($d1, $d2, $d3) = (deferred, deferred, deferred);
   my ($result, $called);
   no warnings 'once';
-  local *My::Thenable::then = sub($th, $res, $rej) { $res->('5th') };
+  local *My::Thenable::then = sub ($th, $res, $rej) {
+    $res->('5th');
+  };
   promise_all($d1->promise, $d2->promise, $d3->promise, 4, bless {}, 'My::Thenable')
     ->then(sub { $called++; $result = shift; });
 
@@ -74,7 +76,9 @@ REJECT_BY_PROMISE: {
 REJECT_BY_THENABLE: {
   no warnings 'once';
   my $reject;
-  local *My::Thenable::then = sub($th, $res, $rej) { $reject = $rej };
+  local *My::Thenable::then = sub ($th, $res, $rej) {
+    $reject = $rej;
+  };
   my ($d1, $d2, $d3) = (deferred, deferred, deferred, deferred);
   my ($reason, $called);
 
