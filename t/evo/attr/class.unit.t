@@ -18,28 +18,28 @@ my $h2 = sub ($pkg, $code, @got) {
   return qw(A3);
 };
 
-$m->register_code_handler('Provider1', $h1);
-$m->register_code_handler('Provider2', $h2);
+$m->register_handler_of('Provider1', $h1);
+$m->register_handler_of('Provider2', $h2);
 
 # second time - error
-like exception { $m->register_code_handler('Provider1', $h1) },
+like exception { $m->register_handler_of('Provider1', $h1) },
   qr/"Provider1" has been already registered.+$0/;
 
 # not installed
-is_deeply [$m->run_code_handlers('Dest', $SUB, 'A1', 'A2')], [qw(A1 A2)];
+is_deeply [$m->run_handlers('Dest', $SUB, 'A1', 'A2')], [qw(A1 A2)];
 
 # install not existing
-like exception { $m->install_code_handler_in("Dest", 'Provider404') },
+like exception { $m->install_handler_in("Dest", 'Provider404') },
   qr/"Provider404" hasn't been registered.+$0/;
 
 # install
-$m->install_code_handler_in("Dest", "Provider1");
-$m->install_code_handler_in("Dest", "Provider2");
+$m->install_handler_in("Dest", "Provider1");
+$m->install_handler_in("Dest", "Provider2");
 
 # install not existing
-like exception { $m->install_code_handler_in("Dest", 'Provider1') },
+like exception { $m->install_handler_in("Dest", 'Provider1') },
   qr/"Provider1" has been already installed in "Dest".+$0/;
-my @res = $m->run_code_handlers('Dest', $SUB, qw(A1 A2 A3));
+my @res = $m->run_handlers('Dest', $SUB, qw(A1 A2 A3));
 is_deeply \@res, ['A3'];
 
 done_testing;

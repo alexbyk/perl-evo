@@ -6,12 +6,12 @@ use constant DEFAULT => new();
 sub handlers  { shift->{handlers} }
 sub providers { shift->{providers} }
 
-sub register_code_handler ($self, $provider, $handler) {
+sub register_handler_of ($self, $provider, $handler) {
   croak qq/Provider "$provider" has been already registered/ if $self->providers->{$provider};
   $self->providers->{$provider} = $handler;
 }
 
-sub install_code_handler_in ($self, $dest, $provider) {
+sub install_handler_in ($self, $dest, $provider) {
   croak qq/Provider "$provider" hasn't been registered/
     unless my $handler = $self->providers->{$provider};
   croak qq/Provider "$provider" has been already installed in "$dest"/
@@ -23,7 +23,7 @@ sub install_code_handler_in ($self, $dest, $provider) {
 
 *debug = *Evo::Lib::Bare::debug;
 
-sub run_code_handlers ($self, $dest, $code, @attrs) {
+sub run_handlers ($self, $dest, $code, @attrs) {
   debug("running handlers for $dest: (" . join(',', @attrs) . ')');
   return @attrs unless my $list = $self->handlers->{$dest};
   foreach my $slot (@$list) {
