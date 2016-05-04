@@ -4,7 +4,7 @@ use warnings;
 use Carp 'croak';
 use Module::Load 'load';
 use Evo::Lib::Bare;
-use Evo::Export::Exporter;
+use Evo::Export::Class;
 use feature 'say';
 
 

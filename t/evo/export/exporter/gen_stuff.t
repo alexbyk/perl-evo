@@ -1,8 +1,8 @@
-use Evo -Export::Exporter;
+use Evo -Export::Class;
 use Test::More;
 use Test::Fatal;
 
-my $obj = Evo::Export::Exporter::new();
+my $obj = Evo::Export::Class::new();
 
 like exception {
   $obj->request_gen('Bad', 'method', 'Dest')

@@ -1,4 +1,4 @@
-package Evo::Export::Exporter;
+package Evo::Export::Class;
 use strict;
 use warnings;
 use feature 'signatures';

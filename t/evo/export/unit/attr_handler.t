@@ -1,7 +1,7 @@
 package main;
 use Evo '-Export';
 use Test::More;
-sub EXPORTER {Evo::Export::Exporter::DEFAULT}
+sub EXPORTER {Evo::Export::Class::DEFAULT}
 
 my $code = sub { };
 

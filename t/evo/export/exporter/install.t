@@ -1,4 +1,4 @@
-use Evo -Export::Exporter;
+use Evo -Export::Class;
 use Test::More;
 use Test::Fatal;
 
@@ -10,7 +10,7 @@ sub gen_gen {
 }
 
 PATCH: {
-  my $obj = Evo::Export::Exporter::new();
+  my $obj = Evo::Export::Class::new();
 
   $obj->add_gen('Lib', 'name1', gen_gen(1));
   $obj->add_gen('Lib', 'name2', gen_gen(2));

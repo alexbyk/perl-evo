@@ -12,7 +12,7 @@ sub _attr_handler ($pkg, $code, @attrs) {
 
   foreach my $name (@good) {
     my @names = $name ? ($name) : Evo::Lib::Bare::find_subnames($pkg, $code);
-    Evo::Export::Exporter::DEFAULT->add_gen($pkg, $_, sub {$code}) for @names;
+    Evo::Export::Class::DEFAULT->add_gen($pkg, $_, sub {$code}) for @names;
   }
 
 

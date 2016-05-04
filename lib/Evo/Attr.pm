@@ -8,7 +8,7 @@ my $MODIFY_CODE_ATTRIBUTES = sub { DEFAULT()->run_code_handlers(@_); };
 
 export_gen attr_handler => sub($provider) {
   sub($handler) {
-    my $EXP  = Evo::Export::Exporter::DEFAULT;
+    my $EXP  = Evo::Export::Class::DEFAULT;
     my $ATTR = Evo::Attr::Class::DEFAULT;
 
     # register handler

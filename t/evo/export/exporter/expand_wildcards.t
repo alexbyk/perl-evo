@@ -1,8 +1,8 @@
-use Evo -Export::Exporter;
+use Evo -Export::Class;
 use Test::More;
 use Test::Fatal;
 
-my $obj = Evo::Export::Exporter::new();
+my $obj = Evo::Export::Class::new();
 $obj->add_gen('Lib', 'f1', 'GEN');
 $obj->add_gen('Lib', 'f2', 'GEN');
 $obj->add_gen('Lib', 'f3', 'GEN');
