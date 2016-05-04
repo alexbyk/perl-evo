@@ -1,10 +1,10 @@
-use Evo -Loop::Comp, '-Lib *', '-W::Eval w_eval_run';
+use Evo -Loop::Class, '-Lib *', '-W::Eval w_eval_run';
 use Test::More;
 
 no warnings 'redefine';
 
 EVAL: {
-  my $loop = Evo::Loop::Comp::new();
+  my $loop = Evo::Loop::Class::new();
 
   my $catched;
   $loop->zone(
@@ -19,7 +19,7 @@ EVAL: {
 }
 
 TIMER_LIKE_ZONE: {
-  my $loop = Evo::Loop::Comp::new();
+  my $loop = Evo::Loop::Class::new();
   my ($w_called, $t_called);
   my $w_log = sub($next) {
     sub { $w_called++; $next->(@_); };
@@ -35,7 +35,7 @@ TIMER_LIKE_ZONE: {
 }
 
 TIMER_TICK: {
-  my $loop = Evo::Loop::Comp::new();
+  my $loop = Evo::Loop::Class::new();
   my $t_called;
   my $reg = sub { $t_called++ };
   $loop->timer(
@@ -52,14 +52,14 @@ TIMER_TICK: {
   is $t_called, 1;
 
   my $time = $loop->tick_time;
-  local *Evo::Loop::Comp::steady_time = sub { $time + 1 };
+  local *Evo::Loop::Class::steady_time = sub { $time + 1 };
   is $loop->tick(), 0;
   is $t_called, 3;
   is $loop->tick_time, $time + 1;
 }
 
 IGNORE_SIGPIPE: {
-  my $loop = Evo::Loop::Comp::new();
+  my $loop = Evo::Loop::Class::new();
 
   ok !$SIG{PIPE};
   $loop->postpone(sub { is $SIG{PIPE}, 'IGNORE'; });

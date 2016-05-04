@@ -6,7 +6,7 @@ my $MOCK_TIME = 12.34_567;
 {
 
   package MyLoop;
-  use Evo '-Comp *', -Loaded;
+  use Evo '-Class *', -Loaded;
   with 'Evo::Loop::Role::Timer';
 
   sub zone_cb { $_[1] . '-Z' }

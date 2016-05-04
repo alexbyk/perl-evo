@@ -29,7 +29,7 @@ ERRORS: {
   like exception { $obj->add_attr('My::Role', 'attr1', is => 'rw') for 1 .. 2 },
     qr/My::Role.+already.+attr1.+$0/;
 
-  like exception { $obj->request_gen('My::Role', 'not_existing', 'MyComp') }, qr/My::Role.+not_existing.+$0/;
+  like exception { $obj->request_gen('My::Role', 'not_existing', 'MyClass') }, qr/My::Role.+not_existing.+$0/;
 }
 
 GEN: {
@@ -41,10 +41,10 @@ GEN: {
       sub {$class};
     }
   );
-  my $m = $obj->request_gen('My::Role', 'gm', 'My::Comp');
-  is $obj->request_gen('My::Role', 'gm', 'My::Comp'), $m;
-  isnt $obj->request_gen('My::Role', 'gm', 'My::Comp2'), $m;
-  is $m->(), 'My::Comp';
+  my $m = $obj->request_gen('My::Role', 'gm', 'My::Class');
+  is $obj->request_gen('My::Role', 'gm', 'My::Class'), $m;
+  isnt $obj->request_gen('My::Role', 'gm', 'My::Class2'), $m;
+  is $m->(), 'My::Class';
 }
 
 
@@ -64,10 +64,10 @@ OK: {
   );
 
   # get attr and methods
-  my %methods = $obj->methods('My::Role', 'My::Comp');
+  my %methods = $obj->methods('My::Role', 'My::Class');
   is_deeply \%methods, {foo => *My::Role::foo{CODE}, bar => *My::Role::bar{CODE}, gen1 => $meth};
 
-  is $methods{gen1}->(), 'My::Comp';
+  is $methods{gen1}->(), 'My::Class';
 
   is_deeply { $obj->attrs('My::Role') }, {attr1 => [is => 'rw'], attr2 => [is => 'ro']};
 

@@ -9,7 +9,7 @@ my $LAST;
 {
 
   package My::Server;
-  use Evo '-Comp *';
+  use Evo '-Class *';
 
   with -Net::Srv::Role;
   has 'last';
@@ -19,7 +19,7 @@ my $LAST;
 
 
 ACCEPT: {
-  my $loop = Evo::Loop::Comp::new();
+  my $loop = Evo::Loop::Class::new();
   my $srv  = My::Server::new();
 
   # stop

@@ -44,7 +44,7 @@ $obj->proxy('My::Proxy', 'My::Role2');
 $obj->proxy('My::Proxy', 'My::Role3');
 is $loaded, 3;
 
-is_deeply { $obj->methods('My::Proxy', 'MyComp') },
+is_deeply { $obj->methods('My::Proxy', 'MyClass') },
   {m1 => *My::Role1::m1{CODE}, m2 => *My::Role2::m2{CODE}, gm3 => $meth};
 
 is_deeply { $obj->attrs('My::Proxy') }, {a1 => [is => 'rw'], a2 => [is => 'ro']};

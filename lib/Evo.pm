@@ -62,7 +62,7 @@ sub import {
 
 # VERSION
 
-# ABSTRACT: Evo - the next generation component-oriented development framework
+# ABSTRACT: Evo - the next generation development framework
 
 =head1 SYNOPSYS
 
@@ -84,7 +84,7 @@ It provides rewritten and postmodern features like
 Rewritten sexy L<Evo::Export>
 
 =item *
-Post modern component oriented programming L<Evo::Comp> instead of OO
+Post modern code injection programming L<Evo::Class> instead of traditional OO
 
 =item *
 (no docs yet) Fast Event-Loop L<Evo::Loop> with unique feature zones (Not ready)
@@ -96,7 +96,7 @@ Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible. + Nice syn
 Exception handling in pure perl: L<Evo::Eval>, "try catch" alternative. Like C<Try::Tiny>, but without its bugs and much faster
 
 =item *
-L<Evo::Ee> - a component role that gives your component "EventEmitter" abilities
+L<Evo::Ee> - a class role that gives your "EventEmitter" abilities
 
 =back
 
@@ -111,10 +111,10 @@ Vim ultisnips with C<Evo> support can be found here: L<https://github.com/alexby
 
 Load Module and call itss C<import> method, emulating C<caller>.
 
-  use Evo 'Evo::SomeComp';
-  use Evo 'Evo::SomeComp(function)';
-  use Evo 'Evo::SomeComp(function,otherfunc)';
-  use Evo 'Evo::SomeComp function1 function2';
+  use Evo 'Evo::SomeClass';
+  use Evo 'Evo::SomeClass(function)';
+  use Evo 'Evo::SomeClass(function,otherfunc)';
+  use Evo 'Evo::SomeClass function1 function2';
 
 Used to make package header shorter
 
@@ -129,7 +129,7 @@ Used to make package header shorter
 
 =head2 shortcuts
 
-Shortcuts are used to make life easier during code refactoring (and your module shorter) in L<Evo::Export> and L<Evo::Comp/"with">
+Shortcuts are used to make life easier during code refactoring (and your module shorter) in L<Evo::Export> and L<Evo::Class/"with">
 
 C<-> is replaced by C<Evo>
 

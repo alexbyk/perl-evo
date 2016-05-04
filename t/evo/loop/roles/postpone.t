@@ -1,12 +1,12 @@
 package main;
-use Evo -Loop::Comp;
+use Evo -Loop::Class;
 use Test::More;
 
 my $zc;
 {
 
   package MyLoop;
-  use Evo '-Comp *', -Loaded;
+  use Evo '-Class *', -Loaded;
   with 'Evo::Loop::Role::Postpone';
 
   sub zone_cb { $zc++; $_[1] }

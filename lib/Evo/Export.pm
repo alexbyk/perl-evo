@@ -169,12 +169,12 @@ Very powefull and most exciting feature. C<Evo::Export> exports generators, that
 
 Implementation garanties that one module will get the same (cashed) generated unit (if it'l import twice or import from module that reimport the same thing), but different module will get another one
 
-  use Evo 'Evo::Comp has'; 
-  use Evo 'Evo::Comp has'; 
+  use Evo 'Evo::Class has'; 
+  use Evo 'Evo::Class has'; 
 
-C<has> was imported twice, but generated only once. If some class will do something C<export_proxy 'Evo::Comp', 'has'>, you can export that C<has> and it will be the same subroutine
+C<has> was imported twice, but generated only once. If some class will do something C<export_proxy 'Evo::Class', 'has'>, you can export that C<has> and it will be the same subroutine
 
-For example, you can use it to check, if requester component has some methods and than use it directly, if C<$self-E<gt>method()> isn't good choise
+For example, you can use it to check, if requester class has some methods and than use it directly, if C<$self-E<gt>method()> isn't good choise
 
     export_gen foo => sub ($class) {
       my $method = $class->can("name") or die "provide name";

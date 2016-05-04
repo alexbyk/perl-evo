@@ -52,7 +52,7 @@ attr_handler \&_attr_handler;
 
 # VERSION
 
-# ABSTRACT: Evo::Role - reuse code between components
+# ABSTRACT: Evo::Role - reuse code between Evo classes
 
 =head1 SYNOPSYS
 
@@ -69,7 +69,7 @@ attr_handler \&_attr_handler;
     sub upper_name : Role { uc shift->name }
 
     package Person;
-    use Evo '-Comp *';
+    use Evo '-Class *';
 
     with ':Human';    # same as "Person::Human"; reuse Person::Human code
     sub intro { say "My name is ", shift->upper_name }
@@ -82,16 +82,16 @@ attr_handler \&_attr_handler;
 
 =head1 DESCRIPTION
 
-OO is considered an anti-pattern because it's hard to change base class and reuse the code written by other person (Fragile base class problem), and every refactoring makes OO applications low-tested or extra-tested. Component oriented programming doesn't have such weakness. It uses roles (like Moose's roles), or so called "mixins".
+OO is considered an anti-pattern because it's hard to change base class and reuse the code written by other person (Fragile base class problem), and every refactoring makes OO applications low-tested or extra-tested. Classonent oriented programming doesn't have such weakness. It uses roles (like Moose's roles), or so called "mixins".
 
-Because of that, Components are faster, simpler, and more reusable
+Because of that, Classonents are faster, simpler, and more reusable
 Also Roles can protect you from method and attributes clashing, because all methods and attributes will be installed into one file
 
 I'll write an article about this late (maybe)
 
 Here is a breaf overview
 
-=head2 Building and using component roles
+=head2 Building and using class roles
 
 To share method, add C<Role> tag. All attributes are shared automatically. In our case method C<upper_name> and attribute C<name> are provided by role.
 
@@ -101,15 +101,15 @@ To share method, add C<Role> tag. All attributes are shared automatically. In ou
     has 'name';
     sub upper_name : Role { uc shift->name }
 
-And to use it in the component
+And to use it in the class
 
     # Person.pm
     package Person;
-    use Evo '-Comp *';
+    use Evo '-Class *';
 
     with ':Human';    # same as "Person::Human"; reuse Person::Human code
 
-See L<Evo::Comp/"with">.
+See L<Evo::Class/"with">.
 
 =head3 Shortcuts
 
@@ -117,14 +117,14 @@ C<Evo::Role> supports shortcuts, here C<:Human> in C<Person> is resolved to C<Pe
 
 =head3 Storage agnostic
 
-The good news are roles don't care what type of storage will be used by derived component (L<Evo::Comp::Hash>, L<Evo::Comp::Out> or others) - it will work. So you can do something like this:
+The good news are roles don't care what type of storage will be used by derived class (L<Evo::Class::Hash>, L<Evo::Class::Out> or others) - it will work. So you can do something like this:
 
   package Person;
-  use Evo '-Comp *';
+  use Evo '-Class *';
   with 'Person::Human';
 
   package PersonArray;
-  use Evo '-Comp::Out *';
+  use Evo '-Class::Out *';
   with 'Person::Human';
 
   package main;
@@ -156,12 +156,12 @@ Let's separate C<Person::Human> into 2 different roles;
     sub upper_name : Role { uc shift->name }
 
     package Person;
-    use Evo '-Comp *';
+    use Evo '-Class *';
 
     with ':LoudHuman', ':Human';
     sub intro { say "My name is ", shift->upper_name }
 
-C<Person::LoudHuman> provides method C<upper_name>. C<requires 'name'>, which is used by C<upper_name> ensures that derivered class has this method or attribute. (attributes should be described before L<Evo::Comp/"with">, to solve circular requirements, include all roles in one L<Evo::Comp/"with">)
+C<Person::LoudHuman> provides method C<upper_name>. C<requires 'name'>, which is used by C<upper_name> ensures that derivered class has this method or attribute. (attributes should be described before L<Evo::Class/"with">, to solve circular requirements, include all roles in one L<Evo::Class/"with">)
 
 =head3 features
 
@@ -181,12 +181,12 @@ C<:Role> attribute is preffered
 
 =head4 requires
 
-List method that should be available in component during role installation.
+List method that should be available in class during role installation.
 If you require attribute, describe it before L</"with">. If you have circular dependencies, load all roles in the single L</"with">.
 
 =head2 Overriding methods
 
-It's possible to override method in the derived class. By default you're protected from method clashing. But you can override role methods with L<Evo::Role/"overrides"> or C<Override> subroutine attribute. And because components are flat, you can easely acces role's methods (just like SUPER) - just use C<Role::Package::name> syntax.
+It's possible to override method in the derived class. By default you're protected from method clashing. But you can override role methods with L<Evo::Role/"overrides"> or C<Override> subroutine attribute. And because Evo classes are flat, you can easely acces role's methods (just like SUPER) - just use C<Role::Package::name> syntax.
 
   package main;
   use Evo;
@@ -199,8 +199,8 @@ It's possible to override method in the derived class. By default you're protect
     sub bar : Role : {'BAR'}
 
 
-    package MyComp;
-    use Evo '-Comp *';
+    package MyClass;
+    use Evo '-Class *';
 
     overrides qw(foo);
     with 'MyRole';
@@ -210,7 +210,7 @@ It's possible to override method in the derived class. By default you're protect
   };
 
 
-  my $comp = MyComp::new();
+  my $comp = MyClass::new();
   say $comp->foo;    # OVERRIDEN
   say $comp->bar;    # OVERRIDEN BAR
 

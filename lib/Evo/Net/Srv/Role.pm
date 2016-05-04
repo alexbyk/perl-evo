@@ -74,7 +74,7 @@ sub srv_listen($self, %opts) : Role {
 
 =head1
 
-Each component should provide C<srv_handle_accept> and may want override C<srv_handle_error>
+Each class should provide C<srv_handle_accept> and may want override C<srv_handle_error>
 
 =head2 srv_listen
 

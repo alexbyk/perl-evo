@@ -6,7 +6,7 @@ my @calls;
 {
 
   package My::P;
-  use Evo '-Comp *';
+  use Evo '-Class *';
   has calls => sub { [] };
 
   sub d_resolve_continue { push shift->calls->@*, [resnb => @_]; }
@@ -15,7 +15,7 @@ my @calls;
 
 
   package My::Thenable;
-  use Evo '-Comp *';
+  use Evo '-Class *';
   has 'then_fn';
   sub then { $_[0]->then_fn->(@_); }
 }

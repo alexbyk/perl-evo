@@ -6,7 +6,7 @@ use lib "$FindBin::Bin";
 {
 
   package MyZone;
-  use Evo '-Comp *';
+  use Evo '-Class *';
   with 'Evo::Loop::Role::Zone';
 
 }

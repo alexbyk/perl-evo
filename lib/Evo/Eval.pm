@@ -53,7 +53,7 @@ sub eval_try : prototype(&$;$) : Export {
   $res = eval_try sub {...}, undef, sub {...};
 
 
-=head1 Comparison with alternatives
+=head1 Classarison with alternatives
 
 
 =head2 with Try::Tiny

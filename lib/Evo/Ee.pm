@@ -59,8 +59,8 @@ sub ee_listeners($self, $name) : Role {
 
   {
 
-    package My::Comp;
-    use Evo '-Comp *';
+    package My::Class;
+    use Evo '-Class *';
     with '-Ee';
 
     # define available events
@@ -68,7 +68,7 @@ sub ee_listeners($self, $name) : Role {
 
   }
 
-  my $comp = My::Comp::new();
+  my $comp = My::Class::new();
 
   # subscribe on the event
   $comp->on(connection => sub($self, $id) { say "got $id" });
@@ -78,7 +78,7 @@ sub ee_listeners($self, $name) : Role {
 
 =head1 DESCRIPTION
 
-EventEmitter role for component
+EventEmitter role for Evo classes
 
 =head1 REQUIREMENTS
 
@@ -87,7 +87,7 @@ This role requires method C<ee_events> to be implemented in a derived class. It 
   # throws Not recognized event "coNNection"
   $comp->on(coNNection => sub($self, $id) { say "got $id" });
 
-This will prevent people who use your component from the most common mistake in EventEmitter pattern.
+This will prevent people who use your class from the most common mistake in EventEmitter pattern.
 
 
 =head1 METHODS
@@ -98,12 +98,12 @@ Subscbibe
 
   $comp->on(connection => sub($self, @args) { say "$self got: " . join ';', @args });
 
-The name of the event will be checked using C<ee_events>, which should be implemented by component and return a list of available names
+The name of the event will be checked using C<ee_events>, which should be implemented by Evo class and return a list of available names
 
 
 =head2 emit
 
-Emit an event. The component will be passed to the event as the first argument,  you can provide additional argument to the subscriber
+Emit an event. The object will be passed to the event as the first argument,  you can provide additional argument to the subscriber
 
   $comp->emit(connection => 'arg1', 'arg2');
 
@@ -117,7 +117,7 @@ Add and remove listener from the event by the name and subroutine.
   my $ref = $comp->ee_add(connection => sub {"here"});
   $comp->ee_remove($ref);
 
-The name of the event will be checked using C<ee_events>, which should be implemented by component and return a list of available names
+The name of the event will be checked using C<ee_events>, which should be implemented by class and return a list of available names
 
 Don't use in the event (or weaken ref if you need to use it)
 

@@ -1,8 +1,8 @@
 package main;
-use Evo '-Promise::Util *; -Promise::Comp; -Promise *';
+use Evo '-Promise::Util *; -Promise::Class; -Promise *';
 use Test::More;
 
-*p = *Evo::Promise::Comp::new;
+*p = *Evo::Promise::Class::new;
 
 # is_fulfilled
 ok is_fulfilled_with(0,     p()->d_fulfill(0));

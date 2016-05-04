@@ -1,5 +1,5 @@
 package Evo::Io::Socket;
-use Evo '-Comp::Out *';
+use Evo '-Class::Out *';
 with '::Role', '-Io::Handle::Role';
 
 1;

@@ -1,5 +1,5 @@
 package Evo::Io::Handle;
-use Evo '-Comp::Out *';
+use Evo '-Class::Out *';
 
 with '-Io::Handle::Role';
 

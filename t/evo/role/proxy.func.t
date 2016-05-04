@@ -19,17 +19,17 @@ use Test::Fatal;
   has 'own', 'ownv';
   role_proxy 'My::Role';
 
-  package My::Comp;
-  use Evo '-Comp *';
+  package My::Class;
+  use Evo '-Class *';
   with 'My::PRole';
 
 };
 
 
-my $obj = My::Comp::new();
+my $obj = My::Class::new();
 is $obj->own,    'ownv';
 is $obj->foo,    'foov';
 is $obj->foo_uc, 'FOOV';
-is $obj->gm,     'FOOVMy::Comp';
+is $obj->gm,     'FOOVMy::Class';
 
 done_testing;

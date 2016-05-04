@@ -6,7 +6,7 @@ my @calls;
 {
 
   package My::P;
-  use Evo '-Comp *';
+  use Evo '-Class *';
   has calls => sub { [] };
 
   sub d_resolve_continue { push shift->calls->@*, [resnb => @_]; }

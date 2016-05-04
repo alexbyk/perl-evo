@@ -1,5 +1,5 @@
 package Evo::Promise::Sync;
-use Evo '-Comp *';
+use Evo '-Class *';
 
 has 'promise', required => 1, is => 'ro';
 has $_ for qw(called v blocking should_resolve);
@@ -31,7 +31,7 @@ sub try_thenable($self, $thenable) {
 
 =head2 SYNOPSIS
 This class exists for internal purposes only to make C<d_resolve> a little bit
-simpler. Probably, you're looking for C<::Deferred> component 
+simpler. Probably, you're looking for C<::Deferred>
 
 False value of C<blocking> means we're in the async level should call *_continue
 to start traverse. True value means we're already in the current C<d_resolve> loop

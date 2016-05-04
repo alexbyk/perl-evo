@@ -5,8 +5,8 @@ use Test::More;
 {
 
   package My::P;
-  use Evo '-Comp *';
-  with '-Promise::Comp::Driver';
+  use Evo '-Class *';
+  with '-Promise::Class::Driver';
   has $_ for qw(n x_res x_rej);
   sub loop_postpone { shift->() }
 }

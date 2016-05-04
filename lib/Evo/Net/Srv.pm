@@ -1,5 +1,5 @@
 package Evo::Net::Srv;
-use Evo '-Comp *';
+use Evo '-Class *';
 
 with '::Role', -Ee;
 

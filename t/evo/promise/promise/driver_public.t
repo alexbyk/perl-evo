@@ -6,8 +6,8 @@ use Test::Fatal;
 {
 
   package My::P;
-  use Evo '-Comp *';
-  with '-Promise::Comp::Driver';
+  use Evo '-Class *';
+  with '-Promise::Class::Driver';
   sub loop_postpone { }
 }
 

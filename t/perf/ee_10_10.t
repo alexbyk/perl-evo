@@ -16,7 +16,7 @@ my $k            = 0;
 {
 
   package My::Obj;
-  use Evo '-Comp *';
+  use Evo '-Class *';
   with 'Evo::Ee';
   sub ee_events {'event', 'ev2', 'ev3', 'ev4'}
 }

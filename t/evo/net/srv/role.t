@@ -10,7 +10,7 @@ my $LAST;
 {
 
   package My::Server;
-  use Evo '-Comp *';
+  use Evo '-Class *';
   sub ee_events {qw(srv_error)}
   with -Net::Srv::Role, -Ee;
   sub srv_handle_accept ($self, $sock)
@@ -35,7 +35,7 @@ LISTEN_OPTS: {
 
 
 LISTEN_RUNNING: {
-  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Comp::new();
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class::new();
   my $srv = My::Server::new();
   my $sock = $srv->srv_listen(ip => '::1');
   is_deeply $srv->srv_acceptors, [$sock];
@@ -43,7 +43,7 @@ LISTEN_RUNNING: {
 }
 
 LISTEN_STOPPED: {
-  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Comp::new();
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class::new();
   my $srv = My::Server::new()->srv_is_running(0);
   my $sock = $srv->srv_listen(ip => '::1');
   is_deeply $srv->srv_acceptors, [$sock];
@@ -51,7 +51,7 @@ LISTEN_STOPPED: {
 }
 
 START_STOP: {
-  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Comp::new();
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class::new();
   my $srv = My::Server::new();
   $srv->srv_listen(ip => '::1') for 1 .. 3;
 

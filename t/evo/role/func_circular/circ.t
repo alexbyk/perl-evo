@@ -4,8 +4,8 @@ use Test::Fatal;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
-use MyComp;
-my $obj = MyComp::new();
+use MyClass;
+my $obj = MyClass::new();
 is $obj->a2, 'a2val';
 is $obj->a1, 'a1val';
 

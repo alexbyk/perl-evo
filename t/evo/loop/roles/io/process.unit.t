@@ -1,9 +1,9 @@
 package main;
-use Evo 'Test::More; -Loop::Comp; -Io *';
+use Evo 'Test::More; -Loop::Class; -Io *';
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
 
-*newloop = *Evo::Loop::Comp::new;
+*newloop = *Evo::Loop::Class::new;
 
 my $handle = io_open_anon;
 
@@ -13,7 +13,7 @@ no warnings 'once', 'redefine';
 UTT: {
   my $called;
   my $loop = newloop();
-  local *Evo::Loop::Comp::update_tick_time = sub { $called++ };
+  local *Evo::Loop::Class::update_tick_time = sub { $called++ };
   local *Evo::Loop::Role::Io::io_poll = sub { $_[2] = POLLIN; 1; };
   $loop->io_in($handle, sub { });
   $loop->io_process;

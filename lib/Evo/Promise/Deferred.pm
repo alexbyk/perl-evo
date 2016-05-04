@@ -1,5 +1,5 @@
 package Evo::Promise::Deferred;
-use Evo '-Comp *';
+use Evo '-Class *';
 
 has 'promise', required => 1, is => 'ro';
 has 'called';

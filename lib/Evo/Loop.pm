@@ -1,8 +1,8 @@
 package Evo::Loop;
 use Evo '-Export *';
-use Evo '::Comp';
+use Evo '::Class';
 
-our $SINGLE = Evo::Loop::Comp::new();
+our $SINGLE = Evo::Loop::Class::new();
 
 sub loop_start : Export { $SINGLE->start(@_) }
 sub loop_stop : Export  { $SINGLE->stop(@_) }
