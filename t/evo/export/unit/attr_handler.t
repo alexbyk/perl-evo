@@ -1,15 +1,17 @@
 package main;
-use Evo '-Export MODIFY_CODE_ATTRIBUTES';
+use Evo '-Export';
 use Test::More;
 sub EXPORTER {Evo::Export::Exporter::DEFAULT}
 
 my $code = sub { };
 
-my @bad = MODIFY_CODE_ATTRIBUTES('Foo', $code, 'Bad', 'Export(name1)', 'Export(name2)', 'Bad2()');
+*HANDLER = *Evo::Export::_attr_handler;
+
+my @bad = HANDLER('Foo', $code, 'Bad', 'Export(name122)', 'Export(name2222)', 'Bad2()');
 is_deeply \@bad, ['Bad', 'Bad2()'];
 
 # anons
-ok !MODIFY_CODE_ATTRIBUTES('Foo', $code, 'Export(name1)', 'Export(name2)');
+ok !HANDLER('Foo', $code, 'Export(name1)', 'Export(name2)');
 is EXPORTER->request_gen('Foo', 'name1', 'Bar'), $code;
 is EXPORTER->request_gen('Foo', 'name1', 'Bar'), $code;
 
@@ -17,7 +19,7 @@ is EXPORTER->request_gen('Foo', 'name1', 'Bar'), $code;
 no warnings 'once';
 local *Bar::mysub1 = $code;
 local *Bar::mysub2 = $code;
-MODIFY_CODE_ATTRIBUTES('Bar', $code, 'Export');
+HANDLER('Bar', $code, 'Export');
 is EXPORTER->request_gen('Bar', 'mysub1', 'Dst'), $code;
 is EXPORTER->request_gen('Bar', 'mysub2', 'Dst'), $code;
 

@@ -1,10 +1,15 @@
 package Evo::Role;
 use Evo '-Export::Core *; -Role::Exporter; Carp croak; -Lib::Bare';
 use Module::Load 'load';
+export_proxy 'Evo::Attr', 'MODIFY_CODE_ATTRIBUTES';
+use Evo '-Attr *';
 
 our @CARP_NOT = ('Evo::Lib::Bare');
 
-sub import($me, @args) { export_install_in(scalar caller, $me, @args ? @args : '*') }
+sub import ($me, @args) {
+  export_install_in(scalar caller, $me, @args ? @args : '*');
+  attr_install_code_handler_in(scalar caller);
+}
 
 use constant ROLE_EXPORTER => Evo::Role::Exporter::new();
 export 'ROLE_EXPORTER';
@@ -21,7 +26,7 @@ export_gen role_gen => sub($class) {
   sub { ROLE_EXPORTER->add_gen($class, @_); };
 };
 
-export_gen role_proxy => sub($class){
+export_gen role_proxy => sub($class) {
   sub { ROLE_EXPORTER->proxy($class, @_); };
 };
 
@@ -38,14 +43,16 @@ export_gen requires => sub($role_class) {
 };
 
 
-export_anon MODIFY_CODE_ATTRIBUTES => sub($class, $code, @attrs) {
-  my @bad = grep { $_ ne 'Role' } @attrs;
-  return @bad if @bad;
+sub _attr_handler ($class, $code, @attrs) {
+  if (grep { $_ eq 'Role' } @attrs) {
+    Evo::Lib::Bare::find_subnames($class, $code);
+    ROLE_EXPORTER->add_methods($class, Evo::Lib::Bare::find_subnames($class, $code));
+  }
 
-  Evo::Lib::Bare::find_subnames($class, $code);
-  ROLE_EXPORTER->add_methods($class, Evo::Lib::Bare::find_subnames($class, $code));
-  return;
-};
+  return grep { $_ ne 'Role' } @attrs;
+}
+
+attr_register_code_handler \&_attr_handler;
 
 1;
 

@@ -1,10 +1,14 @@
 package Evo::Comp::Out;
 use Evo '/::Gen::HUF GEN; -Role ROLE_EXPORTER; /::Meta; -Export::Core *';
 
+use Evo '-Attr *';
+export_proxy '-Attr', 'MODIFY_CODE_ATTRIBUTES';
+
 my $META = Evo::Comp::Meta::new(gen => GEN, rex => ROLE_EXPORTER);
 
 sub import ($me, @args) {
   export_install_in(scalar caller, $me, @args ? @args : '*');
+  attr_install_code_handler_in(scalar caller);
 }
 
 export_gen init => sub { $META->compile_builder(shift); };
@@ -22,15 +26,16 @@ export_gen overrides => sub($class) {
 };
 
 
-export_anon MODIFY_CODE_ATTRIBUTES => sub ($class, $code, @attrs) {
-  my @bad = grep { $_ ne 'Override' } @attrs;
-  return @bad if @bad;
+# dont share this
+sub _attr_handler ($class, $code, @attrs) {
+  if (grep { $_ eq 'Override' } @attrs) {
+    Evo::Lib::Bare::find_subnames($class, $code);
+    $META->mark_overriden($class, Evo::Lib::Bare::find_subnames($class, $code));
+  }
+  return grep { $_ ne 'Override' } @attrs;
+}
 
-  Evo::Lib::Bare::find_subnames($class, $code);
-  $META->mark_overriden($class, Evo::Lib::Bare::find_subnames($class, $code));
-  return;
-};
-
+attr_register_code_handler \&_attr_handler;
 
 1;
 

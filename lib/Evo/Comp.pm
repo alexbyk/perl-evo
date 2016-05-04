@@ -3,9 +3,7 @@ use Evo '-Export::Core *';
 use Evo::Comp::Hash ();
 export_proxy('Evo::Comp::Hash', '*');
 
-sub import ($me, @args) {
-  export_install_in(scalar caller, $me, @args ? @args : '*');
-}
+*import = *Evo::Comp::Hash::import;
 
 1;
 
