@@ -8,7 +8,8 @@ use Evo::Export::Exporter;
 use feature 'say';
 
 
-my $ARGS_RX = qr/[\s\(\[]*    ( [^\)\]]*?)    [\s\)\]]*/x;
+my $ARGS_RX    = qr/[\s\(\[]*    ( [^\)\]]*?)    [\s\)\]]*/x;
+my $EMPTY_ARGS = qr/\s*\(\s*\)\s*/x;
 
 sub _parse {
   my ($caller, $val) = @_;
@@ -20,11 +21,14 @@ sub _parse {
   croak qq#Can't parse string "$orig"# unless $1;
   my ($class, $args) = (Evo::Lib::Bare::resolve_package($caller, $1), $4);
 
+  # ()
+  return ($class, 1) if $args =~ $EMPTY_ARGS;
+
   $args =~ s/^$ARGS_RX$/$1/;
-  return ($class) unless $args;
+  return ($class, 0) unless $args;
 
   my @args = split /[,\s]+/, $args;
-  ($class, @args);
+  ($class, 0, @args);
 }
 
 sub import {
@@ -36,8 +40,9 @@ sub import {
   # trim
   @list = grep {$_} map { my $s = $_; $s =~ s/^\s+|\s+$//g; $s } map { split ';', $_ } @list;
   foreach my $key (@list) {
-    my ($src, @args) = _parse($target, $key);
+    my ($src, $empty, @args) = _parse($target, $key);
     load($src);
+    return if $empty;
     if (my $import = $src->can('import')) {
       Evo::Lib::Bare::inject(
         package  => $target,

@@ -16,6 +16,18 @@ my @called;
   package Evo::My2;
   use Evo;
   sub makeimport { Evo::->import(shift); }
+
+}
+
+EMPTY: {
+  no warnings 'redefine';
+  my @loaded;
+  local *Evo::load = sub { push @loaded, shift };
+  Evo::->import('Evo::My ()');
+  Evo::->import('Evo::My()');
+  Evo::->import('Evo::My ( ) ');
+  is_deeply \@called, [];
+  is scalar(grep { $_ eq 'Evo::My' } @loaded), 3;
 }
 
 Evo::->import('Evo::My');

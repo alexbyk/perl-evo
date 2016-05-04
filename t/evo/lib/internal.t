@@ -1,5 +1,5 @@
 package main;
-BEGIN { $ENV{EVO_DEBUG} = 1 }    ## no critic
+
 use Evo '-Lib *; Test::More';
 
 # STEADY_TIME
@@ -19,6 +19,7 @@ local $SIG{__WARN__} = sub {
   $got = shift;
 };
 
+Evo::Lib::Bare::enable_debug(1);
 Foo::foo('hello');
 like $got, qr/\[Foo\].+hello/;
 
