@@ -2,12 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0209    2016-05-05 01:12:57+03:00 Europe/Kiev
-
-0.0208    2016-04-05 06:44:12+03:00 Europe/Kiev
-
-0.0207    2016-04-01 07:38:41+03:00 Europe/Kiev
-
+  - Add Evo::Class:T/t_enum type
   - Add support for Some::Comp->new syntax
   - Change import semantic
   - Start supporting FreeBSD
