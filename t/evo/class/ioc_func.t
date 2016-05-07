@@ -50,8 +50,4 @@ is $obj->with_dfn, 'DFN';
 is_deeply Evo::Class::Gen::HUF::HUF_DATA($obj),
   {req => 1, gt10 => 11, gt10rw => 12, foo => 'FOO', with_dv => 'DV', with_dfn => 'DFN',};
 
-$obj = [];
-Foo::->init($obj, req => 1, foo => 'foo');
-is $obj->foo, 'foo';
-
 done_testing;

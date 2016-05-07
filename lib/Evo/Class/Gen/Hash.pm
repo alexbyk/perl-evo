@@ -24,7 +24,7 @@ sub gen_new ($_class, $opts) {
       }
     }
     exists $attrs{$_} or $attrs{$_} = $opts->{dv}{$_}      for keys $opts->{dv}->%*;
-    exists $attrs{$_} or $attrs{$_} = $opts->{dfn}{$_}->() for keys $opts->{dfn}->%*;
+    exists $attrs{$_} or $attrs{$_} = $opts->{dfn}{$_}->(@_) for keys $opts->{dfn}->%*;
 
     bless \%attrs, $class;
   };

@@ -11,14 +11,6 @@ sub closure() {
 
 my $POSITIVE = sub { return 1 if shift > 0; (0, "OOPS!") };
 
-OVERWRITE_CLASS: {
-  my $new = GEN->{new}->('MyClass', {});
-  my $obj = closure();
-  isa_ok $new->($obj), 'MyClass';
-  isa_ok $new->('My::Over', $obj), 'My::Over';
-  isa_ok $new->($obj), 'MyClass';
-}
-
 RDCH: {
 
   my $new = GEN->{new}->(
@@ -28,7 +20,7 @@ RDCH: {
       required => ['req'],
       dv  => {dv => 'DV'},
       dfn => {
-        dfn => sub { fail if @_; "DFN"; }
+        dfn => sub { is_deeply \@_, [qw(req 1 foo 2)]; "DFN"; }
       },
       check => {with_check => $POSITIVE}
     }

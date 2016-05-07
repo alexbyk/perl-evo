@@ -16,6 +16,8 @@ OVERWRITE_CLASS: {
 
 RDCH: {
 
+  my @GOT_DFN;
+
   my $new = $GEN->{new}->(
     'MyClass',
     {
@@ -23,7 +25,7 @@ RDCH: {
       required => ['req'],
       dv  => {dv => 'DV'},
       dfn => {
-        dfn => sub { fail if @_; "DFN"; }
+        dfn => sub { is_deeply \@_, [qw(req 1 foo 2)]; "DFN"; }
       },
       check => {with_check => $POSITIVE}
     }
@@ -39,6 +41,7 @@ RDCH: {
 
   my $obj2 = $new->(req => 1, foo => 2, dv => 3, dfn => 4, with_check => 10);
   is_deeply $obj2, {req => 1, foo => 2, dv => 3, dfn => 4, with_check => 10};
+
 }
 
 # required default value doesn't need to pass check

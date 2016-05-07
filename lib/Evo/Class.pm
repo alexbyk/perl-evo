@@ -124,9 +124,10 @@ Can be 'rw' or 'ro'; Unlike Perl6 is 'rw' by default
 
 Attribute will be filled with this value if isn't provided to the C<new> constructor You can't use references, but you can provide a coderef instead of value, in this case return value of an invocation of this function will be used.
 
-  # pay attention, no argument passed here
-  has ref => sub() { {} };
-  has foo => default => sub() { [] };
+  has ref => sub(%build_args) { {} };
+  has foo => default => sub(%build_args) { [] };
+
+This is a good way to init some attribute that should always exists. Arguments, passed to C<new> or C<init>  will be passed to the function without object itself (because there are no object yet). If you're expecting another behaviour, check L</lazy>
 
 =head4 lazy
 
