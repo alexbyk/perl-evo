@@ -42,7 +42,7 @@ sub import {
   foreach my $key (@list) {
     my ($src, $empty, @args) = _parse($target, $key);
     load($src);
-    return if $empty;
+    next if $empty;
     if (my $import = $src->can('import')) {
       Evo::Lib::Bare::inject(
         package  => $target,

@@ -26,10 +26,12 @@ EMPTY: {
   Evo::->import('Evo::My ()');
   Evo::->import('Evo::My()');
   Evo::->import('Evo::My ( ) ');
-  is_deeply \@called, [];
-  is scalar(grep { $_ eq 'Evo::My' } @loaded), 3;
+  Evo::->import('Evo::My ( ); Evo::My second ');
+  is_deeply \@called, [['main', 'Evo::My', 'second']];
+  is scalar(grep { $_ eq 'Evo::My' } @loaded), 5;
 }
 
+@called = ();
 Evo::->import('Evo::My');
 Evo::->import('Evo::My bar baz');
 Evo::->import('-My(bar baz)');
