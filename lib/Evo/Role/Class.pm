@@ -1,4 +1,4 @@
-package Evo::Role::Exporter;
+package Evo::Role::Class;
 use Evo;
 use Evo::Lib::Bare;
 use Carp 'croak';
@@ -7,6 +7,7 @@ use Module::Load;
 
 sub data { shift->{data} }
 sub new { bless {data => {}}, __PACKAGE__ }
+use constant DEFAULT => new();
 
 sub init_slot ($self, $src, $name, $val) {
   croak "$src already adds $name" if $self->data->{$src}{export}{$name};

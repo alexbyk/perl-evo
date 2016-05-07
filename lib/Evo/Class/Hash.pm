@@ -1,8 +1,9 @@
 package Evo::Class::Hash;
-use Evo '/::Gen::Hash GEN; -Role ROLE_EXPORTER; /::Meta; -Attr *';
+use Evo '/::Gen::Hash GEN; -Role (); /::Meta; -Attr *';
 use Evo '-Export *, -import, import_all:import';
 
-my $META = Evo::Class::Meta::new(gen => GEN, rex => ROLE_EXPORTER);
+
+my $META = Evo::Class::Meta::new(gen => GEN, rex => Evo::Role::Class::DEFAULT());
 
 export_gen new => sub($class) { $META->compile_builder($class); };
 

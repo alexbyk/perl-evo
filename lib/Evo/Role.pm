@@ -1,27 +1,26 @@
 package Evo::Role;
-use Evo '-Attr *; -Role::Exporter; -Lib::Bare';
+use Evo '-Attr *; -Role::Class; -Lib::Bare';
 use Evo '-Export *, -import, import_all:import';
 use Evo 'Carp croak; Module::Load load';
 
 our @CARP_NOT = ('Evo::Lib::Bare');
 
-use constant ROLE_EXPORTER => Evo::Role::Exporter::new();
-export 'ROLE_EXPORTER';
+*DEFAULT = *Evo::Role::Class::DEFAULT;
 
 export_gen has => sub($class) {
-  sub { ROLE_EXPORTER->add_attr($class, @_); };
+  sub { DEFAULT()->add_attr($class, @_); };
 };
 
 export_gen role_methods => sub($class) {
-  sub { ROLE_EXPORTER->add_methods($class, @_); };
+  sub { DEFAULT()->add_methods($class, @_); };
 };
 
 export_gen role_gen => sub($class) {
-  sub { ROLE_EXPORTER->add_gen($class, @_); };
+  sub { DEFAULT()->add_gen($class, @_); };
 };
 
 export_gen role_proxy => sub($class) {
-  sub { ROLE_EXPORTER->proxy($class, @_); };
+  sub { DEFAULT()->proxy($class, @_); };
 };
 
 export_gen requires => sub($role_class) {
@@ -32,7 +31,7 @@ export_gen requires => sub($role_class) {
         or croak qq#Role "$role_class" requires "$dst" to have method "$_"#
         for @list;
     };
-    ROLE_EXPORTER->hooks($role_class, $hook);
+    DEFAULT()->hooks($role_class, $hook);
   };
 };
 
@@ -40,7 +39,7 @@ export_gen requires => sub($role_class) {
 sub _attr_handler ($class, $code, @attrs) {
   if (grep { $_ eq 'Role' } @attrs) {
     Evo::Lib::Bare::find_subnames($class, $code);
-    ROLE_EXPORTER->add_methods($class, Evo::Lib::Bare::find_subnames($class, $code));
+    DEFAULT()->add_methods($class, Evo::Lib::Bare::find_subnames($class, $code));
   }
 
   return grep { $_ ne 'Role' } @attrs;

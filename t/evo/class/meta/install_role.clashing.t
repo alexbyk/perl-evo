@@ -1,5 +1,5 @@
 package main;
-use Evo '-Class::Meta; -Role::Exporter; Test::More; Test::Fatal; Test::Evo::Helpers *';
+use Evo '-Class::Meta; -Role::Class; Test::More; Test::Fatal; Test::Evo::Helpers *';
 
 my $m1 = sub { };
 {
