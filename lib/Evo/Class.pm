@@ -2,7 +2,8 @@ package Evo::Class;
 use Evo '::Gen::Hash GEN; -Class::Meta; -Class::Common meta_of';
 use Evo '-Export *, -import';
 
-export_proxy '::Common', '*';
+export_proxy '-Class::Common',
+  qw(new has has_overriden requires extends implements with MODIFY_CODE_ATTRIBUTES);
 
 sub import ($me, @args) {
   my $caller = caller;

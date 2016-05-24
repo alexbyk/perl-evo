@@ -1,5 +1,5 @@
 package Evo::Class::Role;
-use Evo '-Class::Meta; -Class::Util parse_style; Carp croak; -Class::Common meta_of';
+use Evo '-Class::Meta; Carp croak; -Class::Common meta_of';
 use Evo '-Export *, -import';
 
 export_proxy '-Class::Common', qw(MODIFY_CODE_ATTRIBUTES requires reg_attr:has);
