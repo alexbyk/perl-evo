@@ -1,16 +1,15 @@
 package main;
-use Evo;
-use Test::More;
-use Test::Fatal;
+use Evo 'Test::More; Test::Fatal;';
+
 
 {
 
   package My::Class;
-  use Evo '-Class *';
+  use Evo -Class;
   with 'Evo::Ee';
-
   sub ee_events {qw(e1 e2)}
 }
+
 
 EE_CHECK: {
   my $obj = My::Class::new();

@@ -14,7 +14,7 @@ my $k = 0;
 {
 
   package My::Obj;
-  use Evo '-Class::Hash *';
+  use Evo '-Class *';
   has 'simple';
 }
 

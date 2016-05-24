@@ -1,70 +1,59 @@
 package Evo::Class::Meta;
-use Evo 'Carp croak; -Lib monkey_patch; Module::Load load; -Lib::Bare';
+use Evo
+  'Carp croak; -Lib monkey_patch monkey_patch_silent; -Lib::Bare; -Export *';
+use Evo '/::Util compile_attr parse_style';
 
+our @CARP_NOT
+  = qw(Evo::Class::Gen::Array Evo::Class::Gen::Hash Evo::Class::Gen::HUF Evo::Class::Common);
 
-our @CARP_NOT = qw(Evo::Class::Gen::Array Evo::Class::Gen::Hash Evo::Class::Gen::HUF);
-my @KNOWN = qw(default required lazy check is);
+sub class($self) { $self->{class} || die "no class" }
+sub gen($self)   { $self->{gen}   || die "no gen" }
+sub builder_options ($self) { $self->{_bo} ||= {}; }
 
-# ---- methods ---
-sub data { shift->{data} }
-
-sub new { bless {data => {}, @_}, __PACKAGE__; }
-
-
-sub builder_options ($self, $class) {
-  $self->data->{$class}{bo} ||= {};
+sub new (%opts) {
+  croak "provide class" unless $opts{class};
+  bless {overriden => {}, data => {}, %opts}, __PACKAGE__;
 }
 
-# allow comp to override this methods
-sub mark_overriden ($self, $comp, @list) {
-  $self->data->{$comp}{override}{$_}++ for @list;
+sub _once ($self, $name, %opts) {
+
+  # for case whan "has_overrined" follows "extends"
+  croak "${\$self->class} already has $name"
+    if $self->{data}{$name} && !$self->is_overriden($name);
+  Evo::Lib::Bare::check_subname($name) || croak(qq{"$name" is invalid name});
+  $self->{data}{$name} = \%opts;
 }
 
-sub install_attr ($self, $class, $name, @xopts) {
-  my $data = $self->data->{$class} ||= {};
-  croak qq{"$class" already has attribute "$name"} if $data->{attrs}{$name};
-
-  my %o = $self->parse_style(@xopts);
-  $data->{attrs}{$name} = \%o;
-
-  my %ao = process_is($name, %o);
-  my $attr_fn = $self->compile_attr($name, %ao);
-  monkey_patch $class, $name => $attr_fn;
-
-  $self->update_builder_options($class);
+sub reg_requirement ($self, $name) {
+  $self->_once($name, type => 'requirement', value => 1);
 }
 
-# ro just adds chet wrapper
-sub compile_attr ($self, $name, %opts) {
-  my $gen = $self->{gen} || croak "No gen";
-  my $lt = exists $opts{lazy} && (ref $opts{lazy} ? 'CODE' : 'VALUE');
-  my $ch = $opts{check};
 
-  my $res;
-  if (!$lt) {
-    $res = $ch ? $gen->{gsch}->($name, $ch) : $gen->{gs}->($name);
-  }
-  elsif ($lt eq 'VALUE') {
-    $res
-      = $ch
-      ? $gen->{gsch_value}->($name, $ch, $opts{lazy})
-      : $gen->{gs_value}->($name, $opts{lazy});
-  }
-  elsif ($lt eq 'CODE') {
-    $res
-      = $ch ? $gen->{gsch_code}->($name, $ch, $opts{lazy}) : $gen->{gs_code}->($name, $opts{lazy});
-  }
-  else { croak "Bad type $lt"; }
-
-  $res;
+sub reg_method ($self, $name, %opts) {
+  $self->_once($name, type => 'method', value => \%opts);
 }
 
-sub update_builder_options ($self, $class) {
-  my $bo = $self->builder_options($class);
+sub reg_attr ($self, $name, %opts) {
+  $self->_once($name, type => 'attr', value => \%opts);
+}
 
-  # !!!reset by ref
+sub _map ($self, $what) {
+  map { $_ => $self->{data}{$_}{value} }
+    grep { $self->{data}{$_}{type} eq $what } keys $self->{data}->%*;
+}
+
+sub attrs($self)   { $self->_map('attr') }
+sub methods($self) { $self->_map('method') }
+
+sub requirements($self) { keys $self->{data}->%*; }
+
+
+# it's important that $self->{builder_options} never changes and is updated by ref
+sub update_builder_options ($self) {
+
+  my $bo = $self->builder_options;
   %{$bo} = (known => {}, required => [], dv => {}, dfn => {}, check => {});
-  my %attrs = ($self->data->{$class}{attrs} ||= {})->%*;
+  my %attrs = $self->attrs;
   for my $name (keys %attrs) {
     my %o = $attrs{$name}->%*;
     $bo->{known}{$name}++;
@@ -74,75 +63,84 @@ sub update_builder_options ($self, $class) {
   }
 }
 
-sub compile_builder ($self, $class) {
-  $self->update_builder_options($class);
-  return $self->{gen}{new}->($class, $self->builder_options($class));
+sub compile_builder ($self) {
+  $self->update_builder_options;
+  return $self->{gen}{new}->($self->class, $self->builder_options);
 }
 
-sub parse_style ($self, @attr) {
-  my %unknown = my %opts = (@attr % 2 ? (default => @attr) : @attr);
-  delete $unknown{$_} for @KNOWN;
-  croak "unknown options: " . join(',', sort keys %unknown) if keys %unknown;
-  croak "providing default and setting required doesn't make sense"
-    if exists $opts{default} && $opts{required};
+sub install_attr ($self, $name, @o) {
 
-  _scalar_or_code(\%opts, 'lazy');
-  _scalar_or_code(\%opts, 'default');
 
-  %opts;
+  my %o = parse_style(@o);
+  $self->reg_attr($name, %o);
+  my $class = $self->class;
+
+  my %ao = _process_is($name, %o);
+  my $attr_fn = compile_attr($self->gen, $name, %ao);
+
+  # for case whan "has_overrined" follows "extends"
+  $self->is_overriden($name)
+    ? monkey_patch_silent($class, $name => $attr_fn)
+    : monkey_patch($class, $name => $attr_fn);
+  $self->update_builder_options();
 }
 
-sub rex($self) { $self->{rex} }
-
-sub install_roles ($self, $comp, @roles) {
-  my $rex = $self->{rex} or die "no rex";
-  no strict 'refs';    ## no critic
-  my @hslots;
-  foreach my $role (map { Evo::Lib::Bare::resolve_package($comp, $_) } @roles) {
-    load $role;
-
-    my %attrs   = $rex->attrs($role);
-    my %methods = $rex->methods($role, $comp);
-    my @names   = (keys(%attrs), keys(%methods));
-    croak qq{Empty role "$role". Not a Role?} unless @names;
-
-    foreach my $name (keys %attrs) {
-      next if $self->data->{$comp}{override}{$name};
-      croak qq{Classonent $comp already "can" method "$name"} if $comp->can($name);
-      $self->install_attr($comp, $name, $attrs{$name}->@*);
-    }
-    foreach my $name (keys %methods) {
-      next if $self->data->{$comp}{override}{$name};
-      croak qq{Classonent $comp already "can" method "$name"} if $comp->can($name);
-      monkey_patch $comp, $name, $methods{$name};
-    }
-    push @hslots, [$comp, [$rex->hooks($role)]];
-  }
-
-  foreach my $slot (@hslots) {
-    my ($comp, @hooks) = ($slot->[0], $slot->[1]->@*);
-    $_->($comp) for @hooks;
-  }
-}
-
-# ---- funcs ---
-
-sub gen_check_ro($name) {
-  sub { croak qq#Attribute "$name" is readonly#; }
-}
-
-sub process_is ($name, %res) {
+sub _process_is ($name, %res) {
   my $is = delete($res{is}) || 'rw';
   croak qq#invalid "is": "$is"# unless $is eq 'ro' || $is eq 'rw';
 
-  $res{check} = gen_check_ro($name) if $is eq 'ro';    # ro replaces check
+  $res{check} = sub { croak qq#Attribute "$name" is readonly#; }
+    if $is eq 'ro';    # ro replaces check
   return %res;
 }
 
-sub _scalar_or_code ($opts, $what) {
-  croak qq#"$what" should be either a code reference or a scalar value#
-    if ref $opts->{$what} && ref $opts->{$what} ne 'CODE';
+sub mark_overriden ($self, $name) {
+  $self->{overriden}{$name}++;
+  $self;
 }
 
+sub is_overriden ($self, $name) {
+  $self->{overriden}{$name};
+}
+
+sub extend_with ($self, $other) {
+  my $class = $self->class;
+
+  my %attrs   = $other->attrs();
+  my %methods = $other->methods();
+  my @names   = (keys(%attrs), keys(%methods));
+
+  foreach my $name (keys %attrs) {
+    next if $self->is_overriden($name);
+    croak qq{Class $class already can "$name", can't install attr} if $class->can($name);
+    $self->install_attr($name, $attrs{$name}->%*);
+  }
+
+
+  foreach my $name (keys %methods) {
+    next if $self->is_overriden($name);
+    croak qq{Class $class already can "$name", can't install method} if $class->can($name);
+    $self->reg_method($name, $methods{$name}->%*);
+    monkey_patch $class, $name, $methods{$name}{code};
+  }
+
+  $self;
+}
+
+sub check_implementation ($self, $inter) {
+  my ($self_class, $inter_class) = ($self->class, $inter->class);
+  my @reqs = sort $inter->requirements;
+  croak qq{Empty class "$inter_class", nothing to check} unless @reqs;
+
+  my @not_exists = grep { !$self_class->can($_); } @reqs;
+  return $self if !@not_exists;
+
+  croak qq/Bad implementation of "$inter_class", missing in "$self_class": /, join ';',
+    @not_exists;
+}
+
+sub with ($self, $parent) {
+  $self->extend_with($parent)->check_implementation($parent);
+}
 
 1;

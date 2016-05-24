@@ -1,17 +1,9 @@
 package main;
-use Evo '-Promise::Util *;';
+use Evo '-Promise::Util *; -Promise::Class';
 use Test::More;
 use Test::Fatal;
 
-{
-
-  package My::P;
-  use Evo '-Class *';
-  with '-Promise::Class::Driver';
-  sub loop_postpone { }
-}
-
-sub p { My::P::new(@_) }
+sub p { Evo::Promise::Class::new(@_) }
 
 # then
 THEN_HANDLERS: {
@@ -58,7 +50,7 @@ THEN_TRAVERSE: {
 CATCH: {
   my @got;
   no warnings 'redefine', 'once';
-  local *My::P::then = sub { @got = @_ };
+  local *Evo::Promise::Class::then = sub { @got = @_ };
   my $root = p();
   my $p    = $root->catch('REJ');
   is_deeply \@got, [$root, undef, 'REJ'];

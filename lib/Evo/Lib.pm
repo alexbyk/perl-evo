@@ -4,11 +4,12 @@ use Time::HiRes qw(CLOCK_MONOTONIC);
 
 PATCH: {
   no warnings 'once';
-  *debug        = *Evo::Lib::Bare::debug{CODE};
-  *monkey_patch = *Evo::Lib::Bare::monkey_patch{CODE};
+  *debug               = *Evo::Lib::Bare::debug{CODE};
+  *monkey_patch        = *Evo::Lib::Bare::monkey_patch{CODE};
+  *monkey_patch_silent = *Evo::Lib::Bare::monkey_patch_silent{CODE};
 }
 
-export qw(debug monkey_patch);
+export qw(debug monkey_patch monkey_patch_silent);
 
 my $HAS_M_TIME = eval { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); 1; };
 

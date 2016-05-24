@@ -1,13 +1,8 @@
 package main;
-use Evo '-Promise::Util *';
+use Evo '-Promise::Util *; -Promise::Class';
 use Test::More;
 
 {
-
-  package My::P;
-  use Evo '-Class *';
-  with '-Promise::Class::Driver';
-  sub loop_postpone { shift->() }
 
   package My::Thenable;
   use Evo '-Class *';
@@ -15,7 +10,7 @@ use Test::More;
   sub then { $_[0]->then_fn->(@_); }
 }
 
-sub p { My::P::new(@_) }
+sub p { Evo::Promise::Class::new(@_) }
 
 VALUE: {
   my $p = p();

@@ -5,7 +5,7 @@ use Test::More;
 my ($v, $r);
 
 # promise
-promise(
+my $p = promise(
   sub ($resolve, $reject) {
     $resolve->('hello');
   }

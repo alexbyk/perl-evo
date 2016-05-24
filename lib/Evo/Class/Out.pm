@@ -1,34 +1,14 @@
 package Evo::Class::Out;
-use Evo '/::Gen::HUF GEN; -Role (); /::Meta; -Attr *';
-use Evo '-Export *, -import, import_all:import';
+use Evo '-Class::Gen::HUF GEN; -Class::Meta; -Class::Common meta_of';
+use Evo '-Export *, -import';
 
-my $META = Evo::Class::Meta::new(gen => GEN, rex => Evo::Role::Class::DEFAULT());
+export_proxy '-Class::Common', '*', '-meta_of', '-new', 'new:init';
 
-export_gen init => sub { $META->compile_builder(shift); };
-
-export_gen has => sub($class) {
-  sub { $META->install_attr($class, @_); };
-};
-
-export_gen with => sub($class) {
-  sub { $META->install_roles($class, @_); };
-};
-
-export_gen overrides => sub($class) {
-  sub { $META->mark_overriden($class, @_); };
-};
-
-
-# dont share this
-sub _attr_handler ($class, $code, @attrs) {
-  if (grep { $_ eq 'Override' } @attrs) {
-    Evo::Lib::Bare::find_subnames($class, $code);
-    $META->mark_overriden($class, Evo::Lib::Bare::find_subnames($class, $code));
-  }
-  return grep { $_ ne 'Override' } @attrs;
+sub import ($me, @args) {
+  my $caller = caller;
+  meta_of($caller) || meta_of($caller, Evo::Class::Meta::new(class => $caller, gen => GEN));
+  export_install_in($caller, $me, @args ? @args : '*');
 }
-
-attr_handler \&_attr_handler;
 
 1;
 

@@ -1,7 +1,5 @@
 package Evo::Loop::Class;
-use Evo '-Class *', '-Lib steady_time';
-use List::Util 'first';
-use Time::HiRes 'usleep';
+use Evo -Class, '-Lib steady_time; List::Util first; Time::HiRes usleep';
 
 has is_running => 0;
 has tick_time => \&steady_time, is => 'rw';

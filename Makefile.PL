@@ -25,7 +25,7 @@ my %WriteMakefileArgs = (
   },
   "VERSION" => "0.0210",
   "test" => {
-    "TESTS" => "t/*.t t/evo/*.t t/evo/attr/*.t t/evo/class/*.t t/evo/class/gen/*.t t/evo/class/meta/*.t t/evo/ee/*.t t/evo/eval/*.t t/evo/evo_import/*.t t/evo/export/*.t t/evo/export/exporter/*.t t/evo/export/func_tests/*.t t/evo/export/unit/*.t t/evo/io/*.t t/evo/lib/*.t t/evo/lib/bare/*.t t/evo/loop/*.t t/evo/loop/comp/*.t t/evo/loop/roles/*.t t/evo/loop/roles/io/*.t t/evo/loop/roles/zone/*.t t/evo/net/srv/*.t t/evo/promise/*.t t/evo/promise/func/*.t t/evo/promise/promise/*.t t/evo/role/*.t t/evo/role/exporter/*.t t/evo/role/func_circular/*.t t/evo/role/func_usage/*.t t/evo/w/*.t t/evo/want/*.t t/perf/*.t"
+    "TESTS" => "t/*.t t/evo/*.t t/evo/attr/*.t t/evo/class/*.t t/evo/class/gen/*.t t/evo/class/meta/*.t t/evo/class/reuse/*.t t/evo/ee/*.t t/evo/eval/*.t t/evo/evo_import/*.t t/evo/export/*.t t/evo/export/exporter/*.t t/evo/export/func_tests/*.t t/evo/export/unit/*.t t/evo/io/*.t t/evo/lib/*.t t/evo/lib/bare/*.t t/evo/loop/*.t t/evo/loop/comp/*.t t/evo/loop/roles/*.t t/evo/loop/roles/io/*.t t/evo/loop/roles/zone/*.t t/evo/net/srv/*.t t/evo/promise/*.t t/evo/promise/func/*.t t/evo/promise/promise/*.t t/evo/w/*.t t/evo/want/*.t t/perf/*.t"
   }
 );
 

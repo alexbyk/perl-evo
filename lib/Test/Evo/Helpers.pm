@@ -1,7 +1,9 @@
 package Test::Evo::Helpers;
 
+
 use Evo '-Export *';
-use Evo '-Class::Meta; Socket :all; -Role::Class; -Io *; -Lib::Net *; Socket AF_INET6';
+
+use Evo '-Class::Meta; Socket :all; -Io *; -Lib::Net *; Socket AF_INET6';
 
 use constant CAN_BIND6 => eval {
   my ($saddr, $family) = net_gen_saddr_family('::1', undef);
@@ -23,6 +25,23 @@ sub comp_meta : Export {
   }
 
   Evo::Class::Meta::new(gen => \%gen, rex => Evo::Role::Class::new());
+}
+
+sub dummy_meta : Export {
+  my $class = shift || 'My::Dummy';
+  my %gen;
+  foreach my $what (qw(gs gsch)) {
+    $gen{$what} = sub {
+      sub {$what}
+    };
+  }
+
+  $gen{new} = sub {
+    my $str = join ',', @_;
+    sub {$str}
+  };
+
+  Evo::Class::Meta::new(gen => \%gen, class => $class);
 }
 
 1;

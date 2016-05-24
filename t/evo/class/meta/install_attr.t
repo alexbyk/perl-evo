@@ -1,33 +1,23 @@
 package main;
-use Evo;
-use Evo::Class::Meta;
-use Test::More;
-use Test::Fatal;
+use Evo 'Evo::Class::Meta; Test::More; Test::Fatal; Test::Evo::Helpers *';
 
-{
+no warnings 'redefine';
+my $called;
+local *Evo::Class::Meta::monkey_patch = sub { $called++ };
 
-  package My::Foo;
-  use Evo;
-}
+my $meta = dummy_meta();
+$meta->install_attr('myro', is => 'ro');
+$meta->install_attr('myrw', is => 'rw');
+
+ok $meta->builder_options->{known}{myro};
+ok $meta->builder_options->{known}{myrw};
+is { $meta->attrs }->{myro}{is}, 'ro';
+is { $meta->attrs }->{myrw}{is}, 'rw';
 
 
-my $gen = {
-  gs => sub {
-    sub {"OK"};
-  },
-  new_s => sub {
-    sub {'OK'}
-  },
-};
-my $meta = Evo::Class::Meta::new(gen => $gen);
+$meta->install_attr('mydef', 'val');
+ok $meta->builder_options->{known}{mydef};
+is { $meta->attrs }->{mydef}{default}, 'val';
 
-$meta->install_attr('My::Foo', 'foo', is => 'rw');
-
-like exception {
-  $meta->install_attr('My::Foo', 'foo', is => 'rw');
-}, qr/My::Foo.+foo.+$0/;
-
-use Data::Dumper;
-ok $meta->data->{'My::Foo'}{bo}{known}{foo};
-
+is $called, 3;
 done_testing;

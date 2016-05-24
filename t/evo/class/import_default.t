@@ -10,7 +10,7 @@ use Test::Fatal;
   has 'foo';
 
   package My::Foo2;
-  use Evo '-Class::Hash *';
+  use Evo '-Class *';
   has 'foo';
 
   package My::Foo3;
@@ -18,7 +18,7 @@ use Test::Fatal;
   has 'foo';
 
   package My::Role1;
-  use Evo '-Role *';
+  use Evo '-Class::Role *';
   has 'foo';
 
 
@@ -27,7 +27,7 @@ use Test::Fatal;
   has 'foo';
 
   package My::Foo5;
-  use Evo -Class::Hash;
+  use Evo -Class;
   has 'foo';
 
   package My::Foo6;
@@ -35,7 +35,7 @@ use Test::Fatal;
   has 'foo';
 
   package My::Role2;
-  use Evo -Role;
+  use Evo -Class::Role;
   has 'foo';
 };
 

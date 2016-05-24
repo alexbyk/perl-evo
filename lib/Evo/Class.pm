@@ -1,8 +1,15 @@
 package Evo::Class;
-use Evo '-Export *, -import, import_all:import';
-use Evo '-Class::Hash ()';
+use Evo '::Gen::Hash GEN; -Class::Meta; -Class::Common meta_of';
+use Evo '-Export *, -import';
 
-export_proxy('Evo::Class::Hash', '*');
+export_proxy '::Common', '*';
+
+sub import ($me, @args) {
+  my $caller = caller;
+  meta_of($caller) || meta_of($caller, Evo::Class::Meta::new(class => $caller, gen => GEN));
+  export_install_in($caller, $me, @args ? @args : '*');
+}
+
 
 1;
 
@@ -15,11 +22,12 @@ export_proxy('Evo::Class::Hash', '*');
   {
 
     package My::Human;
-    use Evo '-Class *';
+    use Evo -Class, -Loaded;
 
     has 'name' => 'unnamed';
     has 'gender', is => 'ro', required => 1;
     has age => check => sub($v) { $v >= 18 };
+    sub greet($self) : Public { say "I'm " . $self->name }
   }
 
   my $alex = My::Human::new(gender => 'male');
@@ -31,12 +39,36 @@ export_proxy('Evo::Class::Hash', '*');
   $alex->name('Alex')->age(18);
   say $alex->name, ': ', $alex->age;
 
-  # will die, gender is required
-  My::Human::new();
+  # method
+  $alex->greet;
 
-  # will die, age must be >= 18
-  My::Human::new(age => 17, gender => 'male');
-  My::Human::new()->age(17, gender => 'male');
+  ## ------------ protecting you from errors, uncomment to test
+  ## will die, gender is required
+  #My::Human::new();
+
+  ## will die, age must be >= 18
+  #My::Human::new(age => 17, gender => 'male');
+  #My::Human::new()->age(17, gender => 'male');
+
+  # --------- code reuse
+  {
+
+    package My::Developer;
+    use Evo -Class;
+    with 'My::Human'; # extends 'My::Human'; implements 'My::Human';
+
+    has lang => 'Perl';
+
+    sub show($self) : Public {
+      $self->greet();
+      say "I like ", $self->lang;
+    }
+
+
+  }
+
+  my $dev = My::Developer::new(gender => 'male');
+  $dev->show;
 
 
 =head1 DESCRIPTION
@@ -166,26 +198,69 @@ You can also return C<(0, "CustomError")> to provide more expressive explanation
   my $bar = My::Foo::new(big => 9);    # will die
 
 
-=head1 Code reuse
+=head1 CODE REUSE
 
-Instead of OO inheritance, wich suffers from fragile base class problem, C<Evo::Class> provides L<Evo::Role>. This is a perfect choice for code reuse because of it's safety and flexibility. Look at L<Evo::Role> for more information
+Method should be marked with C<:Public> if you want to reuse them; Attributes are all public;
+
+=head2 Overriding
+
+Evo protects you from method clashing. But if you want to override method or fix clashing, use L</has_overriden> function or C<:Override> attribute
+
+    package My::Peter;
+    use Evo -Class;
+    with 'My::Human';
+
+    has_overriden name => 'peter';
+    sub greet : Overriden { }
+
+
+This differs from traditional OO style. With compoment programming, you should reuse code via L<Evo::Class::Role> or just organize classes with independed pieces of code like "mixing". So, try to override less
+
+=head2 extends
+
+Extends classes or roles
+
+=head2 implements
+
+Check if all required methods are implemented. Like interfaces
 
 =head2 with
 
-Load role and install all methods and attributes to the Evo object. Supports L<Evo/"shortcuts">
+This does "extend + check implementation". Consider this example:
 
-    package Person;
-    use Evo '-Class *';
 
-    with ':LoudHuman', ':Human';
+  package main;
+  use Evo;
 
-Circular requirements can be solved by requiring roles in the single C<with>. See L<Evo::Role/"requires">
+  {
 
-=head2 overrides
+    package My::Role::Happy;
+    use Evo -Class, -Loaded;
 
-  override qw(foo bar);
+    requires 'name';
 
-Mark names as overriden. Use it before L</"with">. You can also use C<Override> attribute, wich is preferred. See L<Evo::Role/"Overriding methods">
+    sub greet($self) : Public {
+      say "My name is ", $self->name, " and I'm happy!";
+    }
+
+    package My::Class;
+    use Evo -Class;
+
+    has name => 'alex';
+
+    #extends 'My::Role::Happy';
+    #implements 'My::Role::Happy';
+    with 'My::Role::Happy';
+
+  }
+
+  My::Class::new()->greet();
+
+
+
+C<My::Role::Happy> requires C<name> in derivered class. We could install shared code with C<extends> and then check implemantation with C<implements>. Or just use C<with> wich does both.
+
+You may want to use C<extends> and C<implements> separately to resolve circular requirements, for example
 
 =head1 CODE ATTRIBUTES
 

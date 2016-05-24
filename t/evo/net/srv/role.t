@@ -14,9 +14,9 @@ my $LAST;
   sub ee_events {qw(srv_error)}
   with -Net::Srv::Role, -Ee;
   sub srv_handle_accept ($self, $sock)
-    : Override { $LAST = Evo::Net::Srv::Role::srv_handle_accept($self, $sock) }
+    : Overriden { $LAST = Evo::Net::Srv::Role::srv_handle_accept($self, $sock) }
 
-  sub srv_handle_error ($self, $sock, $err) : Override {
+  sub srv_handle_error ($self, $sock, $err) : Overriden {
     $self->emit(srv_error => $err);
     Evo::Net::Srv::Role::srv_handle_error(@_);
   }

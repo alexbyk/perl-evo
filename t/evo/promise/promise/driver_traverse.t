@@ -6,10 +6,12 @@ use Test::More;
 
   package My::P;
   use Evo '-Class *';
-  with '-Promise::Class::Driver';
+  with '-Promise::Class';
   has $_ for qw(n x_res x_rej);
-  sub loop_postpone { shift->() }
 }
+
+no warnings qw(once redefine);
+local *Evo::Promise::Class::loop_postpone = sub { shift->() };
 
 sub p { My::P::new(@_) }
 
@@ -34,6 +36,7 @@ ORDER: {
   ok !$root->d_children->@*;
   ok !$ch1->d_children->@*;
 }
+
 
 FULFILL: {
 
