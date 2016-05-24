@@ -58,11 +58,12 @@ sub import {
 }
 
 
-1;
-
 # VERSION
 
+1;
+
 # ABSTRACT: Evo - the next generation development framework
+
 
 =head1 SYNOPSYS
 
