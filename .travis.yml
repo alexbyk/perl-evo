@@ -2,6 +2,7 @@ sudo: false
 language: perl
 perl:
    - '5.22'
+   - '5.24'
    - dev
    - 'blead'
 matrix:
