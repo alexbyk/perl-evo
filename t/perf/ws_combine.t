@@ -24,7 +24,7 @@ sub w_add {
 
 
 my @wrappers = map { w_add(1) } 1 .. $N_WRAPPERS;
-my $fn_wrapped = ws_combine(@wrappers)->(sub { });
+my $fn_wrapped = ws_fn(@wrappers, sub { });
 
 $k = 0;
 

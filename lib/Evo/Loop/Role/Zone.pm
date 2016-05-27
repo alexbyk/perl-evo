@@ -13,6 +13,15 @@ sub zone : Public {
 
 sub zone_cb ($self, $cb) : Public {
   my $data = $self->zone_data;
+
+  # special case no middleware, optimization
+  #if ($data->{middleware}->@* == 1 && !$data->{middleware}[0]->@*) {
+  #  return sub {
+  #    local $data->{middleware} = [[]];
+  #    $cb->();
+  #  };
+  #}
+
   my @ws = map { [$_->@*] } $data->{middleware}->@*;
 
   sub {
@@ -27,8 +36,13 @@ sub zone_middleware ($self, @mw) : Public {
   map { $_->@* } $mw->@*;
 }
 
-sub zone_level($self) : Public {
-  return $self->zone_data->{middleware}->$#*;
+sub zone_level($self) : Public { return $self->zone_data->{middleware}->$#*; }
+
+sub zone_escape ($self, $level, $fn) : Public {
+  my $data = $self->zone_data;
+  croak "Bad level $level (max ${\$self->zone_level})" unless $level < $self->zone_level;
+  local $data->{middleware} = [map { [$_->@*] } @{$data->{middleware}}[0 .. $level]];
+  $fn->();
 }
 
 

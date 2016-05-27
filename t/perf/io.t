@@ -3,9 +3,10 @@ use Evo '-Io *; -Loop *; Socket :all';
 use Test::Evo::Benchmark;
 use Test::More;
 
+
 plan skip_all => 'set TEST_EVO_PERF env to enable this test' unless $ENV{TEST_EVO_PERF};
 
-my $EXPECT = 730 * $ENV{TEST_EVO_PERF};
+my $EXPECT = 500 * $ENV{TEST_EVO_PERF};
 
 my $N = 1000;
 
