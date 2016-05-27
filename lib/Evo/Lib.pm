@@ -26,6 +26,10 @@ sub ws_fn : Export {
   $cb;
 }
 
+sub clone_arr2($arr) : Export {
+  [map { [$_->@*] } $arr->@*];
+}
+
 
 # call each $next exactly once or die. Bypas args to cb
 sub combine_thunks : Export {
