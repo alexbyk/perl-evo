@@ -28,5 +28,9 @@ sub zone_middleware ($self, @mw) : Public {
   map { $_->@* } $mw->@*;
 }
 
+sub zone_level($self) : Public {
+  return $self->zone_data->{middleware}->$#*;
+};
+
 
 1;

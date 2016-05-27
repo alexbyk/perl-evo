@@ -1,5 +1,5 @@
 package main;
-use Evo 'Test::More tests 5; Test::Fatal; FindBin';
+use Evo 'Test::More tests 7; Test::Fatal; FindBin';
 use lib "$FindBin::Bin";
 
 
@@ -44,4 +44,10 @@ ZONE_FORK: {
   is_deeply \@m0, [];
   is_deeply \@m1, [1];
   is_deeply \@m2, [1, 2];
+}
+
+LEVEL: {
+  my $comp = MyZone::new();
+  $comp->zone(sub { is $comp->zone_level, 1; });
+  is $comp->zone_level, 0;
 }
