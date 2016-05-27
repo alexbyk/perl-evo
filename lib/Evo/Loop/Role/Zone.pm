@@ -7,18 +7,17 @@ has zone_data => sub { {middleware => [[]]} };
 sub zone : Public {
   my ($self, $fn) = (shift, pop);
   my $data = $self->zone_data;
-  local $data->{middleware} = clone_arr2 $data->{middleware};
-  push $data->{middleware}->@*, [];
+  local $data->{middleware} = [(map { [$_->@*] } $data->{middleware}->@*), []];
   $fn->();
 }
 
 sub zone_cb ($self, $cb) : Public {
   my $data = $self->zone_data;
-  my $ws   = clone_arr2 $data->{middleware};
+  my @ws = map { [$_->@*] } $data->{middleware}->@*;
 
   sub {
-    local $data->{middleware} = $ws;
-    ws_fn((map { $_->@* } $ws->@*), $cb)->();
+    local $data->{middleware} = \@ws;
+    ws_fn((map { $_->@* } @ws), $cb)->();
   };
 }
 
@@ -30,7 +29,7 @@ sub zone_middleware ($self, @mw) : Public {
 
 sub zone_level($self) : Public {
   return $self->zone_data->{middleware}->$#*;
-};
+}
 
 
 1;
