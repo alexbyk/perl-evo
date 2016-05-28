@@ -1,6 +1,6 @@
 use Evo 'Test::More; -Net::Srv; -Io *';
 
-my $srv = Evo::Net::Srv::new();
+my $srv = Evo::Net::Srv->new();
 
 my $called = 0;
 my ($sock, $conn) = (io_socket(), io_socket());

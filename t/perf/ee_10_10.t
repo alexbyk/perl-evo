@@ -22,7 +22,7 @@ my $k            = 0;
 }
 
 my $fn = sub {
-  my $obj = My::Obj::new();
+  my $obj = My::Obj->new();
   $obj->on(event => sub { $k += $_[1] }) for 1 .. $N_EVENTS;
   $obj->emit(event => 1) for 1 .. $N_EMIT_COUNT;
 };

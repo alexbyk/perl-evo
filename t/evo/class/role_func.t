@@ -18,9 +18,9 @@ use Test::Fatal;
 
 };
 
-like exception { My::Role::new() }, qr/can't.+role.+$0/;
+like exception { My::Role->new() }, qr/can't.+role.+$0/;
 
-my $obj = My::Class::new();
+my $obj = My::Class->new();
 is $obj->foo_short, 11;
 is $obj->foo,       111;
 is $obj->bar,       44;

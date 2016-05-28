@@ -14,7 +14,6 @@ my $POSITIVE = sub { return 1 if shift > 0; (0, "OOPS!") };
 RDCH: {
 
   my $new = GEN->{new}->(
-    'MyClass',
     {
       known    => {foo => 0, bar => 1, req => 2, dv => 3, dfn => 4, with_check => 5},
       required => ['req'],
@@ -27,22 +26,21 @@ RDCH: {
   );
 
   my $obj = closure();
-  like exception { $new->($obj) }, qr#"req" is required.+$0#;
-  like exception { $new->($obj, opa => 1, req => 1) }, qr#Unknown.+"opa".+$0#;
-  like exception { $new->($obj, with_check => -11, req => 1) },
+  like exception { $new->('MyClass', $obj) }, qr#"req" is required.+$0#;
+  like exception { $new->('MyClass', $obj, opa => 1, req => 1) }, qr#Unknown.+"opa".+$0#;
+  like exception { $new->('MyClass', $obj, with_check => -11, req => 1) },
     qr#Bad value.+"-11".+"with_check".+OOPS!.+$0#i;
 
-  is $new->($obj, req => 1, foo => 2), $obj;
+  is $new->('MyClass', $obj, req => 1, foo => 2), $obj;
   is_deeply HUF_DATA($obj), {req => 1, foo => 2, dv => 'DV', dfn => 'DFN'};
 
-  my $obj2 = $new->(closure(), req => 1, foo => 2, dv => 3, dfn => 4, with_check => 10);
+  my $obj2 = $new->('MyClass', closure(), req => 1, foo => 2, dv => 3, dfn => 4, with_check => 10);
   is_deeply HUF_DATA($obj2), {req => 1, foo => 2, dv => 3, dfn => 4, with_check => 10};
 }
 
 # required default value doesn't need to pass check
 RDCH_SPECIAL: {
   my $new = GEN->{new}->(
-    'MyClass',
     {
       known    => {dv => 0, dfn => 1},
       required => [],
@@ -55,7 +53,7 @@ RDCH_SPECIAL: {
   );
 
 
-  my $obj = $new->(closure());
+  my $obj = $new->('MyClass', closure());
   is_deeply HUF_DATA($obj), {dv => -1, dfn => -2};
 }
 

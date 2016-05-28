@@ -7,7 +7,7 @@ export_proxy '-Class::Common',
 
 sub import ($me, @args) {
   my $caller = caller;
-  meta_of($caller) || meta_of($caller, Evo::Class::Meta::new(class => $caller, gen => GEN));
+  meta_of($caller) || meta_of($caller, Evo::Class::Meta->new(class => $caller, gen => GEN));
   export_install_in($caller, $me, @args ? @args : '*');
 }
 
@@ -26,7 +26,7 @@ sub import ($me, @args) {
     has 'foo', required => 1;
   }
 
-  my $foo = My::Spy::init(sub { say "foo" }, foo => 'FOO');
+  my $foo = My::Spy->init(sub { say "foo" }, foo => 'FOO');
   say $foo->foo;
   $foo->();
 
@@ -70,7 +70,7 @@ In this example we created spy object, that logs all invocations. You can make t
     }
   }
 
-  my $spy = My::Spy::new(fn => sub { local $, = ';'; say "hello", @_ });
+  my $spy = My::Spy->new(fn => sub { local $, = ';'; say "hello", @_ });
   say reftype $spy;
 
   $spy->();

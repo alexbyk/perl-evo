@@ -11,7 +11,7 @@ sub new : Export {
 
 sub import ($me, @args) {
   my $caller = caller;
-  meta_of($caller) || meta_of($caller, Evo::Class::Meta::new(class => $caller));
+  meta_of($caller) || meta_of($caller, Evo::Class::Meta->new(class => $caller));
   export_install_in($caller, $me, @args ? @args : '*');
 }
 
@@ -41,7 +41,7 @@ sub import ($me, @args) {
   }
 
 
-  my $obj = My::Class::new();
+  my $obj = My::Class->new();
   say $obj->to_lc;    # value
 
   {

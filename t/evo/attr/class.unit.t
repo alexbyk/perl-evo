@@ -1,7 +1,7 @@
 use Evo::Attr::Class;
 use Evo 'Test::More; Test::Fatal';
 
-my $m = Evo::Attr::Class::new();
+my $m = Evo::Attr::Class->new();
 my $SUB = sub {222};
 
 my $h1 = sub ($pkg, $code, @got) {

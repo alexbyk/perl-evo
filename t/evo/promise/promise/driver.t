@@ -3,7 +3,7 @@ use Evo '-Promise::Util *; -Promise::Class';
 use Test::More;
 
 
-sub p { Evo::Promise::Class::new(@_) }
+sub p { Evo::Promise::Class->new(@_) }
 
 SETTLED: {
   ok !p()->d_settled;

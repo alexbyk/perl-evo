@@ -38,13 +38,8 @@ COMPILE: {
   local *Evo::Class::Meta::update_builder_options = sub { $called++ };
 
   $meta->{_bo} = 'MYBO';
-  is $meta->compile_builder()->(), 'My::Dummy,MYBO';
+  is $meta->compile_builder()->(), 'MYBO';
   is $called, 1;
-}
-
-COMPILE_FIRST: {
-  my $meta = dummy_meta;
-  like $meta->compile_builder()->(), qr/My::Dummy/;
 }
 
 done_testing;

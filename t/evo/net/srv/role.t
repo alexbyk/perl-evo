@@ -24,7 +24,7 @@ my $LAST;
 
 
 LISTEN_OPTS: {
-  my $srv = My::Server::new();
+  my $srv = My::Server->new();
   like exception { $srv->srv_listen(ip => '::1', bad => 'foo') }, qr/unknown.+bad.+$0/;
 
   my $sock = $srv->srv_listen(ip => '::1', reuseport => 1);
@@ -35,24 +35,24 @@ LISTEN_OPTS: {
 
 
 LISTEN_RUNNING: {
-  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class::new();
-  my $srv = My::Server::new();
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class->new();
+  my $srv = My::Server->new();
   my $sock = $srv->srv_listen(ip => '::1');
   is_deeply $srv->srv_acceptors, [$sock];
   is $loop->io_count, 1;
 }
 
 LISTEN_STOPPED: {
-  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class::new();
-  my $srv = My::Server::new()->srv_is_running(0);
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class->new();
+  my $srv = My::Server->new()->srv_is_running(0);
   my $sock = $srv->srv_listen(ip => '::1');
   is_deeply $srv->srv_acceptors, [$sock];
   is_deeply $loop->io_count, 0;
 }
 
 START_STOP: {
-  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class::new();
-  my $srv = My::Server::new();
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class->new();
+  my $srv = My::Server->new();
   $srv->srv_listen(ip => '::1') for 1 .. 3;
 
   $srv->srv_stop();
@@ -68,7 +68,7 @@ START_STOP: {
 }
 
 CONNECTIONS: {
-  my $srv = My::Server::new();
+  my $srv = My::Server->new();
 SCOPE: {
     my $obj1 = bless {n => 1}, "My::Temp";
     my $obj2 = bless {n => 2}, "My::Temp";
@@ -84,7 +84,7 @@ SCOPE: {
 }
 
 ACCEPT_ERROR: {
-  my $srv   = My::Server::new();
+  my $srv   = My::Server->new();
   my $sock  = $srv->srv_listen(ip => '::1');
   my $sock2 = $srv->srv_listen(ip => '::1');
   my $e;

@@ -14,7 +14,7 @@ my $gen = {
   gs_code    => mock('gs_code'),
   gsch_code  => mock('gsch_code'),
 };
-my $meta = Evo::Class::Meta::new(gen => $gen, class => 'My::Dummy');
+my $meta = Evo::Class::Meta->new(gen => $gen, class => 'My::Dummy');
 
 # gs
 is compile_attr($gen, 'name'), 'gs name';

@@ -22,14 +22,14 @@ use Test::Fatal;
   has with_dfn => sub {'DFN'};
 };
 
-ok My::Empty::new();
+ok(My::Empty->new());
 
-like exception { Foo::new() }, qr/req.+required.+$0/;
-like exception { Foo::new(gt10   => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { Foo::new(gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { Foo::new(req    => 1, unknown => 1); }, qr/"unknown".+$0/;
+like exception { Foo->new() }, qr/req.+required.+$0/;
+like exception { Foo->new(gt10   => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { Foo->new(gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { Foo->new(req    => 1, unknown => 1); }, qr/"unknown".+$0/;
 
-my $obj = Foo::new(gt10 => 10 + 1, foo => 'FOO', req => 1);
+my $obj = Foo->new(gt10 => 10 + 1, foo => 'FOO', req => 1);
 like exception { $obj->gt10(11); },  qr/gt10.+readonly.+$0/;
 like exception { $obj->gt10rw(9); }, qr/9.+gt10.+$0/;
 like exception { $obj->foo('Bad') }, qr/foo.+readonly.+$0/;

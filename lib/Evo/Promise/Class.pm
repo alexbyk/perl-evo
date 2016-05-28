@@ -24,7 +24,7 @@ has 'state' => PENDING;
 
 
 sub fin ($self, $fn) : Public {
-  my $d = Evo::Promise::Deferred::new(promise => $self->can('new')->());
+  my $d = Evo::Promise::Deferred->new(promise => ref($self)->new);
   my $onF = sub($v) {
     $d->resolve($fn->());    # need pass result because it can be a promise
     $d->promise->then(sub {$v});
@@ -45,7 +45,7 @@ sub spread ($self, $fn) : Public {
 
 sub then : Public {
   my ($self, $fh, $rh) = @_;
-  my $p = $self->can('new')->(ref($fh) ? (d_fh => $fh) : (), ref($rh) ? (d_rh => $rh) : ());
+  my $p = ref($self)->new(ref($fh) ? (d_fh => $fh) : (), ref($rh) ? (d_rh => $rh) : ());
   push $self->d_children->@*, $p;
   $self->d_traverse if $self->d_settled;
   $p;
@@ -97,7 +97,7 @@ sub d_resolve ($self, $x) : Public {
     }
 
     if ($x->can('then')) {
-      my $sync = Evo::Promise::Sync::new(promise => $self)->try_thenable($x);
+      my $sync = Evo::Promise::Sync->new(promise => $self)->try_thenable($x);
       return unless $sync->should_resolve;
       $x = $sync->v;    # and next, but it's already last in loop
       next;

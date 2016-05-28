@@ -7,12 +7,12 @@ no warnings 'redefine';    ## no critic
 local *Evo::Export::Class::load = sub { $loaded = shift };
 
 CREATE: {
-  my $obj = Evo::Export::Class::new();
+  my $obj = Evo::Export::Class->new();
   ok $obj->data;
 }
 
 GEN: {
-  my $obj = Evo::Export::Class::new();
+  my $obj = Evo::Export::Class->new();
   $obj->add_gen(src => name => 'GEN');
   is $obj->data->{src}{name}{gen}, 'GEN';
 
@@ -21,7 +21,7 @@ GEN: {
 
 
 PROXY: {
-  my $obj = Evo::Export::Class::new();
+  my $obj = Evo::Export::Class->new();
 
   like exception { $obj->add_proxy('epkg', 'ename', 'spkg', 'sname') }, qr/spkg.+sname.+$0/;
 
@@ -35,7 +35,7 @@ PROXY: {
 
 
 SUB: {
-  my $obj = Evo::Export::Class::new();
+  my $obj = Evo::Export::Class->new();
   like exception { $obj->add_sub('My::Src', 'name') },     qr/My::Src::name.+$0/;
   like exception { $obj->add_sub('My::Src', 'name:fee') }, qr/My::Src::name.+$0/;
 
@@ -49,7 +49,7 @@ SUB: {
 
 
 REEXPORT_ALL: {
-  my $obj = Evo::Export::Class::new();
+  my $obj = Evo::Export::Class->new();
   $obj->add_gen('Evo::My::Lib', 'name1', 'gen1');
   $obj->add_gen('Evo::My::Lib', 'name2', 'gen2');
 
@@ -60,7 +60,7 @@ REEXPORT_ALL: {
 }
 
 REEXPORT_SEVERAL_AS: {
-  my $obj = Evo::Export::Class::new();
+  my $obj = Evo::Export::Class->new();
   $obj->add_gen('Lib', 'name1', 'gen1');
 
   $obj->proxy('Proxy', 'Lib', 'name1:renamed1');

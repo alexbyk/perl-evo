@@ -66,7 +66,7 @@ sub ee_listeners ($self, $name) : Public {
 
   }
 
-  my $comp = My::Class::new();
+  my $comp = My::Class->new();
 
   # subscribe on the event
   $comp->on(connection => sub($self, $id) { say "got $id" });

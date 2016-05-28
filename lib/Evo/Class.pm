@@ -7,7 +7,7 @@ export_proxy '-Class::Common',
 
 sub import ($me, @args) {
   my $caller = caller;
-  meta_of($caller) || meta_of($caller, Evo::Class::Meta::new(class => $caller, gen => GEN));
+  meta_of($caller) || meta_of($caller, Evo::Class::Meta->new(class => $caller, gen => GEN));
   export_install_in($caller, $me, @args ? @args : '*');
 }
 
@@ -31,7 +31,7 @@ sub import ($me, @args) {
     sub greet($self) : Public { say "I'm " . $self->name }
   }
 
-  my $alex = My::Human::new(gender => 'male');
+  my $alex = My::Human->new(gender => 'male');
 
   # default value "unnamed"
   say $alex->name;
@@ -45,11 +45,11 @@ sub import ($me, @args) {
 
   ## ------------ protecting you from errors, uncomment to test
   ## will die, gender is required
-  #My::Human::new();
+  #My::Human->new();
 
   ## will die, age must be >= 18
-  #My::Human::new(age => 17, gender => 'male');
-  #My::Human::new()->age(17, gender => 'male');
+  #My::Human->new(age => 17, gender => 'male');
+  #My::Human->new()->age(17, gender => 'male');
 
   # --------- code reuse
   {
@@ -68,7 +68,7 @@ sub import ($me, @args) {
 
   }
 
-  my $dev = My::Developer::new(gender => 'male');
+  my $dev = My::Developer->new(gender => 'male');
   $dev->show;
 
 
@@ -107,16 +107,12 @@ You don't need to call something like C<__PACKAGE__-E<gt>meta-E<gt>make_immutabl
 
 =head2 new
 
-B<important!!!>
-Because Evo objects reuse code horizontal, there's no need to pass the class string to every invocation of C<new> (or C<Evo::Class::Out/"init">). So instead of C<My::Class-E<gt>new> use C<My::Class::new>
-
-
-  my $foo = My::Class::new(simple => 1);
-  my $foo2 = My::Class::new();
+  my $foo = My::Class->new(simple => 1);
+  my $foo2 = My::Class->new();
 
 We're protected from common mistakes, because constructor won't accept unknown attributes
 
-  my $foo = My::Class::new(SiMple => 1);
+  my $foo = My::Class->new(SiMple => 1);
 
 =head2 Storage
 
@@ -193,10 +189,10 @@ You can also return C<(0, "CustomError")> to provide more expressive explanation
     has big => check => sub($val) { $val > 10 ? 1 : (0, "not > 10"); };
   };
 
-  my $foo = My::Foo::new(big => 11);
+  my $foo = My::Foo->new(big => 11);
 
   $foo->big(9);    # will die
-  my $bar = My::Foo::new(big => 9);    # will die
+  my $bar = My::Foo->new(big => 9);    # will die
 
 
 =head1 CODE REUSE
@@ -255,7 +251,7 @@ This does "extend + check implementation". Consider this example:
 
   }
 
-  My::Class::new()->greet();
+  My::Class->new()->greet();
 
 
 

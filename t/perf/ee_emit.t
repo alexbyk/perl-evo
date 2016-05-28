@@ -18,7 +18,7 @@ my $k = 0;
   sub ee_events {'event'}
 }
 
-my $obj = My::Obj::new();
+my $obj = My::Obj->new();
 $obj->on(event => sub { $k += $_[1] });
 
 my $fn = sub {

@@ -19,8 +19,8 @@ my $LAST;
 
 
 ACCEPT: {
-  my $loop = Evo::Loop::Class::new();
-  my $srv  = My::Server::new();
+  my $loop = Evo::Loop::Class->new();
+  my $srv  = My::Server->new();
 
   # stop
   no warnings 'redefine';
@@ -35,7 +35,7 @@ ACCEPT: {
 
 MOCK: {
     local $Evo::Loop::SINGLE = $loop;
-    my $srv   = My::Server::new();
+    my $srv   = My::Server->new();
     my $sock  = $srv->srv_listen(ip => '::1');
     my $saddr = getsockname $sock;
     connect $cl1, $saddr;

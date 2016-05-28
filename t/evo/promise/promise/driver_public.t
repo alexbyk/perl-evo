@@ -3,7 +3,7 @@ use Evo '-Promise::Util *; -Promise::Class';
 use Test::More;
 use Test::Fatal;
 
-sub p { Evo::Promise::Class::new(@_) }
+sub p { Evo::Promise::Class->new(@_) }
 
 # then
 THEN_HANDLERS: {

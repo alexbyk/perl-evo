@@ -2,7 +2,7 @@ use Evo -Export::Class;
 use Test::More;
 use Test::Fatal;
 
-my $obj = Evo::Export::Class::new();
+my $obj = Evo::Export::Class->new();
 
 my $counter = 0;
 $obj->add_gen(

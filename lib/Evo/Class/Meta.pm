@@ -1,6 +1,5 @@
 package Evo::Class::Meta;
-use Evo
-  'Carp croak; -Lib monkey_patch monkey_patch_silent; -Lib::Bare; -Export *';
+use Evo 'Carp croak; -Lib monkey_patch monkey_patch_silent; -Lib::Bare; -Export *';
 use Evo '/::Util compile_attr parse_style';
 
 our @CARP_NOT
@@ -10,9 +9,9 @@ sub class($self) { $self->{class} || die "no class" }
 sub gen($self)   { $self->{gen}   || die "no gen" }
 sub builder_options ($self) { $self->{_bo} ||= {}; }
 
-sub new (%opts) {
+sub new ($class, %opts) {
   croak "provide class" unless $opts{class};
-  bless {overriden => {}, data => {}, %opts}, __PACKAGE__;
+  bless {overriden => {}, data => {}, %opts}, $class;
 }
 
 sub _once ($self, $name, %opts) {
@@ -65,7 +64,7 @@ sub update_builder_options ($self) {
 
 sub compile_builder ($self) {
   $self->update_builder_options;
-  return $self->{gen}{new}->($self->class, $self->builder_options);
+  return $self->{gen}{new}->($self->builder_options);
 }
 
 sub install_attr ($self, $name, @o) {

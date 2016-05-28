@@ -3,7 +3,7 @@ use Evo 'Test::More; -Loop::Class; -Io *';
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
 
-*newloop = *Evo::Loop::Class::new;
+sub newloop { Evo::Loop::Class->new }
 
 my $handle = io_open_anon;
 

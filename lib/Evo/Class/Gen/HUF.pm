@@ -14,11 +14,10 @@ my $GEN = {map { ($_, *{"gen_$_"}{CODE}) } qw(gs gsch gs_value gsch_value gs_cod
 
 sub GEN : Export {$GEN}
 
-sub gen_new ($class, $opts) {
+sub gen_new ($opts) {
 
   sub {
-    my $obj   = shift;
-    my %attrs = @_;
+    my ($class, $obj, %attrs) = (shift, shift, @_);
     exists $attrs{$_} or croak qq#Attribute "$_" is required# for $opts->{required}->@*;
 
     foreach my $k (keys %attrs) {
@@ -28,7 +27,7 @@ sub gen_new ($class, $opts) {
         croak_bad_value($attrs{$k}, $k, $err) unless $ok;
       }
     }
-    exists $attrs{$_} or $attrs{$_} = $opts->{dv}{$_}            for keys $opts->{dv}->%*;
+    exists $attrs{$_} or $attrs{$_} = $opts->{dv}{$_}        for keys $opts->{dv}->%*;
     exists $attrs{$_} or $attrs{$_} = $opts->{dfn}{$_}->(@_) for keys $opts->{dfn}->%*;
 
     $DATA{$obj} = \%attrs;

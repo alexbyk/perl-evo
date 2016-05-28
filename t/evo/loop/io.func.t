@@ -3,7 +3,7 @@ use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
 plan skip_all => 'Looks like a ro system' unless io_open_anon;
 
-*newloop = *Evo::Loop::Class::new;
+sub newloop { Evo::Loop::Class->new; }
 
 my ($foo, $bar) = (io_socket(), io_socket());
 socketpair($foo, $bar, AF_UNIX, SOCK_STREAM, PF_UNSPEC) || die "socketpair: $!";
@@ -44,7 +44,7 @@ is $buf,    "Hello";
 
 # WATCH_IGNORE_DESTROY
 WATCH_IGNORE: {
-  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class::new();
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class->new();
   my $io = io_open_anon();
   loop_io_in $io,  sub { };
   loop_io_out $io, sub { };
@@ -55,7 +55,7 @@ WATCH_IGNORE: {
 }
 
 DESTROY: {
-  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class::new();
+  local $Evo::Loop::SINGLE = my $loop = Evo::Loop::Class->new();
 
 
 SCOPE: {

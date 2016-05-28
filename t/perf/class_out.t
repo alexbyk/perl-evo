@@ -21,7 +21,7 @@ my $k = 0;
 }
 
 my $fn = sub {
-  my $obj = My::Obj::init(sub {$k}, simple => 'hello');
+  my $obj = My::Obj->init(sub {$k}, simple => 'hello');
   my $res = join ' ', $obj->simple, $obj->default, $obj->lazy;
   die unless $res eq 'hello foo bar';
 };

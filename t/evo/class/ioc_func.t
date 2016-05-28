@@ -23,17 +23,17 @@ use Evo::Class::Gen::HUF '*';
   has with_dfn => sub {'DFN'};
 };
 
-ok My::Empty::init([]);
+ok(My::Empty->init([]));
 
 my $v = 'ok';
 my $obj = sub {$v};
 
-like exception { Foo::init($obj) }, qr/req.+required.+$0/;
-like exception { Foo::init($obj, gt10   => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { Foo::init($obj, gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { Foo::init($obj, req    => 1, unknown => 1); }, qr/"unknown".+$0/;
+like exception { Foo->init($obj) }, qr/req.+required.+$0/;
+like exception { Foo->init($obj, gt10   => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { Foo->init($obj, gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { Foo->init($obj, req    => 1, unknown => 1); }, qr/"unknown".+$0/;
 
-is Foo::init($obj, gt10 => 10 + 1, foo => 'FOO', req => 1), $obj;
+is(Foo->init($obj, gt10 => 10 + 1, foo => 'FOO', req => 1), $obj);
 like exception { $obj->gt10(11); },  qr/gt10.+readonly.+$0/;
 like exception { $obj->gt10rw(9); }, qr/9.+gt10.+$0/;
 like exception { $obj->foo('Bad') }, qr/foo.+readonly.+$0/;

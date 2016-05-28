@@ -21,7 +21,7 @@ sub srv_handle_error ($self, $conn, $err) : Overriden {
 
   use Evo '-Net::Srv; -Loop *';
 
-  my $srv = Evo::Net::Srv::new();
+  my $srv = Evo::Net::Srv->new();
   my $listen_socket = $srv->srv_listen(ip => '*', port => 8080);
 
   $srv->on(

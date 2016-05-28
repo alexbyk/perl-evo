@@ -4,7 +4,7 @@ use Test::More;
 no warnings 'redefine';
 no warnings 'once';
 
-my $loop = Evo::Loop::Class::new();
+my $loop = Evo::Loop::Class->new();
 
 my $MOCK_TIME = 12.34567;
 local *Evo::Loop::Class::steady_time = sub {$MOCK_TIME};

@@ -4,13 +4,13 @@ use Evo '-Export *; ::Deferred; ::Class; ::Util *';
 export_proxy '::Util', qw(promise_resolve promise_reject promise_all promise_race);
 
 sub promise($fn) : Export {
-  my $d = Evo::Promise::Deferred::new(promise => my $p = Evo::Promise::Class::new());
+  my $d = Evo::Promise::Deferred->new(promise => my $p = Evo::Promise::Class->new());
   $fn->(sub { $d->resolve(@_) }, sub { $d->reject(@_) });
   $p;
 }
 
 sub deferred : Export :
-  prototype() { Evo::Promise::Deferred::new(promise => Evo::Promise::Class::new()); }
+  prototype() { Evo::Promise::Deferred->new(promise => Evo::Promise::Class->new()); }
 
 1;
 

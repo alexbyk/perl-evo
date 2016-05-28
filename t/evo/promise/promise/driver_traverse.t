@@ -13,7 +13,7 @@ use Test::More;
 no warnings qw(once redefine);
 local *Evo::Promise::Class::loop_postpone = sub { shift->() };
 
-sub p { My::P::new(@_) }
+sub p { My::P->new(@_) }
 
 ORDER: {
   no warnings qw(once redefine);

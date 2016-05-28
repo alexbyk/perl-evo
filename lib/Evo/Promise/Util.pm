@@ -28,19 +28,19 @@ sub is_rejected_with ($v, $p) : Export {
 }
 
 sub promise_resolve($v) : Export {
-  my $d = Evo::Promise::Deferred::new(promise => Evo::Promise::Class::new());
+  my $d = Evo::Promise::Deferred->new(promise => Evo::Promise::Class->new());
   $d->resolve($v);
   $d->promise;
 }
 
 sub promise_reject($v) : Export {
-  my $d = Evo::Promise::Deferred::new(promise => Evo::Promise::Class::new());
+  my $d = Evo::Promise::Deferred->new(promise => Evo::Promise::Class->new());
   $d->reject($v);
   $d->promise;
 }
 
 sub promise_race : Export {
-  my $d = Evo::Promise::Deferred::new(promise => Evo::Promise::Class::new());
+  my $d = Evo::Promise::Deferred->new(promise => Evo::Promise::Class->new());
   my $onF = sub { $d->resolve(@_) };
   my $onR = sub { $d->reject(@_) };
   foreach my $cur (@_) {
@@ -49,7 +49,7 @@ sub promise_race : Export {
     }
     else {
       # wrap with our promise
-      my $wd = Evo::Promise::Deferred::new(promise => Evo::Promise::Class::new());
+      my $wd = Evo::Promise::Deferred->new(promise => Evo::Promise::Class->new());
       $wd->promise->then($onF, $onR);
       $wd->resolve($cur);
     }
@@ -59,7 +59,7 @@ sub promise_race : Export {
 }
 
 sub promise_all : Export {
-  my $d = Evo::Promise::Deferred::new(promise => Evo::Promise::Class::new());
+  my $d = Evo::Promise::Deferred->new(promise => Evo::Promise::Class->new());
   do { $d->resolve([]); return $d->promise; } unless @_;
 
   my @prms    = @_;
@@ -78,7 +78,7 @@ sub promise_all : Export {
     }
     else {
       # wrap with our promise
-      my $wd = Evo::Promise::Deferred::new(promise => Evo::Promise::Class::new());
+      my $wd = Evo::Promise::Deferred->new(promise => Evo::Promise::Class->new());
       $wd->promise->then($onF, $onR);
       $wd->resolve($cur_p);
     }

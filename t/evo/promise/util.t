@@ -2,7 +2,7 @@ package main;
 use Evo '-Promise::Util *; -Promise::Class; -Promise *';
 use Test::More;
 
-*p = *Evo::Promise::Class::new;
+sub p { Evo::Promise::Class->new }
 
 # is_fulfilled
 ok is_fulfilled_with(0,     p()->d_fulfill(0));

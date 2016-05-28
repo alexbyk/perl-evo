@@ -2,7 +2,7 @@ package Evo::Loop;
 use Evo '-Export *';
 use Evo '::Class';
 
-our $SINGLE = Evo::Loop::Class::new();
+our $SINGLE = Evo::Loop::Class->new();
 
 sub loop_start : Export { $SINGLE->start(@_) }
 sub loop_stop : Export  { $SINGLE->stop(@_) }
@@ -18,7 +18,7 @@ sub loop_io_remove_out : Export { $SINGLE->io_remove_out(@_); }
 sub loop_io_remove_all : Export { $SINGLE->io_remove_all(@_); }
 sub loop_io_remove_fd : Export  { $SINGLE->io_remove_fd(@_); }
 
-sub loop_zone(&) : Export                 { $SINGLE->zone(@_) }
+sub loop_zone : prototype(&) : Export     { $SINGLE->zone(@_) }
 sub loop_zone_level : Export              { $SINGLE->zone_level(@_) }
 sub loop_zone_escape : Export             { $SINGLE->zone_escape(@_) }
 sub loop_zone_middleware : Export         { $SINGLE->zone_middleware(@_) }

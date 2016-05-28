@@ -24,7 +24,7 @@ Types for L<Evo::Class/"check">. Right now there aren't so many of them.
 
   }
 
-  my $obj = My::Foo::new(status => "ok");
+  my $obj = My::Foo->new(status => "ok");
   $obj->status("badVal");    # dies
 
 =head1 FUNCTIONS

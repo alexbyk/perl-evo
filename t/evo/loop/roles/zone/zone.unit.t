@@ -12,7 +12,7 @@ use lib "$FindBin::Bin";
 }
 
 ZONE_CB: {
-  my $comp = MyZone::new();
+  my $comp = MyZone->new();
 
   my $mw = sub($next) {$next};
   $comp->zone_middleware($mw);
@@ -31,7 +31,7 @@ ZONE_CB: {
 
 ZONE_FORK: {
   my (@m0, @m1, @m2);
-  my $comp = MyZone::new();
+  my $comp = MyZone->new();
   @m0 = $comp->zone_middleware;
   $comp->zone(
     sub {
@@ -47,7 +47,7 @@ ZONE_FORK: {
 }
 
 LEVEL: {
-  my $comp = MyZone::new();
+  my $comp = MyZone->new();
   $comp->zone(sub { is $comp->zone_level, 1; });
   is $comp->zone_level, 0;
 }
@@ -55,7 +55,7 @@ LEVEL: {
 
 ESCAPE: {
 
-  my $comp = MyZone::new();
+  my $comp = MyZone->new();
   $comp->zone(
     sub {
       $comp->zone_escape(0, sub { is $comp->zone_level, 0; });

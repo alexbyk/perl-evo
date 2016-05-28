@@ -15,7 +15,7 @@ my @calls;
 
 }
 
-sub gen() { Evo::Promise::Deferred::new(promise => My::P::new()) }
+sub gen() { Evo::Promise::Deferred->new(promise => My::P->new()) }
 
 ONCE: {
   my $d = gen;

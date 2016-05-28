@@ -9,7 +9,7 @@ my $MOCK_TIME = 12.34567;
 local *Evo::Loop::Class::steady_time = sub {$MOCK_TIME};
 
 MAYBE_SLEEP_CALL_UTT: {
-  my $loop = Evo::Loop::Class::new();
+  my $loop = Evo::Loop::Class->new();
   my $called;
   local *Evo::Loop::Class::update_tick_time        = sub { $called++ };
   local *Evo::Loop::Class::timer_calculate_timeout = sub {0};
@@ -23,7 +23,7 @@ local *Evo::Loop::Class::usleep     = sub { $got_usleep = $_[0] };
 
 Y_SOCK_Y_TIMERS: {
   ($got_sp, $got_usleep) = ();
-  my $loop = Evo::Loop::Class::new();
+  my $loop = Evo::Loop::Class->new();
   local *Evo::Loop::Class::io_count                = sub {1};
   local *Evo::Loop::Class::timer_count             = sub {1};
   local *Evo::Loop::Class::timer_calculate_timeout = sub {1.23};
@@ -34,7 +34,7 @@ Y_SOCK_Y_TIMERS: {
 
 Y_SOCK_N_TIMERS: {
   ($got_sp, $got_usleep) = ();
-  my $loop = Evo::Loop::Class::new();
+  my $loop = Evo::Loop::Class->new();
   local *Evo::Loop::Class::io_count    = sub {1};
   local *Evo::Loop::Class::timer_count = sub {0};
   $loop->maybe_sleep;
@@ -44,7 +44,7 @@ Y_SOCK_N_TIMERS: {
 
 N_SOCK_Y_TIMERS: {
   ($got_sp, $got_usleep) = ();
-  my $loop = Evo::Loop::Class::new();
+  my $loop = Evo::Loop::Class->new();
   local *Evo::Loop::Class::io_count                = sub {0};
   local *Evo::Loop::Class::timer_count             = sub {1};
   local *Evo::Loop::Class::timer_calculate_timeout = sub {1.23};

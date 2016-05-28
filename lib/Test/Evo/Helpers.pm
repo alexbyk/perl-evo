@@ -24,7 +24,7 @@ sub comp_meta : Export {
     };
   }
 
-  Evo::Class::Meta::new(gen => \%gen, rex => Evo::Role::Class::new());
+  Evo::Class::Meta->new(gen => \%gen, rex => Evo::Role::Class->new());
 }
 
 sub dummy_meta : Export {
@@ -36,12 +36,11 @@ sub dummy_meta : Export {
     };
   }
 
-  $gen{new} = sub {
-    my $str = join ',', @_;
-    sub {$str}
+  $gen{new} = sub($opts) {
+    sub {$opts}
   };
 
-  Evo::Class::Meta::new(gen => \%gen, class => $class);
+  Evo::Class::Meta->new(gen => \%gen, class => $class);
 }
 
 1;

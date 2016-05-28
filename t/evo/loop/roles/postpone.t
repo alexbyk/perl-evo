@@ -12,7 +12,7 @@ my $zc;
   sub zone_cb { $zc++; $_[1] }
 }
 
-my $loop = MyLoop::new();
+my $loop = MyLoop->new();
 
 is $loop->postpone_count, 0;
 

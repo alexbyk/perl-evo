@@ -22,7 +22,7 @@ use Evo 'Test::More';
 
 }
 
-my $b = My::B::new();
+my $b = My::B->new();
 
 is $b->attr_a1, 'over1';
 is $b->attr_a2, 'over2';

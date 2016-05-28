@@ -4,7 +4,7 @@ use Test::More;
 no warnings 'redefine';
 
 EVAL: {
-  my $loop = Evo::Loop::Class::new();
+  my $loop = Evo::Loop::Class->new();
 
   my $catched;
   $loop->zone(
@@ -19,7 +19,7 @@ EVAL: {
 }
 
 TIMER_LIKE_ZONE: {
-  my $loop = Evo::Loop::Class::new();
+  my $loop = Evo::Loop::Class->new();
   my ($w_called, $t_called);
   my $w_log = sub($next) {
     sub { $w_called++; $next->(@_); };
@@ -35,7 +35,7 @@ TIMER_LIKE_ZONE: {
 }
 
 TIMER_TICK: {
-  my $loop = Evo::Loop::Class::new();
+  my $loop = Evo::Loop::Class->new();
   my $t_called;
   my $reg = sub { $t_called++ };
   $loop->timer(
@@ -59,7 +59,7 @@ TIMER_TICK: {
 }
 
 IGNORE_SIGPIPE: {
-  my $loop = Evo::Loop::Class::new();
+  my $loop = Evo::Loop::Class->new();
 
   ok !$SIG{PIPE};
   $loop->postpone(sub { is $SIG{PIPE}, 'IGNORE'; });
