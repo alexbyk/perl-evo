@@ -7,8 +7,10 @@ our $SINGLE = Evo::Loop::Class->new();
 sub loop_start : Export { $SINGLE->start(@_) }
 sub loop_stop : Export  { $SINGLE->stop(@_) }
 
-sub loop_timer : Export        { $SINGLE->timer(@_); }
-sub loop_timer_remove : Export { $SINGLE->timer_remove(@_); }
+sub loop_timer : Export           { $SINGLE->timer(@_); }
+sub loop_periodic : Export        { $SINGLE->timer_periodic(@_); }
+sub loop_timer_remove : Export    { $SINGLE->timer_remove(@_); }
+sub loop_periodic_remove : Export { $SINGLE->timer_remove(@_); }
 
 sub loop_io_in : Export         { $SINGLE->io_in(@_) }
 sub loop_io_out : Export        { $SINGLE->io_out(@_) }

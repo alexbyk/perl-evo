@@ -1,38 +1,44 @@
 package Evo::Loop::Role::Timer;
 use Evo -Class::Role, 'Carp croak; List::Util first';
 
-requires qw(zone_cb tick_time);
+requires qw(zone_cb tick_time gen_id);
 
 has timer_need_sort => is => 'rw';
 has timer_queue => sub { [] };
 
-# [time, zcb]
 # alwais check timer_count before timer_process or calculate_timeout
 
 sub timer_count : Public { scalar $_[0]->timer_queue->@* }
 
-sub timer : Public {
-  croak "Not enought arguments" if @_ < 3;
-  my ($self, $after, $cb, $period) = (shift, shift, pop, shift);
-  croak "Negative period!" if $period && $period < 0;
-  my $zcb = $self->zone_cb($cb);
 
+sub timer_periodic ($self, $after, $period, $cb) : Public {
+  croak "Negative period!" if $period && $period < 0;
   push $self->timer_need_sort(1)->timer_queue->@*,
-    my $slot = [$self->tick_time + $after, $zcb, $period ? $period : ()];
-  $slot;
+    {
+    when   => $self->tick_time + $after,
+    cb     => $self->zone_cb($cb),
+    id     => my $id = $self->gen_id,
+    period => $period
+    };
+  $id;
 }
 
-sub timer_remove ($self, $ref) : Public {
-  my $que = $self->timer_queue;
+sub timer ($self, $after, $cb) : Public {
+  push $self->timer_need_sort(1)->timer_queue->@*,
+    {when => $self->tick_time + $after, cb => $self->zone_cb($cb), id => my $id = $self->gen_id};
+  $id;
+}
 
-  defined(my $index = first { $que->[$_] == $ref } 0 .. $#$que) or return;
+sub timer_remove ($self, $id) : Public {
+  my $que = $self->timer_queue;
+  defined(my $index = first { $que->[$_]{id} == $id } 0 .. $#$que) or return;
   splice $que->@*, $index, 1;
 }
 
 sub timer_sort_if_needed($self) : Public {
   return unless $self->timer_need_sort;
   my $timer_queue = $self->timer_queue;
-  $timer_queue->@* = sort { $a->[0] <=> $b->[0] } $timer_queue->@*;
+  $timer_queue->@* = sort { $a->{when} <=> $b->{when} } $timer_queue->@*;
   $self->timer_need_sort(0);
 }
 
@@ -44,13 +50,13 @@ sub timer_process($self) : Public {
   my $time        = $self->tick_time;
   my $timer_queue = $self->timer_queue;
 
-  while (@$timer_queue && $timer_queue->[0][0] < $time) {
+  while (@$timer_queue && $timer_queue->[0]{when} < $time) {
     my $slot = shift(@$timer_queue);
-    if ($slot->[2]) {    # periodic
-      $slot->[0] = $slot->[2] + $time;
+    if ($slot->{period}) {    # periodic
+      $slot->{when} = $slot->{period} + $time;
       push $timer_queue->@*, $slot;
     }
-    $slot->[1]->();
+    $slot->{cb}->();
   }
 }
 
@@ -60,7 +66,7 @@ sub timer_process($self) : Public {
 # returns ms (1s/1000), >=0
 sub timer_calculate_timeout($self) : Public {
   $self->timer_sort_if_needed();
-  my $timeout = ($self->timer_queue->[0][0] - $self->tick_time);
+  my $timeout = ($self->timer_queue->[0]{when} - $self->tick_time);
   return $timeout > 0 ? $timeout : 0;
 }
 
