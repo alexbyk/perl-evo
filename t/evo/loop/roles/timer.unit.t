@@ -173,7 +173,7 @@ CALC_TIMEOUT: {
 
   # negative
   $loop = MyLoop->new();
-  $loop->timer(2, 'CB2');
+  $loop->timer(2,  'CB2');
   $loop->timer(-1, 'CB1');
   is $loop->timer_calculate_timeout(), 0;
   is $loop->timer_queue->[0]{cb}, 'CB1';

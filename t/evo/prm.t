@@ -7,6 +7,7 @@ my $p = prm {
   then {'VAL'};
   then sub($v) { [$v, 'other'] };
   spread sub(@vals) { join ';', @vals; };
+  finally sub {shift}
 };
 my $pe = prm {
   then { die "MyE\n"; };

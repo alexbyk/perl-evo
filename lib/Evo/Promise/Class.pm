@@ -23,7 +23,7 @@ has 'state' => PENDING;
 #}
 
 
-sub fin ($self, $fn) : Public {
+sub finally ($self, $fn) : Public {
   my $d = Evo::Promise::Deferred->new(promise => ref($self)->new);
   my $onF = sub($v) {
     $d->resolve($fn->());    # need pass result because it can be a promise

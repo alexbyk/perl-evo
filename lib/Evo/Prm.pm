@@ -27,6 +27,11 @@ sub spread : prototype(&) : Export {
   $PRM = $PRM->spread(@_);
 }
 
+sub finally : prototype(&) : Export {
+  croak "Broken flow" unless $PRM;
+  $PRM = $PRM->finally(@_);
+}
+
 1;
 
 =head1 SYNOPSYS
