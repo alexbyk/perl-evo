@@ -34,7 +34,8 @@
       "test" : {
          "requires" : {
             "Test::Fatal" : "0",
-            "Test::More" : "0.88"
+            "Test::More" : "0.88",
+            "Test::Pod" : "0"
          }
       }
    },
@@ -47,6 +48,6 @@
          "web" : "http://github.com/alexbyk/perl-evo"
       }
    },
-   "version" : "0.0215"
+   "version" : "0.0216"
 }
 
