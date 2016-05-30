@@ -84,7 +84,7 @@ sub d_resolve ($self, $x) : Public {
 
 
     # 2.3.1
-    return $self->d_reject('TypeError') if $x && $self == $x;
+    return $self->d_reject('TypeError') if $x && $self eq $x;
 
     # 2.3.2 promise
     if (ref $x eq ref $self) {
