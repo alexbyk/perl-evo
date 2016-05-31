@@ -1,6 +1,5 @@
 package main;
-use Evo 'Test::More tests 10; Test::Fatal; FindBin';
-use lib "$FindBin::Bin";
+use Evo 'Test::More tests 10; Test::Fatal';
 
 
 {

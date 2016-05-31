@@ -1,5 +1,5 @@
 package Evo::Loop::Role::Zone;
-use Evo -Class::Role, '-Lib *; Carp croak';
+use Evo -Class::Role, '-Lib *; Carp croak carp';
 
 has zone_data => sub { {middleware => [[]]} };
 
@@ -11,6 +11,9 @@ sub zone : Public {
   $fn->();
 }
 
+# IDEA:
+# Maybe register callback and return as is if already registered to prevent neighboard twice zone_cb
+# return $cb if($STORE{$cb});
 sub zone_cb ($self, $cb) : Public {
   my $data = $self->zone_data;
 
@@ -25,7 +28,16 @@ sub zone_cb ($self, $cb) : Public {
   my @ws = map { [$_->@*] } $data->{middleware}->@*;
 
   sub {
-    local $data->{middleware} = \@ws;
+
+    # this is needed if someone will call zone_cb in blocking flow twice
+    # for example, when using with other loop
+    if ($data->{middleware_done}) {
+      carp "zone_cb was called more than once; Ignoring superfluous";
+      return $cb->();
+    }
+    local $data->{middleware_done} = 1;
+    local $data->{cb_called}       = 1;
+    local $data->{middleware}      = \@ws;
     ws_fn((map { $_->@* } @ws), $cb)->();
   };
 }
