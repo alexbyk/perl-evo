@@ -1,5 +1,5 @@
 package main;
-use Evo 'Test::More tests 11; Test::Fatal';
+use Evo 'Test::More tests 12; Test::Fatal';
 
 
 {
@@ -7,6 +7,14 @@ use Evo 'Test::More tests 11; Test::Fatal';
   package MyZone;
   use Evo '-Class *';
   with 'Evo::Loop::Role::Zone';
+
+}
+
+ZONE_CB_ARGS: {
+  my $comp = MyZone->new();
+  my $mw = sub($next) {$next};
+  $comp->zone_middleware($mw);
+  is $comp->zone_cb(sub { join ',', @_ })->(1, 2), '1,2';
 
 }
 

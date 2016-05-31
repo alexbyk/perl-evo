@@ -1,5 +1,5 @@
 package main;
-use Evo 'Test::More; Test::Fatal; -Loop *';
+use Evo 'Test::More tests 5; Test::Fatal; -Loop *';
 
 {
 
@@ -14,7 +14,7 @@ my ($CB, $MW_CALLED);
 
 $loop->zone_middleware(
   sub($next) {
-    sub { $MW_CALLED++; $next->() }
+    sub { $MW_CALLED++; $next->(@_) }
   }
 );
 
@@ -23,7 +23,8 @@ $loop->zone(
     $loop->zone_level;
     $CB = $loop->zone_cb(
       sub {
-        $loop->zone_cb(sub { is $loop->zone_level, 1 })->();
+        is shift, 11;
+        $loop->zone_cb(sub { is $loop->zone_level, 1; is shift, 22; })->(22);
       }
     );
 
@@ -32,8 +33,6 @@ $loop->zone(
 
 
 local $SIG{__WARN__} = sub { };
-$CB->();
+$CB->(11);
 is $loop->zone_level, 0;
 is $MW_CALLED, 1;
-
-done_testing;

@@ -21,24 +21,23 @@ sub zone_cb ($self, $cb) : Public {
   #if ($data->{middleware}->@* == 1 && !$data->{middleware}[0]->@*) {
   #  return sub {
   #    local $data->{middleware} = [[]];
-  #    $cb->();
+  #    $cb->(@_);
   #  };
   #}
 
   my @ws = map { [$_->@*] } $data->{middleware}->@*;
 
   sub {
-
     # this is needed if someone will call zone_cb in blocking flow twice
     # for example, when using with other loop
     if ($data->{middleware_done}) {
       carp "zone_cb was called more than once; Ignoring superfluous";
-      return $cb->();
+      return $cb->(@_);
     }
     local $data->{middleware_done} = 1;
     local $data->{cb_called}       = 1;
     local $data->{middleware}      = \@ws;
-    ws_fn((map { $_->@* } @ws), $cb)->();
+    ws_fn((map { $_->@* } @ws), $cb)->(@_);
   };
 }
 
@@ -55,6 +54,5 @@ sub zone_goto ($self, $level) : Public {
   my $data = $self->zone_data;
   $data->{middleware} = [map { [$_->@*] } @{$data->{middleware}}[0 .. $level]];
 }
-
 
 1;
