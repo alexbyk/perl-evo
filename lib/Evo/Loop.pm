@@ -23,7 +23,7 @@ sub loop_io_remove_fd : Export  { $SINGLE->io_remove_fd(@_); }
 sub loop_zone : prototype(&) : Export     { $SINGLE->zone(@_) }
 sub loop_zone_cb : Export                 { $SINGLE->zone_cb(@_) }
 sub loop_zone_level : Export              { $SINGLE->zone_level(@_) }
-sub loop_escape_to_level : Export         { $SINGLE->escape_to_level(@_) }
+sub loop_zone_goto : Export               { $SINGLE->zone_goto(@_) }
 sub loop_zone_middleware : Export         { $SINGLE->zone_middleware(@_) }
 sub loop_postpone : prototype(&) : Export { $SINGLE->postpone(@_) }
 

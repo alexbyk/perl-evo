@@ -52,15 +52,4 @@ sub start($self) {
 }
 
 
-# postpone callback with a previous level
-sub escape_to_level ($self, $level, $cb) : Public {
-  my $data = $self->zone_data;
-  croak "Bad level $level (max ${\$self->zone_level})" unless $level < $self->zone_level;
-  push $self->postpone_queue->@*, sub {
-    local $data->{middleware} = [map { [$_->@*] } @{$data->{middleware}}[0 .. $level]];
-    $cb->();
-  };
-}
-
-
 1;

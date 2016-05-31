@@ -1,5 +1,5 @@
 package main;
-use Evo 'Test::More tests 7; Test::Fatal';
+use Evo 'Test::More tests 11; Test::Fatal';
 
 
 {
@@ -51,4 +51,28 @@ LEVEL: {
   is $comp->zone_level, 0;
 }
 
+GOTO: {
 
+  my $comp = MyZone->new();
+  my $CB;
+
+  like exception { $comp->zone_goto(0) }, qr/level.+$0/;
+
+  $comp->zone(
+    sub {
+
+      $comp->zone(
+        sub {
+          $comp->zone_goto(0);
+          is $comp->zone_level, 0;
+          $CB = $comp->zone_cb(sub { is $comp->zone_level, 0 });
+        }
+      );
+
+      # 1
+      is $comp->zone_level, 1;
+    }
+  );
+
+  $CB->();
+}
