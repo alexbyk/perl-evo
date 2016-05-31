@@ -1,5 +1,5 @@
 package Evo::Loop::Class;
-use Evo -Class, '-Lib steady_time; List::Util first; Time::HiRes usleep';
+use Evo -Class, '-Lib steady_time; List::Util first; Time::HiRes usleep; Carp croak';
 
 # pay attention. One for all and limited (but big enough)
 my $UID = 0;
@@ -50,5 +50,17 @@ sub start($self) {
   local $SIG{PIPE} = 'IGNORE';
   $self->maybe_sleep while $self->tick && $self->is_running;
 }
+
+
+# postpone callback with a previous level
+sub escape_to_level ($self, $level, $cb) : Public {
+  my $data = $self->zone_data;
+  croak "Bad level $level (max ${\$self->zone_level})" unless $level < $self->zone_level;
+  push $self->postpone_queue->@*, sub {
+    local $data->{middleware} = [map { [$_->@*] } @{$data->{middleware}}[0 .. $level]];
+    $cb->();
+  };
+}
+
 
 1;

@@ -1,5 +1,5 @@
 package Evo::Loop::Role::Zone;
-use Evo -Class::Role, '-Lib *; Carp croak carp';
+use Evo -Class::Role, '-Lib *; Carp carp';
 
 has zone_data => sub { {middleware => [[]]} };
 
@@ -49,13 +49,6 @@ sub zone_middleware ($self, @mw) : Public {
 }
 
 sub zone_level($self) : Public { return $self->zone_data->{middleware}->$#*; }
-
-sub zone_escape ($self, $level, $fn) : Public {
-  my $data = $self->zone_data;
-  croak "Bad level $level (max ${\$self->zone_level})" unless $level < $self->zone_level;
-  local $data->{middleware} = [map { [$_->@*] } @{$data->{middleware}}[0 .. $level]];
-  $fn->();
-}
 
 
 1;

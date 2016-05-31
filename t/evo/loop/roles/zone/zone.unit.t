@@ -1,5 +1,5 @@
 package main;
-use Evo 'Test::More tests 10; Test::Fatal';
+use Evo 'Test::More tests 7; Test::Fatal';
 
 
 {
@@ -52,16 +52,3 @@ LEVEL: {
 }
 
 
-ESCAPE: {
-
-  my $comp = MyZone->new();
-  $comp->zone(
-    sub {
-      $comp->zone_escape(0, sub { is $comp->zone_level, 0; });
-      is $comp->zone_level, 1;
-    }
-  );
-
-  is $comp->zone_level, 0;
-
-}

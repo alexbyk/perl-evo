@@ -1,5 +1,5 @@
 use Evo -Loop::Class, '-Lib *', '-W::Eval w_eval_run';
-use Test::More;
+use Test::More tests => 16;
 
 no warnings 'redefine';
 
@@ -67,5 +67,17 @@ IGNORE_SIGPIPE: {
   $loop->start;
 }
 
+ESCAPE: {
 
-done_testing;
+  my $comp = Evo::Loop::Class->new();
+  $comp->zone(
+    sub {
+      $comp->escape_to_level(0, sub { is $comp->zone_level, 0; });
+      is $comp->zone_level, 1;
+    }
+  );
+
+  $comp->start;
+  is $comp->zone_level, 0;
+
+}

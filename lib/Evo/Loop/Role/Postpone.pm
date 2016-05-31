@@ -3,13 +3,13 @@ use Evo '-Class::Role *';
 
 requires qw(zone_cb);
 
-has data_postpone => default => sub { [] };
+has postpone_queue => default => sub { [] };
 
-sub postpone_count($self) : Public { $self->data_postpone->@* }
-sub postpone ($self, $fn) : Public { push $self->data_postpone->@*, $self->zone_cb($fn); }
+sub postpone_count($self) : Public { $self->postpone_queue->@* }
+sub postpone ($self, $fn) : Public { push $self->postpone_queue->@*, $self->zone_cb($fn); }
 
 sub postpone_process($self) : Public {
-  my $postpone = $self->data_postpone;
+  my $postpone = $self->postpone_queue;
   shift(@$postpone)->() while @$postpone;
 }
 
