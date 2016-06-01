@@ -72,32 +72,40 @@ sub import {
 
 =head1 STATE
 
-This module is under active development. It changes often and a lot! Don't use in production. Get involved L<https://github.com/alexbyk/perl-evo>
+This module is under active development. It changes often and a lot! Get involved L<https://github.com/alexbyk/perl-evo>
+
+Also there are many gaps in documentation.
 
 =head1 DESCRIPTION
 
-This framework opens new age of perl programming
+This framework opens a new age of perl programming
 It provides rewritten and postmodern features like
 
 =over
 
 =item *
-Rewritten sexy L<Evo::Export>
+[almost ready] Rewritten sexy L<Evo::Export>
 
 =item *
-Post modern code injection programming L<Evo::Class> instead of traditional OO
+[almost ready] Post modern code injection programming L<Evo::Class> instead of traditional OO
 
 =item *
-(no docs yet) Fast Event-Loop L<Evo::Loop> with unique feature zones (Not ready)
+(no docs yet, not ready) Fast Event-Loop L<Evo::Loop> with unique feature C<zones>
 
 =item *
-Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible. + Nice syntax via experimental L<Evo::Prm>
+[almost ready] Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible. + Nice syntax via experimental L<Evo::Prm>
 
 =item *
-Exception handling in pure perl: L<Evo::Eval>, "try catch" alternative. Like C<Try::Tiny>, but without its bugs and much faster
+(experimental) Exception handling in pure perl: L<Evo::Eval>, "try catch" alternative. Like C<Try::Tiny>, but without its bugs and much faster
 
 =item *
-L<Evo::Ee> - a class role that gives your "EventEmitter" abilities
+(experimental) L<Evo::Ee> - a role that provides "EventEmitter" abilities
+
+=item *
+(experimental, not ready) C<Boa> - new sexy testing framework and runner for both blocking and non-blocking tests (Unit testing + functional testing). 10-100 times faster than traditional C<prove> and has a C<"watch"> mode.
+
+=item *
+(not started yet) Base modules for non-blocking client/server programming
 
 =back
 
@@ -110,17 +118,17 @@ Vim ultisnips with C<Evo> support can be found here: L<https://github.com/alexby
 
 =head1 IMPORTING
 
-Load Module and call itss C<import> method, emulating C<caller>.
+Load Module and call C<import> method, emulating C<caller>.
 
-  use Evo 'Evo::SomeClass';
-  use Evo 'Evo::SomeClass(function)';
-  use Evo 'Evo::SomeClass(function,otherfunc)';
-  use Evo 'Evo::SomeClass function1 function2';
+  use Evo 'Foo';                 # use Foo
+  use Evo 'Foo ()';              # use Foo();
+  use Evo 'FooClass foo1 foo2';  # use FooClass qw(foo1 foo2);
 
 Used to make package header shorter
 
-  use Evo '-Eval *; My::App';
+  use Evo '-Eval *; My::App';    # use Evo::Eval '*'; use My::App;
 
+All examples above also import C<string; experimental> and other from C<Evo::Default>
 
 =head2 SHORTCUTS
 

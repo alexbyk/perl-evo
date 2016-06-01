@@ -80,19 +80,17 @@ A new promising inject-code programming concepts based on mixins. Documentation 
 
 =head2 Why not OO and Moose like?
 
-The most problems with Moose like modules is with initialization. Let's take a look:
 
-  package My::Moose;
-  use Moose;
-  has foo => is =>'rw';
+The syntax differs from Moose, I fixed most frustating parts of it. It's not Moose-compatible at all. C<Evo::Class> is more strict by default and prevents many errors.
 
-  package main;
-  my $obj = My::Moose->new(fo => 3);
-  print $obj->foo;
+Every class is a role (C<Evo::Class::Role>) and we don't use perl's C<@ISA> OO inheritance. Code reuse is based on so called "mixins".
+This concept doesn't suffer a C<fragile base class problem> from traditional OO
 
-As you can see, we passed C<fo> instead of C<foo>, and Moose silently ignored it. You should write a huge amout of extra tests to pervent such errors.
+Every class is also an interface and can be used to check the shape of other classes.
 
-Also traditional OO programming suffers the fragile base class problems (use Google). To solve it, injection based C<Evo::Class> introduces flexible roles L<Evo::Role>. 
+A tiny amount of code means less bugs.
+
+These advantages make C<Evo::Class> perfect for both "corporate level" and "small" projects
 
 
 =head1 Usage
