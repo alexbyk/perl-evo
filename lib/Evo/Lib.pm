@@ -47,5 +47,26 @@ sub combine_thunks : Export {
   sub { @args = @_; $cb->(); return };
 }
 
+sub strict_opts ($level, $hash, @keys) : Export {
+  my %opts = %$hash;
+  my @opts = map { delete $opts{$_} } @keys;
+  if (my @remaining = keys %opts) {
+    local $Carp::CarpLevel = $level;
+    croak "Unknown options: ", join ',', @remaining;
+  }
+  @opts;
+}
+
 
 1;
+
+=head2 strict_opts($level, $hash, @keys)
+
+
+  sub myfunc(%opts) { my ($foo, $bar) = strict_opts(1, \%opts, 'foo', 'bar'); }
+
+Get a C<$hash> and return values in order defined by C<@keys>. If there are superfluous keys in hash, throw an error. This will help you to protect your functions from bugs "passing wrong keys"
+
+C<$level> determines how many frames to skip. In most cases it's C<1>
+
+=cut
