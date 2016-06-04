@@ -8,7 +8,7 @@ use Test::Fatal;
   package My::Empty;
   use Evo '-Class *';
 
-  package Foo;
+  package My::Foo;
   use Evo '-Class *';
 
   has 'foo', is => 'ro';
@@ -22,14 +22,17 @@ use Test::Fatal;
   has with_dfn => sub {'DFN'};
 };
 
+my $obj = {};
 ok(My::Empty->new());
+isa_ok(My::Empty::init($obj), 'My::Empty');
+is My::Empty::init($obj), $obj;
 
-like exception { Foo->new() }, qr/req.+required.+$0/;
-like exception { Foo->new(gt10   => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { Foo->new(gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { Foo->new(req    => 1, unknown => 1); }, qr/"unknown".+$0/;
+like exception { My::Foo->new() }, qr/req.+required.+$0/;
+like exception { My::Foo->new(gt10   => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { My::Foo->new(gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { My::Foo->new(req    => 1, unknown => 1); }, qr/"unknown".+$0/;
 
-my $obj = Foo->new(gt10 => 10 + 1, foo => 'FOO', req => 1);
+$obj = My::Foo->new(gt10 => 10 + 1, foo => 'FOO', req => 1);
 like exception { $obj->gt10(11); },  qr/gt10.+readonly.+$0/;
 like exception { $obj->gt10rw(9); }, qr/9.+gt10.+$0/;
 like exception { $obj->foo('Bad') }, qr/foo.+readonly.+$0/;
@@ -49,7 +52,7 @@ is_deeply $obj,
   {req => 1, gt10 => 11, gt10rw => 12, foo => 'FOO', with_dv => 'DV', with_dfn => 'DFN',};
 
 
-$obj = Foo::->new(req => 1, foo => 'foo');
+$obj = My::Foo::->new(req => 1, foo => 'foo');
 is $obj->foo, 'foo';
 
 done_testing;

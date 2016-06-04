@@ -9,6 +9,12 @@ sub class($self) { $self->{class} || die "no class" }
 sub gen($self)   { $self->{gen}   || die "no gen" }
 sub builder_options ($self) { $self->{_bo} ||= {}; }
 
+sub cached_init {
+  return $_[0]->{cached_init} if @_ == 1;
+  $_[0]->{cached_init} = $_[1];
+  $_[0];
+}
+
 sub new ($class, %opts) {
   croak "provide class" unless $opts{class};
   bless {overriden => {}, data => {}, %opts}, $class;
@@ -33,7 +39,7 @@ sub reg_method ($self, $name, %opts) {
 }
 
 sub reg_attr ($self, $name, %opts) {
-  $self->_once($name, type => 'attr', value => \%opts);
+  $self->cached_init(undef)->_once($name, type => 'attr', value => \%opts);
 }
 
 sub _map ($self, $what) {
@@ -45,7 +51,6 @@ sub attrs($self)   { $self->_map('attr') }
 sub methods($self) { $self->_map('method') }
 
 sub requirements($self) { keys $self->{data}->%*; }
-
 
 # it's important that $self->{builder_options} never changes and is updated by ref
 sub update_builder_options ($self) {
@@ -63,8 +68,11 @@ sub update_builder_options ($self) {
 }
 
 sub compile_builder ($self) {
+  my $init;
+  return $init if $init = $self->cached_init;
   $self->update_builder_options;
-  return $self->{gen}{new}->($self->builder_options);
+  $self->cached_init($init = $self->gen->{init}->($self->class, $self->builder_options));
+  $init;
 }
 
 sub install_attr ($self, $name, @o) {

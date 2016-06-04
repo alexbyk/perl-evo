@@ -38,8 +38,15 @@ COMPILE: {
   local *Evo::Class::Meta::update_builder_options = sub { $called++ };
 
   $meta->{_bo} = 'MYBO';
+  my $init;
+  $init = $meta->compile_builder() for 1 .. 2;
+  is $init, $meta->compile_builder();
+  is $init->(), 'MYBO';
+  is $called, 1, "Second time use cash";
+
+  $meta->reg_attr('simple');
   is $meta->compile_builder()->(), 'MYBO';
-  is $called, 1;
+  is $called, 2;
 }
 
 done_testing;

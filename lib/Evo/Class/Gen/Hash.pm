@@ -2,17 +2,17 @@ package Evo::Class::Gen::Hash;
 use Evo '-Export *', '-Class::Util croak_bad_value';
 use Carp 'croak';
 
-our @CARP_NOT = ('Evo::Class::Hash', 'Evo::Class::Util');
+our @CARP_NOT = ('Evo::Class::Hash', 'Evo::Class::Util', 'Evo::Class');
 
 no strict 'refs';    ## no critic
-my $GEN = {map { ($_, *{"gen_$_"}{CODE}) } qw(gs gsch gs_value gsch_value gs_code gsch_code new)};
+my $GEN = {map { ($_, *{"gen_$_"}{CODE}) } qw(gs gsch gs_value gsch_value gs_code gsch_code init)};
 
 sub GEN : Export {$GEN}
 
-sub gen_new ($opts) {
+sub gen_init ($class, $opts) {
 
   sub {
-    my ($class, %attrs) = (shift, @_);
+    my ($obj, %attrs) = (shift, @_);
     exists $attrs{$_} or croak qq#Attribute "$_" is required# for $opts->{required}->@*;
 
     foreach my $k (keys %attrs) {
@@ -25,7 +25,8 @@ sub gen_new ($opts) {
     exists $attrs{$_} or $attrs{$_} = $opts->{dv}{$_}        for keys $opts->{dv}->%*;
     exists $attrs{$_} or $attrs{$_} = $opts->{dfn}{$_}->(@_) for keys $opts->{dfn}->%*;
 
-    bless \%attrs, $class;
+    %$obj = %attrs;
+    bless $obj, $class;
   };
 }
 

@@ -10,14 +10,14 @@ fieldhash my %DATA;
 sub HUF_DATA { return \%DATA unless @_; $DATA{$_[0]} }
 
 no strict 'refs';    ## no critic
-my $GEN = {map { ($_, *{"gen_$_"}{CODE}) } qw(gs gsch gs_value gsch_value gs_code gsch_code new)};
+my $GEN = {map { ($_, *{"gen_$_"}{CODE}) } qw(gs gsch gs_value gsch_value gs_code gsch_code init)};
 
 sub GEN : Export {$GEN}
 
-sub gen_new ($opts) {
+sub gen_init ($class, $opts) {
 
   sub {
-    my ($class, $obj, %attrs) = (shift, shift, @_);
+    my ($obj, %attrs) = (shift, @_);
     exists $attrs{$_} or croak qq#Attribute "$_" is required# for $opts->{required}->@*;
 
     foreach my $k (keys %attrs) {

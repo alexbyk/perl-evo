@@ -12,6 +12,12 @@ use Evo::Class::Gen::HUF '*';
   package Foo;
   use Evo '-Class::Out *';
 
+
+  sub new {
+    shift;
+    init(sub {'ok'}, @_);
+  }
+
   has 'foo', is => 'ro';
   has 'gt10', check => sub { $_[0] > 10 }, is => 'ro';
   has 'gt10rw', check => sub { $_[0] > 10 };
@@ -23,17 +29,18 @@ use Evo::Class::Gen::HUF '*';
   has with_dfn => sub {'DFN'};
 };
 
-ok(My::Empty->init([]));
+my $obj = [];
+isa_ok(My::Empty::init([]), 'My::Empty');
+is(My::Empty::init($obj), $obj);
 
-my $v = 'ok';
-my $obj = sub {$v};
 
-like exception { Foo->init($obj) }, qr/req.+required.+$0/;
-like exception { Foo->init($obj, gt10   => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { Foo->init($obj, gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { Foo->init($obj, req    => 1, unknown => 1); }, qr/"unknown".+$0/;
+like exception { Foo->new() }, qr/req.+required.+$0/;
+like exception { Foo->new(gt10   => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { Foo->new(gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { Foo->new(req    => 1, unknown => 1); }, qr/"unknown".+$0/;
 
-is(Foo->init($obj, gt10 => 10 + 1, foo => 'FOO', req => 1), $obj);
+
+$obj = Foo->new(gt10 => 10 + 1, foo => 'FOO', req => 1);
 like exception { $obj->gt10(11); },  qr/gt10.+readonly.+$0/;
 like exception { $obj->gt10rw(9); }, qr/9.+gt10.+$0/;
 like exception { $obj->foo('Bad') }, qr/foo.+readonly.+$0/;

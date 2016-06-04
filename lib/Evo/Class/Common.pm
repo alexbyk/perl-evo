@@ -90,5 +90,7 @@ sub meta_of ($class, $meta = undef) : Export {
   $METAS{$class} = $meta;
 }
 
-export_gen new => sub($class) { meta_of($class)->compile_builder; };
+
+export_gen init => sub($class) { meta_of($class)->compile_builder; };
+
 1;

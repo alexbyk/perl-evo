@@ -3,7 +3,7 @@ use Evo '-Class::Gen::HUF GEN; -Class::Meta; -Class::Common meta_of';
 use Evo '-Export *, -import';
 
 export_proxy '-Class::Common',
-  qw(new:init has has_overriden requires extends implements with MODIFY_CODE_ATTRIBUTES);
+  qw(init has has_overriden requires extends implements with MODIFY_CODE_ATTRIBUTES);
 
 sub import ($me, @args) {
   my $caller = caller;
@@ -26,7 +26,7 @@ sub import ($me, @args) {
     has 'foo', required => 1;
   }
 
-  my $foo = My::Spy->init(sub { say "foo" }, foo => 'FOO');
+  my $foo = My::Spy::init(sub { say "foo" }, foo => 'FOO');
   say $foo->foo;
   $foo->();
 
@@ -42,6 +42,8 @@ C<Evo::Class::Out> supports the same features as C<Evo::Class::Hash>, but is a l
 =head2 init
 
 Instead of C<new>, it provides C<init>. So you can desing new, for example, as a clousure by yourself
+
+Pay attention that C<init> should be called as a function C<My::Class::init>, not a method
 
 
 =head1 EXAMPLE

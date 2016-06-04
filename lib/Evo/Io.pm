@@ -10,14 +10,14 @@ use Fcntl qw(O_NONBLOCK O_RDONLY O_WRONLY O_RDWR);
 my %MAP = (r => O_RDONLY, w => O_WRONLY, rw => O_RDWR);
 
 sub io_open ($mode, $filename, @extra) : Export {
-  my $fh = Evo::Io::Handle->init(gensym());
+  my $fh = Evo::Io::Handle::init(gensym());
   $mode = $MAP{lc $mode} if exists $MAP{lc $mode};
   sysopen($fh, $filename, $mode | O_NONBLOCK, @extra) || die "open: $!";    ## no critic
   $fh;
 }
 
 sub io_open_anon : Export {
-  my $fh = Evo::Io::Handle->init(gensym());
+  my $fh = Evo::Io::Handle::init(gensym());
   open($fh, '>', undef);
   $fh->io_non_blocking(1);
 }
@@ -29,7 +29,7 @@ sub io_socket : Export {
   $family ||= AF_INET6;
   my $s = gensym;
   socket($s, $family || AF_INET6, $type || SOCK_STREAM, $proto) || die "socket: $!";
-  Evo::Io::Socket->init($s)->io_non_blocking(1);
+  Evo::Io::Socket::init($s)->io_non_blocking(1);
   $s->io_nodelay(1) if $proto == IPPROTO_TCP;
   $s->io_v6only(1)  if $family == AF_INET6;
   $s;

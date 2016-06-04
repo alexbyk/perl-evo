@@ -3,7 +3,7 @@ use Evo '::Gen::Hash GEN; -Class::Meta; -Class::Common meta_of';
 use Evo '-Export *, -import';
 
 export_proxy '-Class::Common',
-  qw(new has has_overriden requires extends implements with MODIFY_CODE_ATTRIBUTES);
+  qw(init has has_overriden requires extends implements with MODIFY_CODE_ATTRIBUTES);
 
 sub import ($me, @args) {
   my $caller = caller;
@@ -11,6 +11,14 @@ sub import ($me, @args) {
   export_install_in($caller, $me, @args ? @args : '*');
 }
 
+
+export_gen new => sub($class) {
+  my $init = meta_of($class)->compile_builder;
+  sub {
+    shift;
+    $init->({}, @_);
+  };
+};
 
 1;
 
@@ -108,9 +116,15 @@ You don't need to call something like C<__PACKAGE__-E<gt>meta-E<gt>make_immutabl
   my $foo = My::Class->new(simple => 1);
   my $foo2 = My::Class->new();
 
-We're protected from common mistakes, because constructor won't accept unknown attributes
+We're protected from common mistakes, because constructor won't accept unknown attributes.
+You may think why not C<My::Class::new>? You're right. The first option isn't really necessary and even constructor doesn't use it at all. But I decided to leave it that way
+because many developers are familiar with C<My::Class-E<gt>new> form. There is also an L</init> function for perfectionists
 
-  my $foo = My::Class->new(SiMple => 1);
+=head2 init
+
+  my $foo = My::Class::init({}, simple => 1);
+
+Like new, but dosn't create an object, your should pass it as the first argument.
 
 =head2 Storage
 
