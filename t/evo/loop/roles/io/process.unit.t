@@ -2,6 +2,8 @@ package main;
 use Evo 'Test::More; -Loop::Class; -Io *';
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
+use Test::Evo::Helpers 'HAS_O_NONBLOCK';
+plan skip_all => "Hasn't O_NONBLOCK" unless HAS_O_NONBLOCK();
 
 sub newloop { Evo::Loop::Class->new }
 

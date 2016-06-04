@@ -1,6 +1,8 @@
 use Evo '-Io *; -Loop *; Test::More; Socket :all; -Lib *';
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
+use Test::Evo::Helpers 'HAS_O_NONBLOCK';
 
+plan skip_all => "Hasn't O_NONBLOCK"      unless HAS_O_NONBLOCK();
 plan skip_all => 'Looks like a ro system' unless io_open_anon;
 
 sub newloop { Evo::Loop::Class->new; }

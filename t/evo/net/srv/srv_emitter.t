@@ -1,5 +1,8 @@
 use Evo 'Test::More; -Net::Srv; -Io *';
 
+use Test::Evo::Helpers 'HAS_O_NONBLOCK';
+plan skip_all => "Hasn't O_NONBLOCK" unless HAS_O_NONBLOCK();
+
 my $srv = Evo::Net::Srv->new();
 
 my $called = 0;
