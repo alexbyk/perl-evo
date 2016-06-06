@@ -5,10 +5,13 @@ requires qw(zone_cb);
 
 has postpone_queue => default => sub { [] };
 
-sub postpone_count($self) : Public { $self->postpone_queue->@* }
-sub postpone ($self, $fn) : Public { push $self->postpone_queue->@*, $self->zone_cb($fn); }
+sub postpone_count($self) { $self->postpone_queue->@* }
 
-sub postpone_process($self) : Public {
+sub postpone ($self, $fn) {
+  push $self->postpone_queue->@*, $self->zone_cb($fn);
+}
+
+sub postpone_process($self) {
   my $postpone = $self->postpone_queue;
   shift(@$postpone)->() while @$postpone;
 }

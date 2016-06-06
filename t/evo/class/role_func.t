@@ -9,7 +9,16 @@ use Test::Fatal;
   use Evo '-Class::Role *; -Loaded';
   has 'foo_short' => 11;
   has 'foo'       => 111;
-  sub bar : Public {44}
+
+  no warnings 'once';
+  *generated = sub {'gen'};
+  reg_method 'generated';
+
+  *not_public = sub {'bad'};
+
+  sub hidden : Private {'HIDDEN'}
+
+  sub bar {44}
 
   package My::Class;
   use Evo '-Class *';
@@ -24,5 +33,10 @@ my $obj = My::Class->new();
 is $obj->foo_short, 11;
 is $obj->foo,       111;
 is $obj->bar,       44;
+
+is $obj->generated, 'gen';
+ok !$obj->can('hidden');
+ok !$obj->can('not_public');
+ok !$obj->can('hidden');
 
 done_testing;

@@ -4,7 +4,7 @@ use Evo -Class::Role, '-Lib *; Carp carp croak';
 has zone_data => sub { {middleware => [[]]} };
 
 # calls callback with passed ws, and combines prev + passed for wcb
-sub zone : Public {
+sub zone {
   my ($self, $fn) = (shift, pop);
   my $data = $self->zone_data;
   local $data->{middleware} = [(map { [$_->@*] } $data->{middleware}->@*), []];
@@ -14,7 +14,7 @@ sub zone : Public {
 # IDEA:
 # Maybe register callback and return as is if already registered to prevent neighboard twice zone_cb
 # return $cb if($STORE{$cb});
-sub zone_cb ($self, $cb) : Public {
+sub zone_cb ($self, $cb) {
   my $data = $self->zone_data;
 
   # special case no middleware, optimization
@@ -41,15 +41,15 @@ sub zone_cb ($self, $cb) : Public {
   };
 }
 
-sub zone_middleware ($self, @mw) : Public {
+sub zone_middleware ($self, @mw) {
   my $mw = $self->zone_data->{middleware};
   push $mw->[-1]->@*, @mw if @mw;
   map { $_->@* } $mw->@*;
 }
 
-sub zone_level($self) : Public { return $self->zone_data->{middleware}->$#*; }
+sub zone_level($self) { return $self->zone_data->{middleware}->$#*; }
 
-sub zone_goto ($self, $level) : Public {
+sub zone_goto ($self, $level) {
   croak "Bad level $level (max ${\$self->zone_level})" unless $level < $self->zone_level;
   my $data = $self->zone_data;
   $data->{middleware} = [map { [$_->@*] } @{$data->{middleware}}[0 .. $level]];

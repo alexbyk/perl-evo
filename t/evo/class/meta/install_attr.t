@@ -11,13 +11,13 @@ $meta->install_attr('myrw', is => 'rw');
 
 ok $meta->builder_options->{known}{myro};
 ok $meta->builder_options->{known}{myrw};
-is { $meta->attrs }->{myro}{is}, 'ro';
-is { $meta->attrs }->{myrw}{is}, 'rw';
+is { $meta->public_attrs }->{myro}{is}, 'ro';
+is { $meta->public_attrs }->{myrw}{is}, 'rw';
 
 
 $meta->install_attr('mydef', 'val');
 ok $meta->builder_options->{known}{mydef};
-is { $meta->attrs }->{mydef}{default}, 'val';
+is { $meta->public_attrs }->{mydef}{default}, 'val';
 
 is $called, 3;
 done_testing;

@@ -3,7 +3,7 @@ use Evo '::Gen::Hash GEN; -Class::Meta; -Class::Common meta_of';
 use Evo '-Export *, -import';
 
 export_proxy '-Class::Common',
-  qw(init has has_overriden requires extends implements with MODIFY_CODE_ATTRIBUTES);
+  qw(init has has_overriden reg_method requires extends implements with MODIFY_CODE_ATTRIBUTES);
 
 sub import ($me, @args) {
   my $caller = caller;
@@ -36,7 +36,7 @@ export_gen new => sub($class) {
     has 'name' => 'unnamed';
     has 'gender', is => 'ro', required => 1;
     has age => check => sub($v) { $v >= 18 };
-    sub greet($self) : Public { say "I'm " . $self->name }
+    sub greet($self) { say "I'm " . $self->name }
   }
 
   my $alex = My::Human->new(gender => 'male');
@@ -68,7 +68,7 @@ export_gen new => sub($class) {
 
     has lang => 'Perl';
 
-    sub show($self) : Public {
+    sub show($self) {
       $self->greet();
       say "I like ", $self->lang;
     }
@@ -209,7 +209,41 @@ You can also return C<(0, "CustomError")> to provide more expressive explanation
 
 =head1 CODE REUSE
 
-Method should be marked with C<:Public> if you want to reuse them; Attributes are all public;
+All methods, defined in a class (not imported) are public. Functions, imported from other modules, don't become public and don't make a mess.
+
+All attributes are public.
+
+Methods, generated somehow else, for example by C<*foo = sub {}>, can be marked as public by L</reg_method>
+
+
+=head2 Private methods
+
+If you want to mark a method as private, use C<: Private> attribute. You should use C<_method($self)> syntax in most of cases.
+
+
+  {
+
+    package My::Parent;
+    use Evo -Class, -Loaded;
+    sub public            {'public'}
+    sub private : Private { }
+
+    package My::Child;
+    use Evo -Class;
+    extends 'My::Parent';
+  };
+
+  package main;
+  use Evo;
+  my $child  = My::Child->new();
+  my $parent = My::Parent->new();
+
+  say !!$child->can('public');     # true
+  say !!$parent->can('public');    # true
+
+  say !!$child->can('private');    # false
+  say !!$parent->can('private');   # true
+
 
 =head2 Overriding
 
@@ -248,7 +282,7 @@ This does "extend + check implementation". Consider this example:
 
     requires 'name';
 
-    sub greet($self) : Public {
+    sub greet($self) {
       say "My name is ", $self->name, " and I'm happy!";
     }
 
@@ -270,6 +304,30 @@ This does "extend + check implementation". Consider this example:
 C<My::Role::Happy> requires C<name> in derivered class. We could install shared code with C<extends> and then check implemantation with C<implements>. Or just use C<with> wich does both.
 
 You may want to use C<extends> and C<implements> separately to resolve circular requirements, for example
+
+=head2 reg_method
+
+  use Evo;
+  {
+
+    package My::Parent;
+    use Evo -Class, -Loaded;
+    no warnings 'once';
+    *foo = sub {'Foo'};
+    reg_method('foo');
+
+    package My::Child;
+    use Evo -Class;
+    extends 'My::Parent';
+
+
+  };
+
+  say My::Child->new()->foo;
+
+Because C<foo> was installed dynamically, it's not a method by default and doesn't take a part in inheritance process.
+But you can mark it as a method with this function
+
 
 =head1 CODE ATTRIBUTES
 

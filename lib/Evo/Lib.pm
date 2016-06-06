@@ -4,12 +4,14 @@ use Time::HiRes qw(CLOCK_MONOTONIC);
 
 PATCH: {
   no warnings 'once';
-  *debug               = *Evo::Lib::Bare::debug{CODE};
-  *monkey_patch        = *Evo::Lib::Bare::monkey_patch{CODE};
-  *monkey_patch_silent = *Evo::Lib::Bare::monkey_patch_silent{CODE};
+  *code2names          = *Evo::Lib::Bare::code2names;
+  *names2code          = *Evo::Lib::Bare::names2code;
+  *debug               = *Evo::Lib::Bare::debug;
+  *monkey_patch        = *Evo::Lib::Bare::monkey_patch;
+  *monkey_patch_silent = *Evo::Lib::Bare::monkey_patch_silent;
 }
 
-export qw(debug monkey_patch monkey_patch_silent);
+export qw(debug monkey_patch monkey_patch_silent code2names names2code);
 
 my $HAS_M_TIME = eval { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); 1; };
 
@@ -59,6 +61,19 @@ sub strict_opts ($level, $hash, @keys) : Export {
 
 
 1;
+
+=head2 code2names
+
+  {
+
+    package My::Foo;
+    sub foo { }
+  }
+
+  my $code = \&My::Foo::foo;
+  ($pkg, $name) = code2names($code);
+
+Return a package and a name of a code where the subroutine was declared
 
 =head2 strict_opts($level, $hash, @keys)
 

@@ -7,7 +7,7 @@ use Evo 'Test::More';
   use Evo '-Class; -Loaded';
 
   has myattr => 'a';
-  sub mymeth : Public {'A'}
+  sub mymeth {'A'}
   requires 'myreq';
 
   package My::Role;

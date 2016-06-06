@@ -19,6 +19,9 @@ CONVERT_FOR_BUILDER_ALL: {
   $meta->reg_attr(dfn        => default => $noop);
   $meta->reg_attr(with_check => check   => 'CH');
 
+  # mark one as private to ensure that all attrs are used
+  $meta->mark_private('dv');
+
   $meta->update_builder_options();
   my $shape = $meta->builder_options();
 

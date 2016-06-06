@@ -6,29 +6,29 @@ requires 'ee_events';
 # [name, cb]
 has ee_data => sub { {q => [], cur => undef} };
 
-sub ee_check ($self, $name) : Public {
+sub ee_check ($self, $name) {
   croak qq{Not recognized event "$name"} unless first { $_ eq $name } $self->ee_events;
   $self;
 }
 
-sub on ($self, $name, $fn) : Public {
+sub on ($self, $name, $fn) {
   push $self->ee_check($name)->ee_data->{q}->@*, [$name, $fn];
   $self;
 }
 
-sub ee_add ($self, $name, $fn) : Public {
+sub ee_add ($self, $name, $fn) {
   push $self->ee_check($name)->ee_data->{q}->@*, my $id = [$name, $fn];
   $id;
 }
 
-sub ee_remove ($self, $id) : Public {
+sub ee_remove ($self, $id) {
   my $data = $self->ee_data->{q};
   defined(my $index = first { $data->[$_] == $id } 0 .. $#$data) or croak "$id isn't a listener";
   splice $data->@*, $index, 1;
   $self;
 }
 
-sub ee_remove_current($self) : Public {
+sub ee_remove_current($self) {
   my ($q, $cur) = @{$self->ee_data}{qw(q cur)};
   defined(my $index = first { $q->[$_] == $cur } 0 .. $#$q) or croak "Not in the event";
   splice $q->@*, $index, 1;
@@ -36,14 +36,14 @@ sub ee_remove_current($self) : Public {
 }
 
 
-sub emit ($self, $name, @args) : Public {
+sub emit ($self, $name, @args) {
   my $data = $self->ee_data;
   do { local $data->{cur} = $_; $_->[1]->($self, @args) }
     for grep { $_->[0] eq $name } $self->ee_data->{q}->@*;
   $self;
 }
 
-sub ee_listeners ($self, $name) : Public {
+sub ee_listeners ($self, $name) {
   grep { $_->[0] eq $name } $self->ee_data->{q}->@*;
 }
 

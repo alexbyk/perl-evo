@@ -8,7 +8,6 @@ export('foo:fooa1');
 # exotic case, just to be consistent
 BEGIN {
   no warnings 'once';
-  *fooa2 = *foo;
 }
 
 # export by default name, glob alias will be found too

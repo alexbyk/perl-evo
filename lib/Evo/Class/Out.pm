@@ -3,7 +3,7 @@ use Evo '-Class::Gen::HUF GEN; -Class::Meta; -Class::Common meta_of';
 use Evo '-Export *, -import';
 
 export_proxy '-Class::Common',
-  qw(init has has_overriden requires extends implements with MODIFY_CODE_ATTRIBUTES);
+  qw(init has has_overriden reg_method requires extends implements with MODIFY_CODE_ATTRIBUTES);
 
 sub import ($me, @args) {
   my $caller = caller;
@@ -81,3 +81,5 @@ In this example we created spy object, that logs all invocations. You can make t
 
   local $, = '';
   say "logged: ", $_->@* for $spy->calls->@*;
+
+=cut

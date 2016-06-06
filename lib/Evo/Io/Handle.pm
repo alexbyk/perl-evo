@@ -12,9 +12,9 @@ sub _fopt ($flag, $debug, $s, $val = undef) {
   $s;
 }
 
-sub io_non_blocking : Public { _fopt(O_NONBLOCK, "nb", @_) }
+sub io_non_blocking { _fopt(O_NONBLOCK, "nb", @_) }
 
-sub DESTROY($self) : Public {
+sub DESTROY($self) {
   return if ${^GLOBAL_PHASE} eq 'DESTRUCT';
   my $fd = fileno $self or return;
   loop_io_remove_fd $fd;

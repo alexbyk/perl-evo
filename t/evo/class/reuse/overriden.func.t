@@ -8,7 +8,7 @@ use Evo 'Test::More';
 
   has attr_a1 => 'a1';
   has attr_a2 => 'a2';
-  sub meth_a : Public {'A'}
+  sub meth_a {'A'}
 
   package My::B;
   use Evo '-Class; -Loaded';

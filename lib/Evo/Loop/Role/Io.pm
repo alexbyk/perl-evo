@@ -13,12 +13,12 @@ use constant SOCKET_IN  => POLLIN | POLLPRI;
 use constant SOCKET_OUT => POLLOUT;
 use constant SOCKET_ERR => POLLERR | POLLNVAL | POLLHUP;
 
-sub io_count : Public { scalar keys $_[0]->io_data->%* }
+sub io_count { scalar keys $_[0]->io_data->%* }
 
 
-sub io_in : Public    { handle(in    => SOCKET_IN,  @_) }
-sub io_out : Public   { handle(out   => SOCKET_OUT, @_) }
-sub io_error : Public { handle(error => SOCKET_ERR, @_) }
+sub io_in    { handle(in    => SOCKET_IN,  @_) }
+sub io_out   { handle(out   => SOCKET_OUT, @_) }
+sub io_error { handle(error => SOCKET_ERR, @_) }
 
 sub handle ($type, $mask, $self, $handle, $fn) {
   my $fd = fileno $handle or croak "Can't find fileno for $handle";
@@ -28,9 +28,9 @@ sub handle ($type, $mask, $self, $handle, $fn) {
   $data->{$fd}{mask} |= $mask;
 }
 
-sub io_remove_in : Public    { io_remove(in    => SOCKET_IN,  @_) }
-sub io_remove_out : Public   { io_remove(out   => SOCKET_OUT, @_) }
-sub io_remove_error : Public { io_remove(error => SOCKET_ERR, @_) }
+sub io_remove_in    { io_remove(in    => SOCKET_IN,  @_) }
+sub io_remove_out   { io_remove(out   => SOCKET_OUT, @_) }
+sub io_remove_error { io_remove(error => SOCKET_ERR, @_) }
 
 # if no events, delete slot, else - upgrade mask
 sub io_remove ($type, $mask, $self, $handle) {
@@ -45,11 +45,15 @@ sub io_remove ($type, $mask, $self, $handle) {
   else { delete $data->{$fd}; }
 }
 
-sub io_remove_all ($self, $handle) : Public { delete $self->io_data->{fileno $handle}; }
+sub io_remove_all ($self, $handle) {
+  delete $self->io_data->{fileno $handle};
+}
 
-sub io_remove_fd ($self, $fd) : Public { delete $self->io_data->{$fd}; }
+sub io_remove_fd ($self, $fd) {
+  delete $self->io_data->{$fd};
+}
 
-sub io_process ($self, $timeout_float = undef) : Public {
+sub io_process ($self, $timeout_float = undef) {
   my $data = $self->io_data;
   return unless keys $data->%*;
   my $timeout_ms = $timeout_float ? int($timeout_float * 1000) : 0;

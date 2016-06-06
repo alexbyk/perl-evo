@@ -2,7 +2,7 @@ package Evo::Class::Role;
 use Evo '-Class::Meta; Carp croak; -Class::Common meta_of';
 use Evo '-Export *, -import';
 
-export_proxy '-Class::Common', qw(MODIFY_CODE_ATTRIBUTES requires reg_attr:has);
+export_proxy '-Class::Common', qw(MODIFY_CODE_ATTRIBUTES requires reg_attr:has reg_method);
 
 sub new : Export {
   my $class = __PACKAGE__;
@@ -29,7 +29,7 @@ sub import ($me, @args) {
     use Evo '-Class::Role *; -Loaded';
 
     has myattr => 'VAL';
-    sub to_lc($self) : Public { lc $self->myattr }
+    sub to_lc($self) { lc $self->myattr }
 
 
     # class
@@ -60,4 +60,3 @@ Role is just like classes except you can only reuse it. You can't create an inst
 Also can be used as "interaces"
 
 =cut
-

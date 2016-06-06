@@ -10,14 +10,19 @@ local *Evo::Class::Meta::monkey_patch = sub { };
 EXTEND_ATTR: {
   my $parent = dummy_meta('My::Parent');
   my $child  = dummy_meta('My::Child');
+  my $child2 = dummy_meta('My::Child2');
 
   $parent->install_attr('myattr1', 'DEF', check => sub {1});
   $parent->install_attr('myattr2', is => 'ro', check => sub {1});
 
   $child->extend_with($parent);
 
-  is_deeply { $parent->attrs }, {$child->attrs};
+  is_deeply { $parent->public_attrs }, {$child->public_attrs};
   is_deeply $parent->builder_options, $child->builder_options;
+
+  $parent->mark_private('myattr2');
+  $child2->extend_with($parent);
+  is_deeply [keys {$child2->public_attrs}->%*], ['myattr1'];
 
 }
 
@@ -33,26 +38,31 @@ EXTEND_METHOD: {
   my $parent = dummy_meta('My::Parent');
   my $child  = dummy_meta('My::Child');
 
-  $parent->reg_method('meth1', code => sub { });
-  $parent->reg_method('meth2', code => sub { });
+  my $sub = sub { };
+  local *Evo::Class::Meta::names2code = sub {$sub};
+
+  $parent->reg_method('meth1');
+  $parent->reg_method('meth2');
 
   $child->extend_with($parent);
-  is_deeply { $parent->methods }, {$child->methods};
+  is_deeply { $parent->public_methods }, {$child->public_methods};
 
 }
 
 CLASHING_METHODS: {
   my $parent = dummy_meta('My::Parent');
   my $child  = dummy_meta('My::Child');
-  $parent->reg_method('mymeth', code => sub { });
-  local *My::Child::mymeth = sub { };
+  local *My::Parent::mymeth = sub {'p'};
+  $parent->reg_method('mymeth');
+  local *My::Child::mymeth = sub {'ch'};
   like exception { $child->extend_with($parent) }, qr/can.+mymeth/;
 }
 
 OVERRIDEN: {
   my $parent = dummy_meta('My::Parent');
   my $child  = dummy_meta('My::Child');
-  $parent->reg_method('mymeth', code => sub { });
+  local *My::Parent::mymeth = sub {'p'};
+  $parent->reg_method('mymeth');
   $parent->reg_attr('myattr');
   local *My::Child::mymeth = sub { };
   local *My::Child::myattr = sub { };

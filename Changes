@@ -2,10 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0222    2016-06-04 20:23:12+03:00 Europe/Kiev
-
-0.0221    2016-06-04 20:10:53+03:00 Europe/Kiev
-
+  - Changed Class syntax. Now all methods are public by default
   - "new" and "init" are now different functions
   - Add Evo::Loop::zone_goto
   - Add Evo::Class:T/t_enum type

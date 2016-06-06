@@ -1,6 +1,6 @@
 package Evo::Class::Common;
 use Evo '-Export *; -Attr *; -Class::Util parse_style';
-use Evo 'List::Util first; Carp croak; Module::Load load';
+use Evo 'List::Util first; -Lib code2names; Carp croak; Module::Load load';
 use Evo::Lib::Bare;
 
 
@@ -15,6 +15,14 @@ export_gen reg_attr => sub($class) {
     meta_of($class)->reg_attr($name, parse_style @opts);
   };
 };
+
+export_gen reg_method => sub($class) {
+  sub ($name, @other) {
+    my $meta = meta_of($class);
+    $meta->reg_method($_) for ($name, @other);
+  };
+};
+
 
 export_gen has_overriden => sub($class) {
   sub ($name, @opts) {
@@ -65,16 +73,19 @@ export_gen with => sub($class) {
 
 sub _attr_handler ($class, $code, @attrs) {
   if (grep { $_ eq 'Overriden' } @attrs) {
-    meta_of($class)->mark_overriden($_) for Evo::Lib::Bare::find_subnames($class, $code);
+    my ($cl, $name) = code2names($code);
+    die "something wrong $class ne $cl" unless $cl eq $class;
+    meta_of($class)->mark_overriden($name);
   }
-  if (grep { $_ eq 'Public' } @attrs) {
-    meta_of($class)->reg_method($_, code => $code)
-      for Evo::Lib::Bare::find_subnames($class, $code);
+  if (grep { $_ eq 'Private' } @attrs) {
+    my ($cl, $name) = code2names($code);
+    die "something wrong $class ne $cl" unless $cl eq $class;
+    meta_of($class)->mark_private($name);
   }
 
   grep {
     my $cur = $_;
-    !first { $cur eq $_ } qw(Public Overriden)
+    !first { $cur eq $_ } qw(Private Overriden)
   } @attrs;
 }
 

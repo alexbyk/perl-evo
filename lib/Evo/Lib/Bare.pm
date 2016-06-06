@@ -4,12 +4,8 @@ use warnings;
 use experimental 'signatures';
 no warnings 'experimental::signatures';
 use Carp qw(carp croak);
+use B qw(svref_2object);
 
-
-my $NAME = do {
-  local $@;
-  eval { require Sub::Util; Sub::Util->can('set_subname') } || sub { $_[1] };
-};
 
 use constant SUBRE => qr/^[a-zA-Z_]\w*$/;
 sub check_subname { $_[0] =~ SUBRE }
@@ -31,7 +27,7 @@ sub find_caller_except ($skip_ns, $i, $caller) {
 
 sub monkey_patch ($pkg, %hash) {
   no strict 'refs';    ## no critic
-  *{"${pkg}::$_"} = $NAME->("${pkg}::$_", $hash{$_}) for keys %hash;
+  *{"${pkg}::$_"} = $hash{$_} for keys %hash;
 }
 
 #todo: decide what to do with empty subroutins
@@ -42,9 +38,21 @@ sub monkey_patch_silent ($pkg, %hash) {
   foreach my $name (keys %hash) {
     $restore{$name} = *{"${pkg}::$name"}{CODE};
     warn "Can't delete empty ${pkg}::$name" and next unless $hash{$name};
-    *{"${pkg}::$name"} = $NAME->("${pkg}::$name", $hash{$name});
+    *{"${pkg}::$name"} = $hash{$name};
   }
   \%restore;
+}
+
+# returns a package where code was declared and a name
+sub code2names($r) {
+  my $gv    = svref_2object($r)->GV;
+  my $stash = $gv->STASH;
+  ($stash->NAME, $gv->NAME);
+}
+
+sub names2code ($pkg, $name) {
+  no strict 'refs';    ## no critic
+  *{"${pkg}::$name"}{CODE};
 }
 
 
@@ -53,10 +61,10 @@ sub list_symbols($pkg) {
   grep { $_ =~ /^[a-zA-Z_]\w*$/ } keys %{"${pkg}::"};
 }
 
-sub undef_symbols($ns) {
-  no strict 'refs';    ## no critic
-  undef *{"${ns}::$_"} for list_symbols($ns);
-}
+#sub undef_symbols($ns) {
+#  no strict 'refs';    ## no critic
+#  undef *{"${ns}::$_"} for list_symbols($ns);
+#}
 
 
 sub uniq {
@@ -76,13 +84,13 @@ sub inject(%opts) {
   );
 }
 
-sub find_subnames ($pkg, $code) {
-  no strict 'refs';    ## no critic
-  my %symbols = %{$pkg . "::"};
-
-  # because use constant adds refs to package symbols hash
-  grep { !ref($symbols{$_}) && (*{$symbols{$_}}{CODE} // 0) == $code } keys %symbols;
-}
+#sub find_subnames ($pkg, $code) {
+#  no strict 'refs';    ## no critic
+#  my %symbols = %{$pkg . "::"};
+#
+#  # because use constant adds refs to package symbols hash
+#  grep { !ref($symbols{$_}) && (*{$symbols{$_}}{CODE} // 0) == $code } keys %symbols;
+#}
 
 
 our $RX_PKG_NOT_FIRST = qr/[0-9A-Z_a-z]+(?:::[0-9A-Z_a-z]+)*/;
