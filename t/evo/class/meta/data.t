@@ -105,6 +105,13 @@ METHOD: {
   is_deeply [keys %map], [sort qw(ownalias)];
 }
 
+SKIP_XSUBS: {
+  eval 'package My::WithConst; use Fcntl "SEEK_CUR";';    ## no critic
+  my $obj  = dummy_meta('My::WithConst');
+  my %hash = $obj->public_methods;
+  ok !keys %hash;
+}
+
 
 REQUIREMENTS: {
   my $obj = dummy_meta('My::Bar');

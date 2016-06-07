@@ -6,6 +6,7 @@ use Evo 'Test::More';
   package My::A;
   use Evo '-Class; -Loaded';
   use Evo::Class::Common 'meta_of';
+  use Fcntl 'SEEK_CUR';
 
   has attr_a => 'a';
   sub meth_a            {'A'}
@@ -37,6 +38,7 @@ is $c->meth_b,    'B';
 is $c->generated, 'gen';
 ok !$c->can('private');
 ok !$c->can('not_public');
+ok !$c->can('SEEK_CUR');
 is(My::A->new()->private, 'HIDDEN');
 
 

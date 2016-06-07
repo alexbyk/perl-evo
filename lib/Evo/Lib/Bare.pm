@@ -44,10 +44,12 @@ sub monkey_patch_silent ($pkg, %hash) {
 }
 
 # returns a package where code was declared and a name
+# TODO: determine better way constants like from Fcntl (better than XSUB)
 sub code2names($r) {
-  my $gv    = svref_2object($r)->GV;
+  my $sv    = svref_2object($r);
+  my $gv = $sv->GV;
   my $stash = $gv->STASH;
-  ($stash->NAME, $gv->NAME);
+  ($stash->NAME, $gv->NAME, $sv->XSUB);
 }
 
 sub names2code ($pkg, $name) {

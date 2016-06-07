@@ -33,8 +33,8 @@ sub _once ($self, $name, $key, $val) {
 
 
 sub _is_own ($class, $name, $code) {
-  my ($pkg, $realname) = code2names($code);
-  return $pkg eq $class && $realname eq $name;
+  my ($pkg, $realname, $xsub) = code2names($code);
+  return !$xsub && $pkg eq $class && $realname eq $name;
 }
 
 # !!!is_public isn't an opposite to is_private
