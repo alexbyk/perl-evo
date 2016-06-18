@@ -7,42 +7,32 @@ use 5.022000;
 use ExtUtils::MakeMaker;
 
 my %WriteMakefileArgs = (
-  "ABSTRACT" => "Evo - the next generation development framework",
-  "AUTHOR" => "alexbyk.com",
-  "CONFIGURE_REQUIRES" => {
-    "ExtUtils::MakeMaker" => 0
-  },
-  "DISTNAME" => "Evo",
-  "LICENSE" => "perl",
-  "MIN_PERL_VERSION" => "5.022000",
-  "NAME" => "Evo",
-  "PREREQ_PM" => {},
-  "TEST_REQUIRES" => {
-    "Test::Fatal" => 0,
-    "Test::More" => "0.88",
-    "Test::Pod" => 0
-  },
-  "VERSION" => "0.0223",
-  "test" => {
-    "TESTS" => "t/*.t t/evo/*.t t/evo/attr/*.t t/evo/class/*.t t/evo/class/gen/*.t t/evo/class/meta/*.t t/evo/class/reuse/*.t t/evo/ee/*.t t/evo/eval/*.t t/evo/evo_import/*.t t/evo/export/*.t t/evo/export/exporter/*.t t/evo/export/func_tests/*.t t/evo/export/unit/*.t t/evo/io/*.t t/evo/lib/*.t t/evo/lib/bare/*.t t/evo/loop/*.t t/evo/loop/comp/*.t t/evo/loop/roles/*.t t/evo/loop/roles/io/*.t t/evo/loop/roles/zone/*.t t/evo/net/srv/*.t t/evo/promise/*.t t/evo/promise/func/*.t t/evo/promise/promise/*.t t/evo/w/*.t t/evo/want/*.t t/perf/*.t"
+  "ABSTRACT"           => "Evo - the next generation development framework",
+  "AUTHOR"             => "alexbyk.com",
+  "CONFIGURE_REQUIRES" => {"ExtUtils::MakeMaker" => 0},
+  "DISTNAME"           => "Evo",
+  "LICENSE"            => "perl",
+  "MIN_PERL_VERSION"   => "5.022000",
+  "NAME"               => "Evo",
+  "PREREQ_PM"          => {},
+  "TEST_REQUIRES"      => {"Test::Fatal" => 0, "Test::More" => "0.88", "Test::Pod" => 0},
+  "VERSION"            => "0.0223",
+  "test"               => {
+    "TESTS" =>
+      "t/*.t t/evo/*.t t/evo/attr/*.t t/evo/class/*.t t/evo/class/gen/*.t t/evo/class/meta/*.t t/evo/class/reuse/*.t t/evo/ee/*.t t/evo/eval/*.t t/evo/evo_import/*.t t/evo/export/*.t t/evo/export/exporter/*.t t/evo/export/func_tests/*.t t/evo/export/unit/*.t t/evo/io/*.t t/evo/lib/*.t t/evo/lib/bare/*.t t/evo/loop/*.t t/evo/loop/comp/*.t t/evo/loop/roles/*.t t/evo/loop/roles/io/*.t t/evo/loop/roles/zone/*.t t/evo/net/srv/*.t t/evo/promise/*.t t/evo/promise/func/*.t t/evo/promise/promise/*.t t/evo/w/*.t t/evo/want/*.t t/perf/*.t"
   }
 );
 
 
-my %FallbackPrereqs = (
-  "Test::Fatal" => 0,
-  "Test::More" => "0.88",
-  "Test::Pod" => 0
-);
+my %FallbackPrereqs = ("Test::Fatal" => 0, "Test::More" => "0.88", "Test::Pod" => 0);
 
 
-unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {
+unless (eval { ExtUtils::MakeMaker->VERSION(6.63_03) }) {
   delete $WriteMakefileArgs{TEST_REQUIRES};
   delete $WriteMakefileArgs{BUILD_REQUIRES};
   $WriteMakefileArgs{PREREQ_PM} = \%FallbackPrereqs;
 }
 
-delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
-  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES} unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
 
 WriteMakefile(%WriteMakefileArgs);

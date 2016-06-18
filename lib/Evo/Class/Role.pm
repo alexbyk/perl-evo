@@ -55,7 +55,7 @@ sub import ($me, @args) {
 
 =head1 DESCRIPTION
 
-Role is just like classes except you can only reuse it. You can't create an instance of the role. If you need to reuse a code without "should be overriden by subclass" hacks - role is just what you expecting
+Role is just like classes except you can only reuse it. You can't create an instance of the role. If you need to reuse a code without "should be overridden by subclass" hacks - role is just what you expecting
 
 Also can be used as "interaces"
 

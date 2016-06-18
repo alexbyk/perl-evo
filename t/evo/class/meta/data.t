@@ -54,12 +54,12 @@ IS_PUBLIC_ATTR: {
 
 MARK_OVERRIDEN: {
   my $obj = dummy_meta;
-  $obj->mark_overriden('mymeth');
-  ok $obj->is_overriden('mymeth');
-  ok !$obj->is_overriden('mymeth2');
+  $obj->mark_overridden('mymeth');
+  ok $obj->is_overridden('mymeth');
+  ok !$obj->is_overridden('mymeth2');
 
   $obj->reg_attr('foo');
-  $obj->mark_overriden('foo');
+  $obj->mark_overridden('foo');
   $obj->reg_attr('foo');
 }
 

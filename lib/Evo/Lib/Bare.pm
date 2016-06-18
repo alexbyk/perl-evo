@@ -47,7 +47,7 @@ sub monkey_patch_silent ($pkg, %hash) {
 # TODO: determine better way constants like from Fcntl (better than XSUB)
 sub code2names($r) {
   my $sv    = svref_2object($r);
-  my $gv = $sv->GV;
+  my $gv    = $sv->GV;
   my $stash = $gv->STASH;
   ($stash->NAME, $gv->NAME, $sv->XSUB);
 }

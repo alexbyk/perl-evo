@@ -2,8 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0223    2016-06-06 16:33:49+03:00 Europe/Kiev
-
+  - Now use "Override" attribute and "has_over" function
   - Changed Class syntax. Now all methods are public by default
   - "new" and "init" are now different functions
   - Add Evo::Loop::zone_goto

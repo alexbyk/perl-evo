@@ -13,7 +13,7 @@ my $LAST;
 
   with -Net::Srv;
   has 'last';
-  sub srv_handle_accept ($self, $sock) : Overriden { $self->last($sock); $sock }
+  sub srv_handle_accept ($self, $sock) : Override { $self->last($sock); $sock }
 
 }
 

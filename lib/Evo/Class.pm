@@ -3,7 +3,7 @@ use Evo '::Gen::Hash GEN; -Class::Meta; -Class::Common meta_of';
 use Evo '-Export *, -import';
 
 export_proxy '-Class::Common',
-  qw(init has has_overriden reg_method requires extends implements with MODIFY_CODE_ATTRIBUTES);
+  qw(init has has_over reg_method requires extends implements with MODIFY_CODE_ATTRIBUTES);
 
 sub import ($me, @args) {
   my $caller = caller;
@@ -247,14 +247,14 @@ If you want to mark a method as private, use C<: Private> attribute. You should 
 
 =head2 Overriding
 
-Evo protects you from method clashing. But if you want to override method or fix clashing, use L</has_overriden> function or C<:Override> attribute
+Evo protects you from method clashing. But if you want to override method or fix clashing, use L</has_over> function or C<:Override> attribute
 
     package My::Peter;
     use Evo -Class;
     with 'My::Human';
 
-    has_overriden name => 'peter';
-    sub greet : Overriden { }
+    has_over name => 'peter';
+    sub greet : Override { }
 
 
 This differs from traditional OO style. With compoment programming, you should reuse code via L<Evo::Class::Role> or just organize classes with independed pieces of code like "mixing". So, try to override less
@@ -333,6 +333,6 @@ But you can mark it as a method with this function
 
   sub foo : Override { 'OVERRIDEN'; }
 
-Mark name as overriden. See L<Evo::Role/"Overriding methods">
+Mark name as overridden. See L<Evo::Role/"Overriding methods">
 
 =cut

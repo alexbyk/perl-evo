@@ -24,9 +24,9 @@ export_gen reg_method => sub($class) {
 };
 
 
-export_gen has_overriden => sub($class) {
+export_gen has_over => sub($class) {
   sub ($name, @opts) {
-    meta_of($class)->mark_overriden($name)->install_attr($name, @opts);
+    meta_of($class)->mark_overridden($name)->install_attr($name, @opts);
   };
 };
 
@@ -72,10 +72,10 @@ export_gen with => sub($class) {
 };
 
 sub _attr_handler ($class, $code, @attrs) {
-  if (grep { $_ eq 'Overriden' } @attrs) {
+  if (grep { $_ eq 'Override' } @attrs) {
     my ($cl, $name) = code2names($code);
     die "something wrong $class ne $cl" unless $cl eq $class;
-    meta_of($class)->mark_overriden($name);
+    meta_of($class)->mark_overridden($name);
   }
   if (grep { $_ eq 'Private' } @attrs) {
     my ($cl, $name) = code2names($code);
@@ -85,7 +85,7 @@ sub _attr_handler ($class, $code, @attrs) {
 
   grep {
     my $cur = $_;
-    !first { $cur eq $_ } qw(Private Overriden)
+    !first { $cur eq $_ } qw(Private Override)
   } @attrs;
 }
 

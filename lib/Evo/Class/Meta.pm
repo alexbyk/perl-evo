@@ -18,7 +18,7 @@ sub cached_init {
 
 sub new ($class, %opts) {
   croak "provide class" unless $opts{class};
-  bless {overriden => {}, requirements => {}, methods => {}, private => {}, attrs => {}, %opts},
+  bless {overridden => {}, requirements => {}, methods => {}, private => {}, attrs => {}, %opts},
     $class;
 }
 
@@ -26,7 +26,7 @@ sub _once ($self, $name, $key, $val) {
 
   # for case whan "has_overrined" follows "extends"
   croak "${\$self->class} already has \"$name\""
-    if $self->is_public($name) && !$self->is_overriden($name);
+    if $self->is_public($name) && !$self->is_overridden($name);
   Evo::Lib::Bare::check_subname($name) || croak(qq{"$name" is invalid name});
   $self->{$key}{$name} = $val;
 }
@@ -141,7 +141,7 @@ sub install_attr ($self, $name, @o) {
   my $attr_fn = compile_attr($self->gen, $name, %ao);
 
   # for case whan "has_overrined" follows "extends"
-  $self->is_overriden($name)
+  $self->is_overridden($name)
     ? monkey_patch_silent($class, $name => $attr_fn)
     : monkey_patch($class, $name => $attr_fn);
   $self->update_builder_options();
@@ -156,13 +156,13 @@ sub _process_is ($name, %res) {
   return %res;
 }
 
-sub mark_overriden ($self, $name) {
-  $self->{overriden}{$name}++;
+sub mark_overridden ($self, $name) {
+  $self->{overridden}{$name}++;
   $self;
 }
 
-sub is_overriden ($self, $name) {
-  $self->{overriden}{$name};
+sub is_overridden ($self, $name) {
+  $self->{overridden}{$name};
 }
 
 sub extend_with ($self, $other) {
@@ -173,14 +173,14 @@ sub extend_with ($self, $other) {
   my @names   = (keys(%attrs), keys(%methods));
 
   foreach my $name (keys %attrs) {
-    next if $self->is_overriden($name);
+    next if $self->is_overridden($name);
     croak qq{Class $class already can "$name", can't install attr} if $class->can($name);
     $self->install_attr($name, $attrs{$name}->%*);
   }
 
 
   foreach my $name (keys %methods) {
-    next if $self->is_overriden($name);
+    next if $self->is_overridden($name);
     croak qq{Class $class already can "$name", can't install method} if $class->can($name);
     monkey_patch $class, $name, names2code($other->class, $name);
     $self->reg_method($name);

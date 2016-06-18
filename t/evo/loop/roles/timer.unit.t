@@ -20,7 +20,7 @@ my $MOCK_TIME = 12.34_567;
   }
   sub tick_time($self) { $self->{ttcalled}++; $MOCK_TIME }
 
-  sub timer_sort_if_needed($self) : Overriden {
+  sub timer_sort_if_needed($self) : Override {
     $self->{sortcalled}++;
     Evo::Loop::Role::Timer::timer_sort_if_needed(@_);
   }

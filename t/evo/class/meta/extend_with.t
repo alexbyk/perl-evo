@@ -66,8 +66,8 @@ OVERRIDEN: {
   $parent->reg_attr('myattr');
   local *My::Child::mymeth = sub { };
   local *My::Child::myattr = sub { };
-  $child->mark_overriden("mymeth");
-  $child->mark_overriden("myattr");
+  $child->mark_overridden("mymeth");
+  $child->mark_overridden("myattr");
   $child->extend_with($parent);
 }
 

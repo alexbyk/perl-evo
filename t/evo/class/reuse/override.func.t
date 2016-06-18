@@ -14,11 +14,11 @@ use Evo 'Test::More';
   use Evo '-Class; -Loaded';
 
   # order doesn't matters
-  has_overriden attr_a1 => 'over1';
+  has_over attr_a1 => 'over1';
   extends "My::A";
-  has_overriden attr_a2 => 'over2';
+  has_over attr_a2 => 'over2';
 
-  sub meth_a : Overriden {'A2'}
+  sub meth_a : Override {'A2'}
 
 }
 
