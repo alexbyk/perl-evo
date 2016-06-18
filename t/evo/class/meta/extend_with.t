@@ -1,4 +1,4 @@
-use Evo '-Class::Meta; Test::More; Test::Fatal; Test::Evo::Helpers *';
+use Evo '-Class::Meta; Test::More; Test::Evo::Helpers exception; Test::Evo::Helpers *';
 
 no warnings qw(once redefine );
 local *Evo::Class::Meta::monkey_patch = sub { };

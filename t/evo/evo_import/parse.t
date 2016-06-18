@@ -1,6 +1,6 @@
 use Evo;
 use Test::More;
-use Test::Fatal;
+use Test::Evo::Helpers "exception";
 
 sub parse { [Evo::_parse('My::Caller', @_)] }
 sub parse_from { [Evo::_parse(@_)] }

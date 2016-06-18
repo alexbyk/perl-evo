@@ -2,7 +2,6 @@ requires 'perl',                '5.22.0';
 
 on test => sub {
   requires 'Test::More', '0.88';
-  requires 'Test::Fatal';
   requires 'Test::Pod';
 };
 

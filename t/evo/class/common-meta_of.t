@@ -1,4 +1,4 @@
-use Evo 'Test::More; Test::Fatal; -Class::Common meta_of';
+use Evo 'Test::More; Test::Evo::Helpers exception; -Class::Common meta_of';
 
 
 ok !meta_of("My::Class");

@@ -1,5 +1,5 @@
 package main;
-use Evo 'Test::More; Test::Fatal;';
+use Evo 'Test::More; Test::Evo::Helpers exception';
 
 
 {

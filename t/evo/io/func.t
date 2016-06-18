@@ -1,4 +1,4 @@
-use Evo 'Test::More; Test::Fatal; Socket :all; -Io *; File::Temp tempfile; Test::Evo::Helpers *';
+use Evo 'Test::More; Test::Evo::Helpers exception; Socket :all; -Io *; File::Temp tempfile; Test::Evo::Helpers *';
 
 CAN_BIND6     or plan skip_all => "No IPv6: " . $!      || $@;
 HAS_REUSEPORT or plan skip_all => "No REUSEPORT: " . $! || $@;

@@ -1,6 +1,6 @@
 use Evo -Export::Class;
 use Test::More;
-use Test::Fatal;
+use Test::Evo::Helpers "exception";
 
 sub gen_gen {
   my $v = shift;

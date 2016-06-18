@@ -1,7 +1,7 @@
 package main;
 use Evo;
 use Test::More;
-use Test::Fatal;
+use Test::Evo::Helpers "exception";
 use Evo::Class::Gen::HUF '*';
 
 {

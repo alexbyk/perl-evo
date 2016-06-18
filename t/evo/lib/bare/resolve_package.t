@@ -1,7 +1,7 @@
 package main;
 use Evo -Lib::Bare;
 use Test::More;
-use Test::Fatal;
+use Test::Evo::Helpers "exception";
 
 sub resolve { Evo::Lib::Bare::resolve_package('My::Caller', @_) }
 

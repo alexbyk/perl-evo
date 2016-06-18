@@ -1,7 +1,7 @@
 package main;
 use Evo '-Lib::Net *; -Loop *; -Io *; -Lib *';
 use Evo 'Test::Evo::Helpers *';
-use Evo 'Socket :all; Test::More; Test::Fatal; Errno EBADF';
+use Evo 'Socket :all; Test::More; Test::Evo::Helpers exception; Errno EBADF';
 
 CAN_BIND6 or plan skip_all => "No IPv6: " . $! || $@;
 

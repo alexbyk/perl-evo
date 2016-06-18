@@ -1,6 +1,6 @@
 use Evo '-Class::Util parse_style';
 use Test::More;
-use Test::Fatal;
+use Test::Evo::Helpers "exception";
 
 use constant EXTRA_FEATURES => ['is', 'type'];
 

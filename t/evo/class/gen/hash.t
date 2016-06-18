@@ -1,6 +1,6 @@
 use Evo '-Class::Gen::Hash GEN';
 use Test::More;
-use Test::Fatal;
+use Test::Evo::Helpers "exception";
 
 my $GEN = GEN;
 

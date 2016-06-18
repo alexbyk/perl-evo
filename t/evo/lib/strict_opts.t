@@ -1,4 +1,4 @@
-use Evo 'Test::More; -Lib *; Test::Fatal';
+use Evo 'Test::More; -Lib *; Test::Evo::Helpers exception';
 
 my %hash = (foo => 33, bar => 44, baz => 55);
 

@@ -7,8 +7,12 @@ use Evo '-Class::Meta; Socket :all; -Io *; -Lib::Net *; Socket AF_INET6; Fcntl O
 
 use constant CAN_BIND6 => eval {
   my ($saddr, $family) = net_gen_saddr_family('::1', undef);
-  io_socket()->io_bind($saddr);
+  my $sock = io_socket();
+  $sock->io_bind($saddr);
+  close $sock;
+  1;
 };
+
 use constant HAS_REUSEPORT => eval { io_socket()->io_reuseport; 1; };
 use constant CAN_CHANGEV6ONLY => eval { !io_socket()->io_v6only(0)->io_v6only; };
 use constant HAS_SO_DOMAIN    => eval { SO_DOMAIN() && 1; 1 };
@@ -31,6 +35,12 @@ sub dummy_meta : Export {
   };
 
   Evo::Class::Meta->new(gen => \%gen, class => $class);
+}
+
+sub exception($sub) : prototype(&) : Export {
+  local $@;
+  eval { $sub->() };
+  $@;
 }
 
 1;

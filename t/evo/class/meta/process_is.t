@@ -1,7 +1,7 @@
 use Evo;
 use Evo '-Class::Meta';
 use Test::More;
-use Test::Fatal;
+use Test::Evo::Helpers "exception";
 
 no warnings 'once';
 no warnings 'redefine';

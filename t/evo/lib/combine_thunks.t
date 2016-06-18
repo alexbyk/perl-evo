@@ -1,4 +1,4 @@
-use Evo 'Test::More; Test::Fatal; -Lib *';
+use Evo 'Test::More; Test::Evo::Helpers exception; -Lib *';
 
 
 like exception { combine_thunks() }, qr/provide.+$0/i;

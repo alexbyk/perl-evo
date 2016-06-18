@@ -1,5 +1,5 @@
 use Evo::Attr::Class;
-use Evo 'Test::More; Test::Fatal';
+use Evo 'Test::More; Test::Evo::Helpers exception';
 
 my $m = Evo::Attr::Class->new();
 my $SUB = sub {222};

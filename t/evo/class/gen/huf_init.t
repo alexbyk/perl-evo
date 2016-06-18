@@ -1,6 +1,6 @@
 use Evo '-Class::Gen::HUF GEN';
 use Test::More;
-use Test::Fatal;
+use Test::Evo::Helpers "exception";
 
 *HUF_DATA = *Evo::Class::Gen::HUF::HUF_DATA;
 

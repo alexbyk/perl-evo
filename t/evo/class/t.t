@@ -1,4 +1,4 @@
-use Evo '-Class::T *; Test::More; Test::Fatal';
+use Evo '-Class::T *; Test::More; Test::Evo::Helpers exception';
 
 
 like exception { t_enum() }, qr/empty.+$0/;

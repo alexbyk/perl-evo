@@ -1,6 +1,6 @@
 use Evo '-Class::Gen::HUF GEN';
 use Test::More;
-use Test::Fatal;
+use Test::Evo::Helpers "exception";
 
 my $GEN = GEN;
 
@@ -76,6 +76,9 @@ GSCH_CODE: {
   like exception { $gsch->($obj, -22), $obj; }, qr/bad value "-22".+"foo".+Ooops/i;
 }
 
+
 is_deeply Evo::Class::Gen::HUF::HUF_DATA(), {};
+
+use Data::Dumper;
 
 done_testing;

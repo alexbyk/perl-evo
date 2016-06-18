@@ -15,7 +15,7 @@ use Evo 'Test::More';
   requires 'myrolereq';
 
   package My::ChildBad;
-  use Evo '-Class; Test::More; Test::Fatal';
+  use Evo '-Class; Test::More; Test::Evo::Helpers exception';
   like exception { implements 'My::Parent'; }, qr/myattr/;
   like exception { implements 'My::Role'; },   qr/myrolereq/;
   like exception { with 'My::Parent'; },       qr/myreq/;

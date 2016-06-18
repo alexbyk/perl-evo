@@ -1,5 +1,5 @@
 use Evo
-  '-Loop *; Test::More; Test::Fatal; Test::Evo::Helpers *; Socket :all; -Io *; Symbol gensym';
+  '-Loop *; Test::More; Test::Evo::Helpers exception; Test::Evo::Helpers *; Socket :all; -Io *; Symbol gensym';
 
 CAN_BIND6     or plan skip_all => "No IPv6: " . $!      || $@;
 HAS_REUSEPORT or plan skip_all => "No REUSEPORT: " . $! || $@;

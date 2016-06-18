@@ -1,5 +1,5 @@
 package main;
-use Evo '-Class::Meta; Test::More; Test::Fatal; Test::Evo::Helpers *';
+use Evo '-Class::Meta; Test::More; Test::Evo::Helpers exception; Test::Evo::Helpers *';
 
 no warnings 'once';    ## no critic
 {
