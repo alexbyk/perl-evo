@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0225    2016-06-18 20:06:58+03:00 Europe/Kiev
+
 0.0224    2016-06-18 12:21:25+03:00 Europe/Kiev
 
   - Now use "Override" attribute and "has_over" function
