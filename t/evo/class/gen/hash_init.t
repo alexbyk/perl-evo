@@ -19,10 +19,10 @@ RDCH: {
   my $init = $GEN->{init}->(
     'MyClass',
     {
-      known    => {foo => 1, bar => 1, req => 1, dv => 1, dfn => 1, with_check => 1},
+      known => {foo => 1, bar => 1, req => 1, dv => 1, dfn => 1, with_check => 1},
       required => ['req'],
-      dv  => {dv => 'DV'},
-      dfn => {
+      dv       => {dv => 'DV'},
+      dfn      => {
         dfn => sub { is_deeply \@_, [qw(req 1 foo 2)]; "DFN"; }
       },
       check => {with_check => $POSITIVE}
@@ -47,10 +47,10 @@ RDCH_SPECIAL: {
   my $init = $GEN->{init}->(
     'MyClass',
     {
-      known    => {dv => 1, dfn => 1},
+      known => {dv => 1, dfn => 1},
       required => [],
-      dv  => {dv => -1},
-      dfn => {
+      dv       => {dv => -1},
+      dfn      => {
         dfn => sub { fail if @_; -2 }
       },
       check => {dv => $POSITIVE, dfn => $POSITIVE}

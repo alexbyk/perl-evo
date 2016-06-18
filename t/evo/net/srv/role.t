@@ -13,6 +13,7 @@ my $LAST;
   use Evo '-Class *';
   sub ee_events {qw(srv_error)}
   with -Net::Srv::Role, -Ee;
+
   sub srv_handle_accept ($self, $sock)
     : Override { $LAST = Evo::Net::Srv::Role::srv_handle_accept($self, $sock) }
 
