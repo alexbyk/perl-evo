@@ -53,9 +53,12 @@ sub gen_gs_value ($name, $value) {
   };
 }
 
-sub gen_gs_code ($name, $fn) {
+sub gen_gs_code ($name, $code) {
   sub {
-    return exists $DATA{$_[0]}{$name} ? $DATA{$_[0]}{$name} : $fn->($_[0]) if @_ == 1;
+    if (@_ == 1) {
+      return $DATA{$_[0]}{$name} if exists $DATA{$_[0]}{$name};
+      return $DATA{$_[0]}{$name} = $code->($_[0]);
+    }
     $DATA{$_[0]}{$name} = $_[1];
     $_[0];
   };
@@ -84,7 +87,10 @@ sub gen_gsch_value ($name, $ch, $value) {
 
 sub gen_gsch_code ($name, $ch, $code) {
   sub {
-    return exists $DATA{$_[0]}{$name} ? $DATA{$_[0]}{$name} : $code->($_[0]) if @_ == 1;
+    if (@_ == 1) {
+      return $DATA{$_[0]}{$name} if exists $DATA{$_[0]}{$name};
+      return $DATA{$_[0]}{$name} = $code->($_[0]);
+    }
     my ($ok, $msg) = $ch->($_[1]);
     croak_bad_value($_[1], $name, $msg) unless $ok;
     $DATA{$_[0]}{$name} = $_[1];

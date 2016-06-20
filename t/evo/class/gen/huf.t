@@ -26,9 +26,11 @@ GS_VALUE: {
 
 GS_CODE: {
   my $obj = closure();
-  my $fn  = sub { is $_[0], $obj; 'FN' };
+  my $i   = 1;
+  my $fn  = sub { is $_[0], $obj; 'FN' . $i++ };
   my $gs  = $GEN->{gs_code}->('foo', $fn);
-  is $gs->($obj), 'FN';
+  is $gs->($obj), $gs->($obj);    # same value
+  is $gs->($obj), 'FN1';
   is $gs->($obj, 0), $obj;
   is $gs->($obj), 0;
 }
@@ -64,11 +66,13 @@ GSCH_VALUE: {
 
 GSCH_CODE: {
   my $obj  = closure();
-  my $fn   = sub { is $_[0], $obj; 'FN' };
+  my $i    = 1;
+  my $fn   = sub { is $_[0], $obj; 'FN' . $i++ };
   my $gsch = $GEN->{gsch_code}->('foo', $check, $fn);
 
   # get
-  is $gsch->($obj), 'FN';
+  is $gsch->($obj), $gsch->($obj);    # same value
+  is $gsch->($obj), 'FN1';
 
   # set
   is $gsch->($obj, 11), $obj;

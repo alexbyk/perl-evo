@@ -6,6 +6,7 @@ Revision history for {{$dist->name}}
 
 0.0224    2016-06-18 12:21:25+03:00 Europe/Kiev
 
+  - lazy attribute now will be called only once if doesn't exists
   - Now use "Override" attribute and "has_over" function
   - Changed Class syntax. Now all methods are public by default
   - "new" and "init" are now different functions
