@@ -5,7 +5,7 @@ use Test::More;
 
 plan skip_all => 'set TEST_EVO_PERF env to enable this test' unless $ENV{TEST_EVO_PERF};
 
-my $EXPECT = 230_000 * $ENV{TEST_EVO_PERF};
+my $EXPECT = 200_000 * $ENV{TEST_EVO_PERF};
 
 my $N = 300_000;
 
