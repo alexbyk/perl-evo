@@ -7,7 +7,7 @@ export_proxy '-Class::Common',
 
 sub import ($me, @args) {
   my $caller = caller;
-  meta_of($caller) || meta_of($caller, Evo::Class::Meta->new(class => $caller, gen => GEN));
+  meta_of($caller) || meta_of($caller, Evo::Class::Meta->new(class => $caller, gen => {GEN()}));
   export_install_in($caller, $me, @args ? @args : '*');
 }
 

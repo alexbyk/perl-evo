@@ -2,13 +2,13 @@ use Evo '-Class::Gen::Hash GEN';
 use Test::More;
 use Test::Evo::Helpers "exception";
 
-my $GEN = GEN;
+my %GEN = GEN;
 
 
 my $POSITIVE = sub { return 1 if shift > 0; (0, "OOPS!") };
 
 OVERWRITE_CLASS: {
-  my $init = $GEN->{init}->('MyClass', {});
+  my $init = $GEN{init}->('MyClass', {});
   isa_ok $init->({},), 'MyClass';
 }
 
@@ -16,7 +16,7 @@ RDCH: {
 
   my @GOT_DFN;
 
-  my $init = $GEN->{init}->(
+  my $init = $GEN{init}->(
     'MyClass',
     {
       known => {foo => 1, bar => 1, req => 1, dv => 1, dfn => 1, with_check => 1},
@@ -44,7 +44,7 @@ RDCH: {
 
 # required default value doesn't need to pass check
 RDCH_SPECIAL: {
-  my $init = $GEN->{init}->(
+  my $init = $GEN{init}->(
     'MyClass',
     {
       known => {dv => 1, dfn => 1},
@@ -63,7 +63,7 @@ RDCH_SPECIAL: {
 # check that option is passed by ref and changint it affects builder too
 BY_REF: {
   my $bopts = {known => {dv => 1}, required => [], dv => {dv => 'v1'}, dfn => {}, check => {}};
-  my $init = $GEN->{init}->('MyClass', $bopts);
+  my $init = $GEN{init}->('MyClass', $bopts);
   is_deeply $init->({},), {dv => 'v1'};
   $bopts->{dv}{dv} = 'v2';
   is_deeply $init->({},), {dv => 'v2'};

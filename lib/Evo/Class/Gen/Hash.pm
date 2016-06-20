@@ -5,9 +5,11 @@ use Carp 'croak';
 our @CARP_NOT = ('Evo::Class::Hash', 'Evo::Class::Util', 'Evo::Class');
 
 no strict 'refs';    ## no critic
-my $GEN = {map { ($_, *{"gen_$_"}{CODE}) } qw(gs gsch gs_value gsch_value gs_code gsch_code init)};
+my %GEN = map { ($_, *{"gen_$_"}{CODE}) } qw(gs gsch gs_value gsch_value gs_code gsch_code init);
+sub GEN : Export {%GEN}
 
-sub GEN : Export {$GEN}
+sub attr_exists ($obj, $name) : Export { exists $obj->{$name} }
+sub attr_delete ($obj, $name) : Export { delete $obj->{$name} }
 
 sub gen_init ($class, $opts) {
 

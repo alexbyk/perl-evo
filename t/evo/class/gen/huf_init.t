@@ -8,12 +8,13 @@ sub closure() {
   my $fee;
   sub {$fee};
 }
+my %GEN = GEN();
 
 my $POSITIVE = sub { return 1 if shift > 0; (0, "OOPS!") };
 
 RDCH: {
 
-  my $new = GEN->{init}->(
+  my $new = $GEN{init}->(
     'MyClass',
     {
       known => {foo => 0, bar => 1, req => 2, dv => 3, dfn => 4, with_check => 5},
@@ -41,7 +42,7 @@ RDCH: {
 
 # required default value doesn't need to pass check
 RDCH_SPECIAL: {
-  my $new = GEN->{init}->(
+  my $new = $GEN{init}->(
     'MyClass',
     {
       known => {dv => 0, dfn => 1},
