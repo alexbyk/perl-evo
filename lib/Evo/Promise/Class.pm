@@ -145,7 +145,7 @@ sub d_traverse($self) {
           my $x;
           eval { $x = $h->($v); 1 } ? $cur->d_resolve_continue($x) : $cur->d_reject_continue($@);
         };
-        &loop_postpone($sub);    # 2.2.4, call async
+        $self->postpone($sub);    # 2.2.4, call async
         next;
       }
 
@@ -155,6 +155,10 @@ sub d_traverse($self) {
 
   }
 
+}
+
+sub postpone ($self, $fn) {
+  &loop_postpone($fn);
 }
 
 1;
