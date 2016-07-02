@@ -1,88 +1,71 @@
 package Evo::Attr;
-use Evo::Attr::Class;
-use Evo '-Export::Core *';    # because Evo::Export relies on me
+use strict;
+use warnings;
+use Carp 'croak';
+use Evo::Internal::Util;
+use feature 'signatures';
+no warnings 'experimental::signatures';
 
-*DEFAULT = *Evo::Attr::Class::DEFAULT;
+my $MCO = \&invoke_handlers;
 
-my $MODIFY_CODE_ATTRIBUTES = sub { DEFAULT()->run_handlers(@_); };
+sub patch_package ($me, $pkg) {
+  Evo::Internal::Util::monkey_patch $pkg, MODIFY_CODE_ATTRIBUTES => $MCO;
+}
 
-export_gen attr_handler => sub($provider) {
-  sub($handler) {
-    my $EXP  = Evo::Export::Class::DEFAULT;
-    my $ATTR = Evo::Attr::Class::DEFAULT;
+our %HANDLERS;
 
-    # register handler
-    $ATTR->register_handler_of($provider, $handler);
+%HANDLERS = (
+  Attr => {
+    provider => __PACKAGE__,
+    handler  => sub ($provider, $handler, $name) {
+      register_attribute($provider, $name, $handler);
+    }
+  }
+);
 
-    # add MODIFY_CODE_ATTRIBUTES for provider's export list
-    $EXP->add_gen(
-      $provider,
-      'MODIFY_CODE_ATTRIBUTES',
-      sub($dpkg) {
-        $ATTR->install_handler_in($dpkg, $provider);
-        $MODIFY_CODE_ATTRIBUTES;
-      }
-    );
+# $provider is a key, just for error message
+sub register_attribute ($provider, $name, $handler) {
+  croak "$name was already taken by $HANDLERS{$name}{provider}" if $HANDLERS{$name};
+  $HANDLERS{$name} = {provider => $provider, handler => $handler};
+}
 
-  };
-};
+sub invoke_handlers ($dest, $code, @attrs) {
+  my (undef, $subname) = Evo::Internal::Util::code2names($code);
+  my @remaining;
+  foreach my $attr_raw (@attrs) {
+    my ($attr, @args) = parse_attr($attr_raw);
 
+    if (my $slot = $HANDLERS{$attr}) {
+      $slot->{handler}->($dest, $code, $subname, @args);
+    }
+    else { push @remaining, $attr_raw }
+  }
+  @remaining;
+}
+
+sub parse_attr ($attr) {
+  $attr =~ /(\w+) ( \( \s* ([\w\,\s]+) \s* \) )?/x;
+  return ($1, split /\,\s?/, $3 // '');
+}
 
 1;
 
+=head2 SYNOPSYS
 
-=head1 SYNOPSYS
-
-  # Foo.pm
   package Foo;
-  use Evo '-Attr attr_handler; -Export import';
+  use Evo;
 
-  attr_handler(
-    sub ($pkg, $code, @attrs) {
-      my @found     = grep {/^Foo/} @attrs;
-      my @remaining = grep { !/^Foo/ } @attrs;
-      say "found in $pkg ($code): " . join ', ', @found if @found;
-      @remaining;
-    }
-  );
+  sub Foo ($dest, $code, $name, @args) : EvoAttr {
+    say "$dest-$code-$name: " . join ';', @args;
+  }
 
+  package main;
+  use Evo;
+  sub mysub : Foo          {...}
+  sub mysub2 : Foo(a1, a2) {...}
 
-  # test.pl
-  use Evo 'Foo *';
-  sub foo : Foo {...}
+=head2 DESCRIPTION
 
-=head1 DESCRIPTION
+This module provide a simple way to handle attributes. It doesn't change UNIVERSAL. To work properly, each module should call C<use Evo> at the beginning to install necessary code
 
-Provides a nice way to use attributes without limitations.
-
-=head1 USAGE
-
-Package that provides attribute should call L</attr_handler> with a handler as a first argument. That handler should examine attributes, and return unknown for other handlers.
-
-Provider should also import L<Evo::Export/import> to be able to export C<MODIFY_CODE_ATTRIBUTES> into the package, that uses attributes.
-
-This approach allow mix different attributes without patching C<UNIVERSAL>.
-
-  package Bar;
-
-  use Evo '-Loaded; -Attr attr_handler; -Export import';
-
-  attr_handler(
-    sub ($pkg, $code, @attrs) {
-      my @found     = grep {/^Bar/} @attrs;
-      my @remaining = grep { !/^Bar/ } @attrs;
-      say "found in $pkg ($code): " . join ', ', @found if @found;
-      @remaining;
-    }
-  );
-
-  # test2.pl
-  use Evo 'Foo *; Bar *';
-
-  sub multi : Foo : Bar(args) {...}
-
-=head2 attr_handler
-
-This method should be called only once. In fact, it adds C<MODIFY_CODE_ATTRIBUTES> to export list and call internal methods that register handler.
-
-1;
+=cut

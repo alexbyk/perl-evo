@@ -20,5 +20,10 @@ FEATURE: {
   ok !$@;
 }
 
+FEATURE: {
+  eval 'my sub foo {}';                ## no critic
+  ok !$@;
+}
+
 
 done_testing;

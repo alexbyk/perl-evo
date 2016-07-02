@@ -1,5 +1,5 @@
-use Evo 'Test::More; Test::Evo::Helpers exception; -Lib *';
-
+use Evo 'Test::More; -Lib *';
+use Evo::Internal::Exception;
 
 like exception { combine_thunks() }, qr/provide.+$0/i;
 

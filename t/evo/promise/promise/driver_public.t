@@ -1,7 +1,7 @@
 package main;
 use Evo '-Promise::Util *; -Promise::Class';
 use Test::More;
-use Test::Evo::Helpers "exception";
+use Evo::Internal::Exception;
 
 sub p { Evo::Promise::Class->new(@_) }
 

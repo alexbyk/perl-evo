@@ -22,7 +22,7 @@ my @called;
 EMPTY: {
   no warnings 'redefine';
   my @loaded;
-  local *Evo::load = sub { push @loaded, shift };
+  local *Module::Load::load = sub { push @loaded, shift };
   Evo::->import('Evo::My ()');
   Evo::->import('Evo::My()');
   Evo::->import('Evo::My ( ) ');

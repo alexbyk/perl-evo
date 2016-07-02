@@ -1,208 +1,246 @@
 package Evo::Class::Meta;
-use Evo
-  'Carp croak; -Lib monkey_patch monkey_patch_silent code2names names2code; -Lib::Bare; -Export *';
-use Evo '/::Util compile_attr parse_style';
+use Evo -Internal::Util;
+use Evo 'Carp croak; -Internal::Util; Module::Load ()';
 
-our @CARP_NOT
-  = qw(Evo::Class::Gen::Array Evo::Class::Gen::Hash Evo::Class::Gen::HUF Evo::Class::Common);
+our @CARP_NOT = qw(Evo::Class::Role Evo::Class::Out Evo::Class
+  Evo::Class::Common::StorageFunctions Evo::Class::Common::RoleFunctions);
 
-sub class($self) { $self->{class} || die "no class" }
-sub gen($self)   { $self->{gen}   || die "no gen" }
-sub builder_options ($self) { $self->{_bo} ||= {}; }
+no warnings 'redefine';    ## no critic
 
-sub cached_init {
-  return $_[0]->{cached_init} if @_ == 1;
-  $_[0]->{cached_init} = $_[1];
-  $_[0];
+sub register ($me, $package) {
+  my $self = Evo::Internal::Util::pkg_stash($package, $me);
+  return $self if $self;
+  $self = bless {
+    package     => $package,
+    _private    => {},
+    _attrs      => {},
+    _methods    => {},
+    _reqs       => {},
+    _overridden => {}
+  }, $me;
+  Evo::Internal::Util::pkg_stash($package, $me, $self);
+  $self;
 }
 
-sub new ($class, %opts) {
-  croak "provide class" unless $opts{class};
-  bless {overridden => {}, requirements => {}, methods => {}, private => {}, attrs => {}, %opts},
-    $class;
+sub find_or_croak ($self, $package) {
+  Evo::Internal::Util::pkg_stash($package, $self) or croak "$package isn't Evo::Class";
 }
 
-sub _once ($self, $name, $key, $val) {
+sub package($self) { $self->{package} }
 
-  # for case whan "has_overrined" follows "extends"
-  croak "${\$self->class} already has \"$name\""
-    if $self->is_public($name) && !$self->is_overridden($name);
-  Evo::Lib::Bare::check_subname($name) || croak(qq{"$name" is invalid name});
-  $self->{$key}{$name} = $val;
-}
+sub attrs($self)      { $self->{_attrs} }
+sub methods($self)    { $self->{_methods} }
+sub reqs($self)       { $self->{_reqs} }
+sub overridden($self) { $self->{_overridden} }
+sub private($self)    { $self->{_private} }
 
-
-sub _is_own ($class, $name, $code) {
-  my ($pkg, $realname, $xsub) = code2names($code);
-  return !$xsub && $pkg eq $class && $realname eq $name;
-}
-
-# !!!is_public isn't an opposite to is_private
-sub is_public ($self, $name) {
-  $self->is_public_attr($name) || $self->is_public_method($name);
-}
-
-sub is_public_attr ($self, $name) {
-  return   if $self->is_private($name);
-  return 1 if $self->{attrs}{$name};
-  return;
-}
-
-sub is_public_method ($self, $name) {
-  return   if $self->is_private($name);
-  return 1 if exists $self->{methods}{$name};
-  my $class = $self->class;
-  my $code = names2code($class, $name) or return;
-  return _is_own($class, $name, $code);
-}
-
-sub mark_private ($self, $name) {
-  $self->{private}{$name}++;
-}
-
-sub is_private ($self, $name) {
-  $self->{private}{$name};
-}
-
-sub public_attrs($self) {
-  map { ($_, $self->{attrs}{$_}) }
-    grep { $self->is_public_attr($_) } Evo::Lib::Bare::list_symbols($self->class);
-}
-
-sub public_methods($self) {
-  my $class = $self->class;
-  map { ($_, names2code($class, $_)) }
-    grep { $self->is_public_method($_) } Evo::Lib::Bare::list_symbols($self->class);
-}
-
-sub requirements($self) {
-  my %all = ($self->public_attrs, $self->public_methods, $self->{requirements}->%*);
-  keys %all;
-}
-
-sub reg_requirement ($self, $name) {
-  $self->{requirements}{$name}++;
-}
-
-
-# means register external sub as method. Because every sub in the current package
-# is public by default
-sub reg_method ($self, $name) {
-  my $class = $self->class;
-
-  # check if exists
-  my $code = names2code($class, $name) or croak "$class::$name doesn't exist";
-
-  $self->_once($name, 'methods', 'public');
-}
-
-
-sub reg_attr ($self, $name, %opts) {
-  $self->cached_init(undef)->_once($name, attrs => \%opts);
-}
-
-sub _map ($self, $what) {
-  map { $_ => $self->{public}{$_}{value} }
-    grep { $self->{public}{$_}{type} eq $what } keys $self->{public}->%*;
-}
-
-
-# it's important that $self->{builder_options} never changes and is updated by ref
-sub update_builder_options ($self) {
-
-  my $bo = $self->builder_options;
-  %{$bo} = (known => {}, required => [], dv => {}, dfn => {}, check => {});
-  my %attrs = $self->{attrs}->%*;    # not public, all
-  for my $name (keys %attrs) {
-    my %o = $attrs{$name}->%*;
-    $bo->{known}{$name}++;
-    push $bo->{required}->@*, $name if $o{required};
-    (ref $o{default} ? $bo->{dfn} : $bo->{dv})->{$name} = $o{default} if exists $o{default};
-    $bo->{check}{$name} = $o{check} if $o{check};
-  }
-}
-
-sub compile_builder ($self) {
-  my $init;
-  return $init if $init = $self->cached_init;
-  $self->update_builder_options;
-  $self->cached_init($init = $self->gen->{init}->($self->class, $self->builder_options));
-  $init;
-}
-
-sub install_attr ($self, $name, @o) {
-
-
-  my %o = parse_style(@o);
-  $self->reg_attr($name, %o);
-  my $class = $self->class;
-
-  my %ao = _process_is($name, %o);
-  my $attr_fn = compile_attr($self->gen, $name, %ao);
-
-  # for case whan "has_overrined" follows "extends"
-  $self->is_overridden($name)
-    ? monkey_patch_silent($class, $name => $attr_fn)
-    : monkey_patch($class, $name => $attr_fn);
-  $self->update_builder_options();
-}
-
-sub _process_is ($name, %res) {
-  my $is = delete($res{is}) || 'rw';
-  croak qq#invalid "is": "$is"# unless $is eq 'ro' || $is eq 'rw';
-
-  $res{check} = sub { croak qq#Attribute "$name" is readonly#; }
-    if $is eq 'ro';    # ro replaces check
-  return %res;
-}
-
-sub mark_overridden ($self, $name) {
-  $self->{overridden}{$name}++;
+sub mark_as_overridden ($self, $name) {
+  $self->overridden->{$name}++;
   $self;
 }
 
 sub is_overridden ($self, $name) {
-  $self->{overridden}{$name};
+  $self->overridden->{$name};
 }
 
-sub extend_with ($self, $other) {
-  my $class = $self->class;
+sub mark_as_private ($self, $name) {
+  $self->private->{$name} = 1;
+}
 
-  my %attrs   = $other->public_attrs();
-  my %methods = $other->public_methods();
-  my @names   = (keys(%attrs), keys(%methods));
+sub is_private ($self, $name) {
+  $self->private->{$name};
+}
+
+# first check methods, if doesn't exists, try to determine if there is a sub in package
+# if a sub is compiled in the same package, it's a public, if not(imported or xsub), it's private
+
+sub is_method ($self, $name) {
+  return 1 if $self->methods->{$name};
+  my $pkg = $self->package;
+  my $code = Evo::Internal::Util::names2code($pkg, $name) or return;
+  my ($realpkg, $realname, $xsub) = Evo::Internal::Util::code2names($code);
+  return !$xsub && $realpkg eq $pkg;
+}
+
+sub is_attr ($self, $name) {
+  $self->attrs->{$name};
+}
+
+# has attribute or sub
+sub has_name ($self, $name) {
+  $self->attrs->{$name} || Evo::Internal::Util::names2code($self->package, $name);
+}
+
+sub _check_valid_name ($self, $name) {
+  croak(qq{"$name" is invalid name}) unless Evo::Internal::Util::check_subname($name);
+}
+
+sub _check_exists ($self, $name) {
+  my $pkg = $self->package;
+  croak qq{$pkg already has attribute "$name"} if $self->is_attr($name);
+  croak qq{$pkg already has method "$name"}    if $self->is_method($name);
+}
+
+sub _check_exists_valid_name ($self, $name) {
+  _check_valid_name($self, $name);
+  _check_exists($self, $name);
+}
+
+sub reg_attr ($self, $name, %opts) {
+  _check_exists_valid_name($self, $name);
+  my $pkg = $self->package;
+  croak qq{$pkg already has subroutine "$name"} if Evo::Internal::Util::names2code($pkg, $name);
+  $self->attrs->{$name} = \%opts;
+}
+
+sub reg_attr_over ($self, $name, %opts) {
+  _check_valid_name($self, $name);
+  $self->attrs->{$name} = \%opts;
+  $self->mark_as_overridden($name);
+}
+
+# means register external sub as method. Because every sub in the current package
+# is public by default
+sub reg_method ($self, $name) {
+  _check_exists_valid_name($self, $name);
+  my $pkg = $self->package;
+  my $code = Evo::Internal::Util::names2code($pkg, $name) or croak "$pkg::$name doesn't exist";
+  $self->methods->{$name}++;
+}
+
+sub public_methods($self) {
+  my $pkg = $self->package;
+  map { ($_, Evo::Internal::Util::names2code($pkg, $_)) }
+    grep { !$self->is_private($_) && $self->is_method($_) }
+    Evo::Internal::Util::list_symbols($pkg);
+}
+
+sub public_attrs($self) {
+  map { ($_, $self->attrs->{$_}) } grep { !$self->is_private($_) } keys $self->attrs->%*;
+}
+
+sub extend_with ($self, $source_p) {
+  Module::Load::load($source_p);
+  my $source  = $self->find_or_croak($source_p);
+  my $dest_p  = $self->package;
+  my %reqs    = $source->reqs()->%*;
+  my %attrs   = $source->public_attrs();
+  my %methods = $source->public_methods();
+
+  my @new_attrs;
+
+  foreach my $name (keys %reqs) { $self->reg_requirement($name); }
 
   foreach my $name (keys %attrs) {
     next if $self->is_overridden($name);
-    croak qq{Class $class already can "$name", can't install attr} if $class->can($name);
-    $self->install_attr($name, $attrs{$name}->%*);
+    croak qq/$dest_p already has a subroutine with name "$name"/
+      if Evo::Internal::Util::names2code($dest_p, $name);
+    $self->reg_attr($name, $attrs{$name}->%*);
+    push @new_attrs, $name;
   }
-
 
   foreach my $name (keys %methods) {
     next if $self->is_overridden($name);
-    croak qq{Class $class already can "$name", can't install method} if $class->can($name);
-    monkey_patch $class, $name, names2code($other->class, $name);
+    croak qq/$dest_p already has a subroutine with name "$name"/
+      if Evo::Internal::Util::names2code($dest_p, $name);
+    _check_exists($self, $name);    # prevent patching before check
+    Evo::Internal::Util::monkey_patch $dest_p, $name, $methods{$name};
     $self->reg_method($name);
   }
-
-  $self;
+  @new_attrs;
 }
 
-sub check_implementation ($self, $inter) {
-  my ($self_class, $inter_class) = ($self->class, $inter->class);
-  my @reqs = sort $inter->requirements;
+
+sub reg_requirement ($self, $name) {
+  $self->reqs->{$name}++;
+}
+
+sub requirements($self) {
+  my %all = ($self->public_attrs, $self->public_methods, $self->reqs->%*);
+  keys %all;
+}
+
+sub check_implementation ($self, $inter_class) {
+  Module::Load::load($inter_class);
+  my $class = $self->package;
+  my $inter = $self->find_or_croak($inter_class);
+  my @reqs  = sort $inter->requirements;
   croak qq{Empty class "$inter_class", nothing to check} unless @reqs;
 
-  my @not_exists = grep { !$self_class->can($_); } @reqs;
+  my @not_exists = grep { !($self->is_attr($_) || $class->can($_)); } @reqs;
   return $self if !@not_exists;
 
-  croak qq/Bad implementation of "$inter_class", missing in "$self_class": /, join ';',
-    @not_exists;
+  croak qq/Bad implementation of "$inter_class", missing in "$class": /, join ';', @not_exists;
 }
 
-sub with ($self, $parent) {
-  $self->extend_with($parent)->check_implementation($parent);
+my @KNOWN = qw(default required lazy check is);
+
+sub parse_attr ($self, @attr) {
+  my %unknown = my %opts = (@attr % 2 ? (default => @attr) : @attr);
+  delete $unknown{$_} for @KNOWN;
+  croak "unknown options: " . join(',', sort keys %unknown) if keys %unknown;
+  croak "providing default and setting required doesn't make sense"
+    if exists $opts{default} && $opts{required};
+
+  croak qq#"default" should be either a code reference or a scalar value#
+    if ref $opts{default} && ref $opts{default} ne 'CODE';
+
+  croak qq#"lazy" should be a code reference# if exists $opts{lazy} && ref $opts{lazy} ne 'CODE';
+  croak qq#"check" should be a code reference#
+    if exists $opts{check} && ref $opts{check} ne 'CODE';
+
+  if ($opts{is}) {
+    croak qq#invalid "is": "$opts{is}"# unless $opts{is} eq 'ro' || $opts{is} eq 'rw';
+  }
+  %opts;
 }
+
 
 1;
+
+=head1 METHODS
+
+=head2 register
+
+Register a meta instance only once. The second invocation will return the same instance.
+But if it will be called from another subclass, die. This is a protection from the fool
+
+Meta is stored in C<$Some::Class::META_CLASS> global variable and lives as long as a package.
+
+=head1 IMPLEMENTATION NOTES
+
+=head2 overridden
+
+"overridden" means this symbol will be skept during L</extend_with> so if you marked something as overridden, you should define method or sub yourself too.  This is not a problem with C<sub foo : Over {}> or L</reg_attr_over> because it marks symbol as overridden and also registers a symbol.
+
+BUT!!!
+Calling L</reg_attr_over> should be called 
+
+
+=head2 private
+
+Mark something as private (even if it doesn't exist) to skip at from L</public_*>. But better use C<my sub foo {}> feature
+
+=head2 reg_method
+
+All methods compiled in the class are public by default. But what to do if you make a method by monkey-patching or by extending? Use C</reg_method>
+
+  package Foo;
+  use Evo 'Scalar::Util(); -Class::Meta';
+  my $meta = Evo::Class::Meta->register(__PACKAGE__);
+
+  no warnings 'once';
+  *lln = \&Scalar::Util::looks_like_number;
+
+  # nothing, because lln was compiled in Scalar::Util
+  say $meta->public_methods;
+
+  # fix this
+  $meta->reg_method('lln');
+  say $meta->public_methods;
+
+=head2 check_implementation
+
+If implementation requires "attribute", L</reg_attr> should be called before checking implementation 
+
+=cut

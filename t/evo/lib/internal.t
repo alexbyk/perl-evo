@@ -19,7 +19,7 @@ local $SIG{__WARN__} = sub {
   $got = shift;
 };
 
-Evo::Lib::Bare::enable_debug(1);
+Evo::Internal::Util::enable_debug(1);
 Foo::foo('hello');
 like $got, qr/\[Foo\].+hello/;
 

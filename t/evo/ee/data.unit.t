@@ -1,6 +1,5 @@
 package main;
-use Evo 'Test::More; Test::Evo::Helpers exception';
-
+use Evo 'Test::More; Evo::Internal::Exception';
 
 {
 

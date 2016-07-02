@@ -1,4 +1,4 @@
-use Evo '-Lib ws_fn; Test::More; Test::Evo::Helpers exception';
+use Evo '-Lib ws_fn; Test::More; Evo::Internal::Exception';
 
 
 sub w_add($add) {

@@ -1,30 +1,53 @@
 package Evo::Export;
-use Evo '-Attr *; ::Core *';
+use Evo '::Meta';
 
-export_proxy 'Evo::Export::Core', '*';
 
-sub _attr_handler ($pkg, $code, @attrs) {
-  my (@bad, @good);
-  foreach my $attr (@attrs) {
-    my ($attr_name, $val) = _parse_attr($attr);
-    $attr_name eq 'Export' ? push @good, $val : push @bad, $attr;
-  }
+my $META = Evo::Export::Meta->find_or_bind_to(__PACKAGE__);
 
-  foreach my $name (@good) {
-    $name or (undef, $name) = Evo::Lib::Bare::code2names($code);
-    Evo::Export::Class::DEFAULT->add_gen($pkg, $name, sub {$code});
-  }
-
-  return @bad;
+sub install_in ($me, $dest, $from, @list) {
+  Evo::Export::Meta->find_or_bind_to($from)->install($dest, @list);
 }
 
+sub Export ($pkg, $code, $name, $as = $name) : Attr {
+  $name or (undef, $name) = Evo::Lib::Bare::code2names($code);
+  Evo::Export::Meta->find_or_bind_to($pkg)->export_code($as, $code);
+}
 
-# pay attention: without provided name all aliases will be found by _find_subnames and exported
-attr_handler \&_attr_handler;
+sub ExportGen ($pkg, $gen, $name, $as = $name) : Attr {
+  $name or (undef, $name) = Evo::Lib::Bare::code2names($gen);
+  Evo::Export::Meta->find_or_bind_to($pkg)->export_gen($as, $gen);
+}
 
-sub _parse_attr($attr) {
-  $attr =~ /(\w+) ( \( \s* (\w+) \s* \) )?/x;
-  return ($1, $3);
+sub import ($self, @list) : Export {
+  my $dest = scalar caller;
+  Evo::Export::Meta->find_or_bind_to($self)->install($dest, @list);
+}
+
+sub import_all ($exporter, @list) : Export {
+  @list = ('*') unless @list;
+  Evo::Export::Meta->find_or_bind_to($exporter)->install(scalar caller, @list);
+}
+
+sub export_gen ($me, $dst) : ExportGen {
+  sub ($name, $gen) {
+    Evo::Export::Meta->find_or_bind_to($dst)->export_gen($name, $gen);
+  };
+}
+
+sub export_code ($me, $dst) : ExportGen {
+  sub ($name, $fn) {
+    Evo::Export::Meta->find_or_bind_to($dst)->export_code($name, $fn);
+  };
+}
+
+sub export ($me, $dst) : ExportGen {
+  sub { Evo::Export::Meta->find_or_bind_to($dst)->export($_) for @_ }
+}
+
+sub export_proxy ($me, $dst) : ExportGen {
+  sub ($origpkg, @list) {
+    Evo::Export::Meta->find_or_bind_to($dst)->export_proxy($origpkg, @list);
+  };
 }
 
 
@@ -36,14 +59,11 @@ Standart L<Exporter> wasn't good enough for me, so I've written a new one from t
 
 =head1 SYNOPSYS
 
-  # need separate file My/Lib.pm
   package My::Lib;
-  use Evo '-Export *';
-  
-  # export foo
-  sub foo : Export { say 'foo' }
+  use Evo '-Export *', -Loaded;
 
-  # export other as bar
+  # export foo, other as bar
+  sub foo : Export        { say 'foo' }
   sub other : Export(bar) { say 'bar' }
 
   # test.pl
@@ -72,7 +92,7 @@ You can rename subroutines to avoid method clashing
   use Evo '-Promise promise:prm';
 
 You can use C<*> with exclude C<-> for convinient
-  
+
   # import all except "deferred"
   use Evo '-Promise *, -deferred';
 
@@ -83,35 +103,74 @@ renamed version of that name
   use Evo '-Promise *, -deferred, deferred:renamed_deferred';
 
 
-
 =head1 EXPORTING
+
+Firstly you need to load L<Evo::Export> with C<import> (or C<*>). This will import C<import> method:
+
+  use Evo '-Export *';
+  use Evo '-Export import';
+
+By default, C<use Your::Module;>, without arguments will import nothing. You can change this behaviour to export all without arguments
+
+  use Evo '-Export import_all:import';
+  use Evo '-Export *, -import, import_all:import';
 
 Using attribute C<Export>
 
+  package My::Lib;
+  use Evo '-Export *'; # or use Evo::Export 'import';
+  use Evo -Loaded;
+
+  sub foo : Export { say 'foo' }
+
   package main;
-  use Evo;
-
-  {
-
-    package My::Lib;
-    use Evo -Loaded; # don't needed in the real code
-    use Evo '-Export *';
-
-    sub foo : Export {say 'foo'}
-
-  }
-
   use Evo 'My::Lib foo';
   foo();
 
-Pay attention that module should export '*', to install all unneccessary stuff, including C<MODIFY_CODE_ATTRIBUTES> and C<import>. But if you want, you can import them by hand, and this isn't recommended
+Pay attention that module should either import C<import>, or call C<Evo::Export/install> directly (see example below) from C<import> method
 
-You can export with another name  
+You can export with another name
 
   # export as bar
   sub foo : Export(bar) {say 'foo'}
 
-=head4 export 'foo';
+(EXPERIMENTAL) Using attribte C<ExportGen>
+
+  package My::Lib;
+  use Evo '-Export *; -Loaded';
+
+  sub bar ($me, $dest) : ExportGen {
+    say qq{"$dest" requested "bar" exported by "$me"};
+    return sub { say "$me-$dest-bar" };
+  }
+
+  package main;
+  use Evo;
+  My::Lib->import('*');
+  bar();
+
+=head1 INSTALLING DIRECTLY
+
+If you want to write your own C<import> method, do it this way:
+
+  package My::Lib;
+  use Evo -Export; # don't import "import"
+  use Evo -Loaded;
+
+  sub import ($self, @list) {
+    my $dest = scalar caller;
+    @list = ('*') if !@list;    # force to export all without args
+    say "exporting to $dest: ", join ',', @list;
+    Evo::Export::install($self, $dest, @list);
+  }
+  sub foo : Export { say 'foo' }
+
+
+  package main;
+  use Evo 'My::Lib foo';
+  foo();
+
+=head4 export;
 
 C<Export> signature is more preffered way, but if you wish
 
@@ -123,12 +182,12 @@ C<Export> signature is more preffered way, but if you wish
 
 Trying to export not existing subroitine will cause an exception
 
-=head4 export_anon
+=head4 export_code
 
 Export function, that won't be available in the source class
 
   # My::Lib now exports foo, but My::Lib::foo doesn't exist
-  export_anon foo => sub { say "hello" };
+  export_code foo => sub { say "hello" };
 
 =head4 export_proxy
 
@@ -142,52 +201,27 @@ Export function, that won't be available in the source class
   # reexport "foo" from My::Other as "bar"
   export_proxy 'My::Other', 'foo:bar';
 
-=head4 export_gen
+=head4 export_gen (EXPERIMENTAL)
 
-  
-  package main;
-  use Evo;
+  package My::Lib;
+  use Evo '-Export *; -Loaded';
 
-  {
-
-    # BEGIN and Loaded only for copy-paste example
-    package My::Lib;
-    use Evo '-Export *; -Loaded';
-
-    export_gen foo => sub ($class) {
-      say "$class requested me";
-      sub {"hello, $class"};
-    };
+  export_gen foo => sub ($me, $dest) {
+    say qq{"$dest" requested "foo" exported by "$me"};
+    sub {say "hello, $dest"};
   };
 
 
+  package main;
+  use Evo;
   My::Lib->import('*');
   foo();
 
-Very powefull and most exciting feature. C<Evo::Export> exports generators, that produces subroutines. Consider it as a 3nd dimension in 3d programming
-
-Implementation garanties that one module will get the same (cashed) generated unit (if it'l import twice or import from module that reimport the same thing), but different module will get another one
-
-  use Evo 'Evo::Class has'; 
-  use Evo 'Evo::Class has'; 
-
-C<has> was imported twice, but generated only once. If some class will do something C<export_proxy 'Evo::Class', 'has'>, you can export that C<has> and it will be the same subroutine
-
-For example, you can use it to check, if requester class has some methods and than use it directly, if C<$self-E<gt>method()> isn't good choise
-
-    export_gen foo => sub ($class) {
-      my $method = $class->can("name") or die "provide name";
-      sub { say $method->() };
-    };
+Very powefull and most exciting feature. C<Evo::Export> exports generators, that produces subroutines. Consider it as a 3nd dimension in 3d programming.
+Better using with C<ExportGen> attribute
 
 =head4 import
 
 By default, this method will be exported and do the stuff. If you need replace C<import> of your module, exclude it by C<use Evo '-Export *, -import'>
-
-=head4 import_all
-
-  use Evo '-Export *, -import, import_all:import';
-
-Just like C</import> but treats empty list as '*'.
 
 =cut

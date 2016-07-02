@@ -1,30 +1,22 @@
 package main;
-use Evo;
-use Test::More;
+use Evo 'Test::More; -Attr; -Internal::Exception';
 
 {
 
-  package Dest;
+  package My::Dest;
   use FindBin;
   use lib "$FindBin::Bin";
-  use Evo '
-    MyAttrFoo MODIFY_CODE_ATTRIBUTES;
-    MyAttrBar MODIFY_CODE_ATTRIBUTES
-  ';
-  use Evo '
-    MyAttrFoo MODIFY_CODE_ATTRIBUTES;
-    MyAttrBar MODIFY_CODE_ATTRIBUTES
-  ';
+  use Evo 'MyAttrFoo';
 
-  sub foo : Foo : Bar {
-  }
+  sub foosub1 : Foo1         { }
+  sub foosub2 : Foo2(a1, a2) { }
 
 };
 
-is Evo::Attr::Class::DEFAULT->handlers->{Dest}->@*, 2;
+is_deeply $My::Dest::GOT_FOO1 , ['My::Dest', \&My::Dest::foosub1, 'foosub1'];
+is_deeply $My::Dest::GOT_FOO2 , ['My::Dest', \&My::Dest::foosub2, 'foosub2', 'a1', 'a2'];
 
-is_deeply $Dest::GOT_FOO , ['Dest', \&Dest::foo, qw(Foo Bar)];
-is_deeply $Dest::GOT_BAR , ['Dest', \&Dest::foo, 'Bar'];
-
+eval 'sub My::Dest::foobad : FooBad(abc) {}';    ## no critic
+like $@, qr/invalid.+FooBad\(abc\)/i;
 
 done_testing;

@@ -1,11 +1,21 @@
 package MyAttrFoo;
-use Evo '-Attr attr_handler; -Export *';
+use Evo '-Attr';
 
-attr_handler sub ($pkg, $code, @attrs) {
+no strict 'refs';    ## no critic
+
+# directly
+Evo::Attr::register_attribute(__PACKAGE__,
+  'Foo1',
+  sub ($dest, $code, $name, @opts) {
+    local $, = '; ';
+    ${"${dest}::GOT_FOO1"} = [$dest, $code, $name, @opts];
+  }
+);
+
+# by EvoAttr attribute
+sub Foo2 ($dest, $code, $name, @opts) : Attr {
   local $, = '; ';
-  no strict 'refs';    ## no critic
-  ${"${pkg}::GOT_FOO"} = [$pkg, $code, @attrs];
-  return grep { $_ ne 'Foo' } @attrs;
-};
+  ${"${dest}::GOT_FOO2"} = [$dest, $code, $name, @opts];
+}
 
 1;

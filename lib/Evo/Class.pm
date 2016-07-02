@@ -1,24 +1,17 @@
 package Evo::Class;
-use Evo '::Gen::Hash GEN; -Class::Meta; -Class::Common meta_of';
-use Evo '-Export *, -import';
+use Evo '-Export export_proxy; Evo::Class::Gen::In; -Class::Common::Util';
 
-export_proxy '-Class::Common',
-  qw(init has has_over reg_method requires extends implements with MODIFY_CODE_ATTRIBUTES);
+export_proxy 'Evo::Class::Common::RoleFunctions', '*';
+export_proxy 'Evo::Class::Common::StorageFunctions', '*';
 
-sub import ($me, @args) {
-  my $caller = caller;
-  meta_of($caller) || meta_of($caller, Evo::Class::Meta->new(class => $caller, gen => {GEN()}));
-  export_install_in($caller, $me, @args ? @args : '*');
+sub new ($me, $dest) : ExportGen {
+  $me->class_of_gen->find_or_croak($dest)->gen_new;
 }
 
+sub class_of_gen($self) {'Evo::Class::Gen::In'}
 
-export_gen new => sub($class) {
-  my $init = meta_of($class)->compile_builder;
-  sub {
-    shift;
-    $init->({}, @_);
-  };
-};
+no warnings 'once';
+*import = *Evo::Class::Common::Util::register_and_import;
 
 1;
 
@@ -100,6 +93,11 @@ A tiny amount of code means less bugs.
 
 These advantages make C<Evo::Class> perfect for both "corporate level" and "small" projects
 
+=head2 ROLES, INTERFACES
+
+Every class can be a Role. Every Class/Role can be an Interface. This means you can extend
+class with roles, roles with roles, ioc with hash-classes and so on.
+
 
 =head1 Usage
 
@@ -120,15 +118,13 @@ We're protected from common mistakes, because constructor won't accept unknown a
 You may think why not C<My::Class::new>? You're right. The first option isn't really necessary and even constructor doesn't use it at all. But I decided to leave it that way
 because many developers are familiar with C<My::Class-E<gt>new> form. There is also an L</init> function for perfectionists
 
-=head2 init
+=head2 META
 
-  my $foo = My::Class::init({}, simple => 1);
-
-Like new, but dosn't create an object, your should pass it as the first argument.
+Return current L<Evo::Class::Meta> object for the class
 
 =head2 Storage
 
-The big advantage of Evo object that it's not tied with implementation. The default uses hashes L<Evo::Class::Hash>, but you can easily switch for example to L<Evo::Class::Out> and use any other refs
+The big advantage of Evo object that it's not tied with implementation. The default uses hashes L<Evo::Class>, but you can easily switch for example to L<Evo::Class::Out> and use any other refs
 
 =head2 Declaring attribute 
 
@@ -213,37 +209,16 @@ All methods, defined in a class (not imported) are public. Functions, imported f
 
 All attributes are public.
 
-Methods, generated somehow else, for example by C<*foo = sub {}>, can be marked as public by L</reg_method>
+Methods, generated somehow else, for example by C<*foo = sub {}>, can be marked as public by L<Evo::Class::Meta/reg_method>
 
 
 =head2 Private methods
 
-If you want to mark a method as private, use C<: Private> attribute. You should use C<_method($self)> syntax in most of cases.
+If you want to mark a method as private, use new C<lexical_subs> feature
 
+  my sub private {'private'}
 
-  {
-
-    package My::Parent;
-    use Evo -Class, -Loaded;
-    sub public            {'public'}
-    sub private : Private { }
-
-    package My::Child;
-    use Evo -Class;
-    extends 'My::Parent';
-  };
-
-  package main;
-  use Evo;
-  my $child  = My::Child->new();
-  my $parent = My::Parent->new();
-
-  say !!$child->can('public');     # true
-  say !!$parent->can('public');    # true
-
-  say !!$child->can('private');    # false
-  say !!$parent->can('private');   # true
-
+You can also use L<Evo::Class::Meta/mark_as_private>
 
 =head2 Overriding
 
@@ -254,7 +229,7 @@ Evo protects you from method clashing. But if you want to override method or fix
     with 'My::Human';
 
     has_over name => 'peter';
-    sub greet : Override { }
+    sub greet : Over { }
 
 
 This differs from traditional OO style. With compoment programming, you should reuse code via L<Evo::Class::Role> or just organize classes with independed pieces of code like "mixing". So, try to override less
@@ -305,33 +280,9 @@ C<My::Role::Happy> requires C<name> in derivered class. We could install shared 
 
 You may want to use C<extends> and C<implements> separately to resolve circular requirements, for example
 
-=head2 reg_method
-
-  use Evo;
-  {
-
-    package My::Parent;
-    use Evo -Class, -Loaded;
-    no warnings 'once';
-    *foo = sub {'Foo'};
-    reg_method('foo');
-
-    package My::Child;
-    use Evo -Class;
-    extends 'My::Parent';
-
-
-  };
-
-  say My::Child->new()->foo;
-
-Because C<foo> was installed dynamically, it's not a method by default and doesn't take a part in inheritance process.
-But you can mark it as a method with this function
-
-
 =head1 CODE ATTRIBUTES
 
-  sub foo : Override { 'OVERRIDEN'; }
+  sub foo : Over { 'OVERRIDEN'; }
 
 Mark name as overridden. See L<Evo::Role/"Overriding methods">
 

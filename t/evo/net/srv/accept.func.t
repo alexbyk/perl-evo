@@ -1,7 +1,7 @@
 package main;
 use Evo '-Lib::Net *; -Loop *; -Io *; -Lib *';
 use Evo 'Test::Evo::Helpers *';
-use Evo 'Socket :all; Test::More; Test::Evo::Helpers exception; Errno EBADF';
+use Evo 'Socket :all; Test::More; Errno EBADF';
 
 CAN_BIND6 or plan skip_all => "No IPv6: " . $! || $@;
 
@@ -13,7 +13,7 @@ my $LAST;
 
   with -Net::Srv;
   has 'last';
-  sub srv_handle_accept ($self, $sock) : Override { $self->last($sock); $sock }
+  sub srv_handle_accept ($self, $sock) : Over { $self->last($sock); $sock }
 
 }
 

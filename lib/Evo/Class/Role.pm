@@ -1,62 +1,59 @@
 package Evo::Class::Role;
-use Evo '-Class::Meta; Carp croak; -Class::Common meta_of';
-use Evo '-Export *, -import';
+use Evo '-Export export_proxy; -Class::Meta';
 
-export_proxy '-Class::Common', qw(MODIFY_CODE_ATTRIBUTES requires reg_attr:has reg_method);
+export_proxy 'Evo::Class::Common::RoleFunctions', '*';
 
-sub new : Export {
-  my $class = __PACKAGE__;
-  croak qq/You can't directly create an instance of a role "$class"/;
+sub has ($me, $dest) : ExportGen {
+  sub ($name, @opts) {
+    my $meta = Evo::Class::Meta->find_or_croak($dest);
+    @opts = $meta->parse_attr(@opts);
+    $meta->reg_attr($name, @opts);
+  };
 }
 
-sub import ($me, @args) {
+sub has_over ($me, $dest) : ExportGen {
+  sub ($name, @opts) {
+    my $meta = Evo::Class::Meta->find_or_croak($dest);
+    @opts = $meta->parse_attr(@opts);
+    $meta->reg_attr_over($name, @opts);
+  };
+}
+
+
+# don't subclass this or there will be too many abstractions
+sub import ($me, @list) {
   my $caller = caller;
-  meta_of($caller) || meta_of($caller, Evo::Class::Meta->new(class => $caller));
-  export_install_in($caller, $me, @args ? @args : '*');
+  Evo::Export->install_in($caller, $me, @list ? @list : '*');
+  Evo::Class::Meta->register($caller);
+}
+
+sub extends ($me, $dest) : ExportGen {
+  sub(@parents) {
+    my $meta = Evo::Class::Meta->find_or_croak($dest);
+    foreach my $par (@parents) {
+      $par = Evo::Internal::Util::resolve_package($dest, $par);
+      $meta->extend_with($par);
+    }
+  };
+}
+
+
+sub with ($me, $dest) : ExportGen {
+
+  sub (@parents) {
+    my $meta = Evo::Class::Meta->find_or_croak($dest);
+    foreach my $par (@parents) {
+      $par = Evo::Internal::Util::resolve_package($dest, $par);
+      $meta->extend_with($par);
+      $meta->check_implementation($par);
+    }
+  };
 }
 
 1;
 
-=head1 SYNOPSYS
-
-  package main;
-  use Evo;
-
-  {
-
-    # role
-    package My::Role;
-    use Evo '-Class::Role *; -Loaded';
-
-    has myattr => 'VAL';
-    sub to_lc($self) { lc $self->myattr }
-
-
-    # class
-    package My::Class;
-    use Evo '-Class *';
-
-    with 'My::Role';
-
-  }
-
-
-  my $obj = My::Class->new();
-  say $obj->to_lc;    # value
-
-  {
-    # just check implementation
-    package My::BadClass;
-    use Evo '-Class *';
-
-    # will die
-    implements 'My::Role';
-  }
-
 =head1 DESCRIPTION
 
-Role is just like classes except you can only reuse it. You can't create an instance of the role. If you need to reuse a code without "should be overridden by subclass" hacks - role is just what you expecting
-
-Also can be used as "interaces"
+Roles share attributes and methods, but can't build objects
 
 =cut

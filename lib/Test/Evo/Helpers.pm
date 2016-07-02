@@ -21,26 +21,4 @@ use constant HAS_O_NONBLOCK   => eval { O_NONBLOCK() && 1; 1 };
 
 export qw(CAN_BIND6 CAN_CHANGEV6ONLY HAS_REUSEPORT HAS_SO_DOMAIN HAS_SO_PROTOCOL HAS_O_NONBLOCK);
 
-sub dummy_meta : Export {
-  my $class = shift || 'My::Dummy';
-  my %gen;
-  foreach my $what (qw(gs gsch)) {
-    $gen{$what} = sub {
-      sub {$what}
-    };
-  }
-
-  $gen{init} = sub ($class, $opts) {
-    sub {$opts}
-  };
-
-  Evo::Class::Meta->new(gen => \%gen, class => $class);
-}
-
-sub exception($sub) : prototype(&) : Export {
-  local $@;
-  eval { $sub->() };
-  $@;
-}
-
 1;

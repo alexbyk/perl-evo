@@ -1,6 +1,6 @@
 package main;
-use Evo '-Loop::Class; Test::More; Test::Evo::Helpers exception; IO::Socket::IP';
-
+use Evo '-Loop::Class; Test::More; IO::Socket::IP';
+use Evo::Internal::Exception;
 use IO::Poll qw(POLLERR POLLHUP POLLIN POLLNVAL POLLOUT POLLPRI);
 
 

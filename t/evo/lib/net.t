@@ -1,4 +1,4 @@
-use Evo 'Test::More; Test::Evo::Helpers exception; Evo::Lib::Net *, net_gen_saddr_family:gen';
+use Evo 'Test::More; Evo::Internal::Exception; Evo::Lib::Net *, net_gen_saddr_family:gen';
 use Socket ':all';
 
 # net_parse

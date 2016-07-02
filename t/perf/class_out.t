@@ -5,7 +5,7 @@ use Test::More;
 
 plan skip_all => 'set TEST_EVO_PERF env to enable this test' unless $ENV{TEST_EVO_PERF};
 
-my $EXPECT = 100_000 * $ENV{TEST_EVO_PERF};
+my $EXPECT = 110_000 * $ENV{TEST_EVO_PERF};
 
 my $N = 100_000;
 
@@ -21,7 +21,7 @@ my $k = 0;
 }
 
 my $fn = sub {
-  my $obj = My::Obj::init(sub {$k}, simple => 'hello');
+  my $obj = My::Obj->init(sub {$k}, simple => 'hello');
   my $res = join ' ', $obj->simple, $obj->default, $obj->lazy;
   die unless $res eq 'hello foo bar';
 };

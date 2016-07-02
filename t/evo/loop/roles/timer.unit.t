@@ -1,5 +1,5 @@
 package main;
-use Evo 'Test::More; Test::Evo::Helpers exception';
+use Evo 'Test::More; Evo::Internal::Exception';
 
 my $MOCK_TIME = 12.34_567;
 
@@ -20,7 +20,7 @@ my $MOCK_TIME = 12.34_567;
   }
   sub tick_time($self) { $self->{ttcalled}++; $MOCK_TIME }
 
-  sub timer_sort_if_needed($self) : Override {
+  sub timer_sort_if_needed($self) : Over {
     $self->{sortcalled}++;
     Evo::Loop::Role::Timer::timer_sort_if_needed(@_);
   }
@@ -96,11 +96,11 @@ TIMER_PROCESS: {
       {when => $MOCK_TIME + 1, cb => 'F15'},
       {
         when => $MOCK_TIME - 2,
-        cb => sub { $t_called++ }
+        cb   => sub { $t_called++ }
       },
       {
         when => $MOCK_TIME - 1,
-        cb => sub { $t_called++ }
+        cb   => sub { $t_called++ }
       },
     ]
   );
@@ -124,7 +124,7 @@ TIMER_PROCESS_PERIODIC: {
     timer_queue => [
       {when => $MOCK_TIME + 1, cb => 'F15'}, {when => $MOCK_TIME - 1, cb => $sub05, period => 0.5},
       {when => $MOCK_TIME - 1, cb => $sub20, period => 2}    # from tick_time, not current time
-      ]
+    ]
   );
 
   $loop->timer_need_sort(1)->timer_process();

@@ -3,7 +3,7 @@ use FindBin;
 use lib "$FindBin::Bin/../../lib/";
 use Evo 'MyExternalNoEvoImport';
 use Test::More;
-use Test::Evo::Helpers "exception";
+use Evo::Internal::Exception;
 
 # just load
 ok do { Evo::->import('MyExternalNoEvoImport'); 1 };

@@ -1,21 +1,22 @@
 package Evo::Lib;
-use Evo '-Export *; Carp croak; ::Bare';
+use Evo '-Export *; Carp croak';
 use Time::HiRes qw(CLOCK_MONOTONIC);
 
 PATCH: {
   no warnings 'once';
-  *code2names          = *Evo::Lib::Bare::code2names;
-  *names2code          = *Evo::Lib::Bare::names2code;
-  *debug               = *Evo::Lib::Bare::debug;
-  *monkey_patch        = *Evo::Lib::Bare::monkey_patch;
-  *monkey_patch_silent = *Evo::Lib::Bare::monkey_patch_silent;
+  *pkg_stash           = *Evo::Internal::Util::pkg_stash;
+  *code2names          = *Evo::Internal::Util::code2names;
+  *names2code          = *Evo::Internal::Util::names2code;
+  *debug               = *Evo::Internal::Util::debug;
+  *monkey_patch        = *Evo::Internal::Util::monkey_patch;
+  *monkey_patch_silent = *Evo::Internal::Util::monkey_patch_silent;
 }
 
-export qw(debug monkey_patch monkey_patch_silent code2names names2code);
+export qw(debug monkey_patch monkey_patch_silent code2names names2code pkg_stash);
 
 my $HAS_M_TIME = eval { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); 1; };
 
-export_anon steady_time => $HAS_M_TIME
+export_code steady_time => $HAS_M_TIME
   ? sub { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); }
   : \&Time::HiRes::time;
 

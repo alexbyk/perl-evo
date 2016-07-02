@@ -2,21 +2,6 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0225    2016-06-18 20:06:58+03:00 Europe/Kiev
-
-0.0224    2016-06-18 12:21:25+03:00 Europe/Kiev
-
-  - lazy attribute now will be called only once if doesn't exists
-  - Now use "Override" attribute and "has_over" function
-  - Changed Class syntax. Now all methods are public by default
-  - "new" and "init" are now different functions
-  - Add Evo::Loop::zone_goto
-  - Add Evo::Class:T/t_enum type
-  - Add support for Some::Comp->new syntax
-  - Change import semantic
-  - Start supporting FreeBSD
-  - Start supporting Darwin
-  - Change Ee behaviour
-  - Added Evo::Io namespace
-  - Added periodic timers
-  - Implemented promises
+  - Change -Class syntax and implementation. For extending with XS (soon)
+  - Change -Attr syntax
+  - Change -Export implementation

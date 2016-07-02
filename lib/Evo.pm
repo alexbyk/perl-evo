@@ -2,10 +2,9 @@ package Evo;
 use strict;
 use warnings;
 use Carp 'croak';
-use Module::Load 'load';
-use Evo::Lib::Bare;
-use Evo::Export::Class;
-use feature 'say';
+use Module::Load ();
+use Evo::Internal::Util;
+use Evo::Attr;
 
 
 my $ARGS_RX    = qr/[\s\(\[]*    ( [^\)\]]*?)    [\s\)\]]*/x;
@@ -17,9 +16,9 @@ sub _parse {
   $val =~ tr/\n/ /;
   $val =~ s/^\s+|\s+$//g;
 
-  $val =~ /^ ((\-|\/?(:{2})?)? $Evo::Lib::Bare::RX_PKG_NOT_FIRST*) (.*)$/x;
+  $val =~ /^ ((\-|\/?(:{2})?)? $Evo::Internal::Util::RX_PKG_NOT_FIRST*) (.*)$/x;
   croak qq#Can't parse string "$orig"# unless $1;
-  my ($class, $args) = (Evo::Lib::Bare::resolve_package($caller, $1), $4);
+  my ($class, $args) = (Evo::Internal::Util::resolve_package($caller, $1), $4);
 
   # ()
   return ($class, 1) if $args =~ $EMPTY_ARGS;
@@ -34,6 +33,9 @@ sub _parse {
 sub import {
   shift;
   my ($target, $filename, $line) = caller;
+
+  Evo::Attr->patch_package($target);
+
   my @list = @_;
   unshift @list, '-Default' unless grep { $_ && $_ eq '-Default' } @list;
 
@@ -41,10 +43,10 @@ sub import {
   @list = grep {$_} map { my $s = $_; $s =~ s/^\s+|\s+$//g; $s } map { split ';', $_ } @list;
   foreach my $key (@list) {
     my ($src, $empty, @args) = _parse($target, $key);
-    load($src);
+    Module::Load::load($src);
     next if $empty;
     if (my $import = $src->can('import')) {
-      Evo::Lib::Bare::inject(
+      Evo::Internal::Util::inject(
         package  => $target,
         line     => $line,
         filename => $filename,

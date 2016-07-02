@@ -1,6 +1,6 @@
 use Evo -Loop::Class;
 use Test::More;
-use Test::Evo::Helpers "exception";
+use Evo::Internal::Exception;
 
 no warnings 'redefine';
 no warnings 'once';

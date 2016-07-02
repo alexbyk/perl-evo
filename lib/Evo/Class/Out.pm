@@ -1,85 +1,53 @@
 package Evo::Class::Out;
-use Evo '-Class::Gen::HUF GEN; -Class::Meta; -Class::Common meta_of';
-use Evo '-Export *, -import';
+use Evo '-Export export_proxy; -Class::Gen::Out';
 
-export_proxy '-Class::Common',
-  qw(init has has_over reg_method requires extends implements with MODIFY_CODE_ATTRIBUTES);
+export_proxy 'Evo::Class::Common::RoleFunctions', '*';
+export_proxy 'Evo::Class::Common::StorageFunctions', '*';
 
-sub import ($me, @args) {
-  my $caller = caller;
-  meta_of($caller) || meta_of($caller, Evo::Class::Meta->new(class => $caller, gen => {GEN()}));
-  export_install_in($caller, $me, @args ? @args : '*');
+sub init ($me, $dest) : ExportGen {
+  $me->class_of_gen->find_or_croak($dest)->gen_init;
 }
+
+sub class_of_gen($self) {'Evo::Class::Gen::Out'}
+
+# don't subclass this or there will be too many abstractions
+sub import ($me, @list) {
+  my $caller = caller;
+  Evo::Class::Meta->register($caller);
+  my $gen = $me->class_of_gen->register($caller);
+  Evo::Export->install_in($caller, $me, @list ? @list : '*');
+}
+
+no warnings 'once';
+*import = *Evo::Class::Common::Util::register_and_import;
 
 1;
 
-=head1 SYNOPSYS
+=head2 SYNOPSYS
 
   package main;
   use Evo;
 
   {
 
-    package My::Spy;
-    use Evo '-Class::Out *';
+    package My::Out;
+    use Evo -Class::Out;
 
-    has 'foo', required => 1;
-  }
-
-  my $foo = My::Spy::init(sub { say "foo" }, foo => 'FOO');
-  say $foo->foo;
-  $foo->();
-
-=head1 DESCRIPTION
-
-Inside-out driver for L<Evo::Class> using L<Hash::Util::FieldHash>.
-Makes possible to use any type of references as objects.
-
-=head1 FEATURES
-
-C<Evo::Class::Out> supports the same features as C<Evo::Class::Hash>, but is a little (20-30%, maybe twice), slower. But allow to use any references, that can be blessed, as objects
-
-=head2 init
-
-Instead of C<new>, it provides C<init>. So you can desing new, for example, as a clousure by yourself
-
-Pay attention that C<init> should be called as a function C<My::Class::init>, not a method
-
-
-=head1 EXAMPLE
-
-In this example we created spy object, that logs all invocations. You can make the similar thing with overloading with the hash-class too, but this implementation has one advantage: it's a real C<codered> and C<reftype> returns C<CODE>, not C<HASH>.
-
-  package main;
-  use Evo;
-  use Scalar::Util 'reftype';
-
-  {
-
-    package My::Spy;
-    use Evo '-Class::Out *';
-    use Scalar::Util 'weaken';
-
-    has calls => sub { [] };
-    has 'fn', required => 1;
-
-    sub new {
-      my $copy;
-      $copy = my $sub = sub { push $copy->calls->@*, [@_]; $copy->fn->(@_); };
-      weaken $copy;
-      init($sub, @_);
-      $sub;
+    sub new ($class, %opts) {
+      init($class, [], %opts);
     }
+
+    has 'foo';
   }
 
-  my $spy = My::Spy->new(fn => sub { local $, = ';'; say "hello", @_ });
-  say reftype $spy;
+  my $obj = My::Out->new(foo => 33);
+  say $obj;         # ...ARRAY...
+  say $obj->foo;    # 33
 
-  $spy->();
-  $spy->(1);
-  $spy->(1, 2);
+=head2 DESCRIPTION
 
-  local $, = '';
-  say "logged: ", $_->@* for $spy->calls->@*;
+Like L<Evo::Class>, but uses outside storage. So any reference can became a class instance
+Instead of C<new>, it provides C<init>. You can define C<new> by yourself
+
 
 =cut

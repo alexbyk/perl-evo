@@ -1,7 +1,8 @@
 package main;
 use Evo '-Lib::Net *; -Loop *; -Io::Socket; -Lib *';
 use Evo 'Test::Evo::Helpers *';
-use Evo 'Socket :all; Test::More; Test::Evo::Helpers exception; Errno EBADF';
+use Evo 'Socket :all; Test::More; Errno EBADF';
+use Evo::Internal::Exception;
 
 CAN_BIND6     or plan skip_all => "No IPv6: " . $!      || $@;
 HAS_REUSEPORT or plan skip_all => "No REUSEPORT: " . $! || $@;
@@ -15,9 +16,9 @@ my $LAST;
   with -Net::Srv::Role, -Ee;
 
   sub srv_handle_accept ($self, $sock)
-    : Override { $LAST = Evo::Net::Srv::Role::srv_handle_accept($self, $sock) }
+    : Over { $LAST = Evo::Net::Srv::Role::srv_handle_accept($self, $sock) }
 
-  sub srv_handle_error ($self, $sock, $err) : Override {
+  sub srv_handle_error ($self, $sock, $err) : Over {
     $self->emit(srv_error => $err);
     Evo::Net::Srv::Role::srv_handle_error(@_);
   }

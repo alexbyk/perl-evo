@@ -1,6 +1,6 @@
 use Evo '-Eval *; -Lib *; -Want *';
 use Test::More;
-use Test::Evo::Helpers "exception";
+use Evo::Internal::Exception;
 
 my ($e, $reg, $res);
 sub reg($) { push @$reg, shift; }

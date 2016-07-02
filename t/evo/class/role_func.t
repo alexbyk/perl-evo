@@ -1,42 +1,56 @@
 package main;
 use Evo;
 use Test::More;
-use Test::Evo::Helpers "exception";
+use Evo::Internal::Exception;
 
 {
 
+  package My::External;
+  use Evo;
+  no warnings 'once';
+  *My::Role::external = sub {'external'};
+
+
   package My::Role;
-  use Evo '-Class::Role *; -Loaded';
-  has 'foo_short' => 11;
-  has 'foo'       => 111;
+  use Evo -Class::Role, -Loaded;
+  has 'foo'  => 'FOO';
+  has 'foo2' => 'OLD';
+
+  META->reg_method('external');
 
   no warnings 'once';
-  *generated = sub {'gen'};
-  reg_method 'generated';
+  *generated = sub {'generated'};
 
-  *not_public = sub {'bad'};
-
-  sub hidden : Private {'HIDDEN'}
+  my sub hidden {'HIDDEN'}
 
   sub bar {44}
 
+  package My::Role::Child;
+  use Evo -Class::Role, -Loaded;
+  extends 'My::Role';
+  has_over foo2 => 'FOO2';
+
+  package My::Role::Child::Child;
+  use Evo -Class::Role, -Loaded;
+  with 'My::Role::Child';
+
   package My::Class;
   use Evo '-Class *';
-  extends 'My::Role';
+  with 'My::Role::Child::Child';
 
 
 };
 
-like exception { My::Role->new() }, qr/can't.+role.+$0/;
 
 my $obj = My::Class->new();
-is $obj->foo_short, 11;
-is $obj->foo,       111;
-is $obj->bar,       44;
 
-is $obj->generated, 'gen';
-ok !$obj->can('hidden');
-ok !$obj->can('not_public');
+# attrs
+is $obj->foo,  'FOO';
+is $obj->foo2, 'FOO2';
+is $obj->bar,  44;
+
+is $obj->external,  'external';
+is $obj->generated, 'generated';
 ok !$obj->can('hidden');
 
 done_testing;

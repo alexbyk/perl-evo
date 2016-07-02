@@ -11,6 +11,9 @@ sub import {
 
   feature::->import('signatures');
   warnings::->unimport('experimental::signatures');
+
+  feature::->import('lexical_subs');
+  warnings::->unimport('experimental::lexical_subs');
 }
 
 1;
