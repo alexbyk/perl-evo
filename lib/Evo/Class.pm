@@ -1,14 +1,19 @@
 package Evo::Class;
 use Evo '-Export export_proxy; Evo::Class::Gen::In; -Class::Common::Util';
 
-export_proxy 'Evo::Class::Common::RoleFunctions', '*';
+export_proxy 'Evo::Class::Common::RoleFunctions',    '*';
 export_proxy 'Evo::Class::Common::StorageFunctions', '*';
 
 sub new ($me, $dest) : ExportGen {
   $me->class_of_gen->find_or_croak($dest)->gen_new;
 }
 
-sub class_of_gen($self) {'Evo::Class::Gen::In'}
+my $GEN_IMPL
+  = eval { require Evo::Class::Gen::In::XS; 1 }
+  ? 'Evo::Class::Gen::In::XS'
+  : 'Evo::Class::Gen::In';
+
+sub class_of_gen($self) {$GEN_IMPL}
 
 no warnings 'once';
 *import = *Evo::Class::Common::Util::register_and_import;

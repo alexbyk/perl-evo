@@ -1,14 +1,19 @@
 package Evo::Class::Out;
 use Evo '-Export export_proxy; -Class::Gen::Out';
 
-export_proxy 'Evo::Class::Common::RoleFunctions', '*';
+export_proxy 'Evo::Class::Common::RoleFunctions',    '*';
 export_proxy 'Evo::Class::Common::StorageFunctions', '*';
 
 sub init ($me, $dest) : ExportGen {
   $me->class_of_gen->find_or_croak($dest)->gen_init;
 }
 
-sub class_of_gen($self) {'Evo::Class::Gen::Out'}
+my $GEN_IMPL
+  = eval { require Evo::Class::Gen::Out::XS; 1 }
+  ? 'Evo::Class::Gen::Out::XS'
+  : 'Evo::Class::Gen::Out';
+
+sub class_of_gen($self) {$GEN_IMPL}
 
 # don't subclass this or there will be too many abstractions
 sub import ($me, @list) {

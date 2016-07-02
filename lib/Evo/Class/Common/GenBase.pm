@@ -9,7 +9,7 @@ sub register ($me, $package) {
     croak "$package already has $self, can't register $me" if ref($self) ne $me;
     return $self;
   }
-  $self = $me->new($package);
+  $self = $me->new();
   Evo::Internal::Util::pkg_stash($package, $KEY, $self);
   return $self;
 }

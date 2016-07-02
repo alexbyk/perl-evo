@@ -1,7 +1,7 @@
 package Evo::Class::Common::GenPP;
 use Evo '-Class::Common::Util; -Internal::Util; Carp croak';
 
-sub new ($me, $package) {
+sub new ($me) {
   bless {_dv => {}, _dfn => {}, _check => {}, _required => [], _known => {}}, $me;
 }
 
