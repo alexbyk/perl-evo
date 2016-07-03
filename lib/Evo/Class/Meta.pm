@@ -7,11 +7,12 @@ our @CARP_NOT = qw(Evo::Class::Role Evo::Class::Out Evo::Class
 
 no warnings 'redefine';    ## no critic
 
-sub register ($me, $package) {
+sub register ($me, $package, $gen_class) {
   my $self = Evo::Internal::Util::pkg_stash($package, $me);
   return $self if $self;
   $self = bless {
-    package     => $package,
+    _package    => $package,
+    _gen        => $gen_class->new,
     _private    => {},
     _attrs      => {},
     _methods    => {},
@@ -26,11 +27,12 @@ sub find_or_croak ($self, $package) {
   Evo::Internal::Util::pkg_stash($package, $self) or croak "$package isn't Evo::Class";
 }
 
-sub package($self) { $self->{package} }
+sub package($self) { $self->{_package} }
+sub attrs($self)   { $self->{_attrs} }
+sub methods($self) { $self->{_methods} }
+sub reqs($self)    { $self->{_reqs} }
+sub gen($self)     { $self->{_gen} }
 
-sub attrs($self)      { $self->{_attrs} }
-sub methods($self)    { $self->{_methods} }
-sub reqs($self)       { $self->{_reqs} }
 sub overridden($self) { $self->{_overridden} }
 sub private($self)    { $self->{_private} }
 
@@ -90,13 +92,20 @@ sub reg_attr ($self, $name, %opts) {
   _check_exists_valid_name($self, $name);
   my $pkg = $self->package;
   croak qq{$pkg already has subroutine "$name"} if Evo::Internal::Util::names2code($pkg, $name);
-  $self->attrs->{$name} = \%opts;
+  $self->attrs->{$name} = \%opts;    # register
+  my $gen = $self->gen;
+  $gen->sync_attrs($self->attrs->%*);    # sync
+  Evo::Internal::Util::monkey_patch $pkg, $name, $gen->gen_attr($name, %opts);    # gen and patch
 }
 
 sub reg_attr_over ($self, $name, %opts) {
   _check_valid_name($self, $name);
-  $self->attrs->{$name} = \%opts;
   $self->mark_as_overridden($name);
+  $self->attrs->{$name} = \%opts;
+  my $pkg = $self->package;
+  my $gen = $self->gen;
+  $gen->sync_attrs($self->attrs->%*);    # sync
+  Evo::Internal::Util::monkey_patch_silent $pkg, $name, $gen->gen_attr($name, %opts);    # gen and patch
 }
 
 # means register external sub as method. Because every sub in the current package

@@ -1,5 +1,6 @@
 package main;
 use Evo 'Test::More', -Class::Meta, -Internal::Exception;
+use Symbol 'delete_package';
 
 no warnings 'once';        ## no critic
 no warnings 'redefine';    ## no critic
@@ -8,28 +9,44 @@ local *Module::Load::load = sub { $loaded = shift };
 
 {
 
-  package My::Class;
-  sub own     {'OWN'}
-  my sub priv {'PRIV'}
-  use Fcntl "SEEK_CUR";
+  package My::Gen;
+  use Evo;
+  sub new($class) { bless {}, $class }
+
+  sub sync_attrs ($self, %attrs) {
+    $self->{attrs} = \%attrs;
+  }
+
+  sub gen_attr ($self, $name, %opts) {
+    sub { uc "ATTR-$name" };
+  }
+
+  #  package My::Class;
+  #  sub own     {'OWN'}
+  #  my sub priv {'PRIV'}
+  #  use Fcntl "SEEK_CUR";
 
 };
 
+
 sub gen_meta($class = 'My::Class') {
+  delete_package $class;
   Evo::Internal::Util::pkg_stash($class, 'EVO_CLASS_META', undef);
-  (Evo::Class::Meta->register($class))[0];
+  Evo::Class::Meta->register($class, 'My::Gen');
 }
 
 REGISTER: {
-  my ($meta) = Evo::Class::Meta->register('My::Class');
+  my ($meta) = Evo::Class::Meta->register('My::Class', 'My::Gen');
   is $My::Class::EVO_CLASS_META, $meta;
-  is $meta,                      Evo::Class::Meta->register('My::Class');
+  is $meta, Evo::Class::Meta->register('My::Class', 'My::Gen');
 }
 
 BUILD_DEF: {
+  ok gen_meta->package;
   ok gen_meta->reqs;
   ok gen_meta->attrs;
   ok gen_meta->methods;
+  ok gen_meta->gen;
 }
 
 FIND_OR_CROAK: {
@@ -55,20 +72,21 @@ MARK_PRIVATE: {
 IS_METHOD__REG_METHOD: {
   my $meta = gen_meta;
 
+  eval 'package My::Class; sub own {}';    ## no critic
   ok $meta->is_method('own');
 
-  local *My::Class::own2;
   eval 'package My::Class; *own2 = sub {}';    ## no critic
   ok $meta->is_method('own2');
   ok !$meta->is_method('not_exists');
 
   # external sub
-  local *My::Class::external = sub { };
+  eval '*My::Class::external = sub { };';      ## no critic
   ok !$meta->is_method('external');
   $meta->reg_method('external');
   ok $meta->is_method('external');
 
   # skip xsubs
+  eval 'package My::Class; use Fcntl "SEEK_CUR"';    ## no critic
   ok(My::Class->can('SEEK_CUR'));
   ok !$meta->is_method('SEEK_CUR');
 
@@ -82,13 +100,14 @@ IS_METHOD__REG_METHOD: {
 
 REG_METHOD: {
   my $meta = gen_meta;
+  eval 'package My::Class; sub own {}';      ## no critic
+  eval '*My::Class::external = sub { };';    ## no critic
 
   $meta->attrs->{'attr1'}++;
   like exception { $meta->reg_method('attr1'); },        qr/has attribute.+attr1.+$0/;
   like exception { $meta->reg_method('not_existing'); }, qr/doesn't exist.+$0/;
   like exception { $meta->reg_method('own'); },          qr/already.+own.+$0/;
 
-  local *My::Class::external = sub { };
   ok !$meta->is_method('external');
   $meta->reg_method('external');
   ok $meta->is_method('external');
@@ -97,26 +116,29 @@ REG_METHOD: {
 PUBLIC_METHODS: {
 
   my $meta = gen_meta;
+  eval '*My::Class::external = sub { };';    ## no critic
+  eval 'package My::Class; sub own {}';      ## no critic
+
 
   # only own
   $meta->attrs->{bad} = {};
-  local *My::Class::mysub = sub { };
-  is_deeply { $meta->public_methods }, {own => \&My::Class::own};
+  is_deeply { $meta->public_methods }, {own => My::Class->can('own')};
 
   # add external
-  $meta->reg_method('mysub');
-  is_deeply { $meta->public_methods }, {mysub => \&My::Class::mysub, own => \&My::Class::own};
+  $meta->reg_method('external');
+  is_deeply { $meta->public_methods },
+    {external => My::Class->can('external'), own => My::Class->can('own')};
 
   # now mark as private
   $meta->mark_as_private('own');
-  is_deeply { $meta->public_methods }, {mysub => \&My::Class::mysub};
+  is_deeply { $meta->public_methods }, {external => My::Class->can('external')};
 }
 
 EXTEND_METHODS: {
-  my $parent = gen_meta;
 
+  my $parent = gen_meta;
 NORMAL: {
-    local *My::Child::own;
+    eval 'package My::Class; sub own {"OWN"}';    ## no critic
     my $child = gen_meta('My::Child');
     $child->extend_with('My::Class');
     is $loaded, 'My::Class';
@@ -125,18 +147,20 @@ NORMAL: {
   }
 
 PRIVATE: {
-    local *My::Child::own;
-    local *My::Class::priv = sub { };
-    $parent->reg_method('priv');
+    eval 'package My::Class; sub own {}; sub priv {}';    ## no critic
     $parent->mark_as_private('priv');
     my $child = gen_meta('My::Child');
     $child->extend_with('My::Class');
     ok !$child->is_method('priv');
+    ok(My::Child->can('own'));
+    ok(!My::Child->can('priv'));
   }
 
 OVERRIDEN: {
-    my $child = gen_meta('My::Child');
-    local *My::Child::own = sub {'OVER'};
+    my $parent = gen_meta;
+    my $child  = gen_meta('My::Child');
+    eval 'package My::Class; sub own {"OWN"}';            ## no critic
+    eval 'package My::Child; sub own {"OVER"}';           ## no critic
     $child->mark_as_overridden('own');
     $child->extend_with('My::Class');
     is(My::Child->own, 'OVER');
@@ -144,7 +168,7 @@ OVERRIDEN: {
 
 CLASH_SUB: {
     my $child = gen_meta('My::Child');
-    local *My::Child::own = sub {'FOO'};
+    eval 'package My::Child; sub own {"OVER"}';           ## no critic
     like exception { $child->extend_with('My::Class') }, qr/My::Child.+own.+$0/;
   }
 
@@ -152,15 +176,14 @@ CLASH_ATTR: {
     my $child = gen_meta('My::Child');
     $child->reg_attr('own');
     like exception { $child->extend_with('My::Class') }, qr/My::Child.+own.+$0/;
-    ok !(My::Child->can('own'));
+    is(My::Child->own, 'ATTR-OWN');
   }
 
 CLASH_METHOD: {
     my $child = gen_meta('My::Child');
-    local *My::Child::own = sub {'FOO'};
-    $child->reg_method('own');
+    eval 'package My::Child; sub own {"CHILD"}';    ## no critic
     like exception { $child->extend_with('My::Class') }, qr/My::Child.+own.+$0/;
-    is(My::Child->own, 'FOO');
+    is(My::Child->own, 'CHILD');
   }
 
 }
@@ -169,9 +192,14 @@ CLASH_METHOD: {
 REG_ATTR: {
   my $meta = gen_meta;
   $meta->reg_attr('pub1', is => 'rw');
-  ok $meta->is_attr('pub1');
 
-  local *My::Class::mysub = sub { };
+  ok $meta->is_attr('pub1');
+  is_deeply $meta->gen->{attrs}, $meta->attrs;
+  is(My::Class->pub1, 'ATTR-PUB1');
+
+  eval '*My::Class::mysub = sub { }';       ## no critic
+  eval 'package My::Class; sub own { }';    ## no critic
+
 
   # errors
   like exception { $meta->reg_attr('pub1') },  qr/My::Class.+already.+attribute.+pub1.+$0/;
@@ -184,12 +212,23 @@ REG_ATTR: {
 REG_ATTR_OVER: {
   my $meta = gen_meta;
   $meta->reg_attr('pub1', is => 'rw');
-  local *My::Class::mysub = sub { };
 
-  $meta->reg_attr_over('mysub');
+  ok $meta->is_attr('pub1');
+  is_deeply $meta->gen->{attrs}, $meta->attrs;
+  is(My::Class->pub1, 'ATTR-PUB1');
+
+  eval '*My::Class::external = sub { }';    ## no critic
+  eval 'package My::Class; sub own { }';    ## no critic
+
+  $meta->reg_attr_over('external');
   $meta->reg_attr_over('pub1');
   $meta->reg_attr_over('own');
+  is_deeply $meta->gen->{attrs}, $meta->attrs;
   ok $meta->is_overridden('pub1');
+  ok $meta->is_overridden('own');
+  ok $meta->is_overridden('external');
+  is(My::Class->own,      'ATTR-OWN');
+  is(My::Class->external, 'ATTR-EXTERNAL');
 }
 
 
@@ -197,6 +236,8 @@ PUBLIC_ATTRS: {
   my $meta = gen_meta;
   $meta->reg_attr('attr1', is => 'rw');
   $meta->reg_attr('attr2', is => 'rw');
+  is(My::Class->attr1, 'ATTR-ATTR1');
+  is(My::Class->attr2, 'ATTR-ATTR2');
   my %map = $meta->public_attrs;
   is_deeply [sort keys %map], [sort qw(attr1 attr2)];
 
@@ -228,7 +269,7 @@ PRIVATE: {
 
 OVERRIDEN: {
     my $child = gen_meta('My::Child');
-    local *My::Child::own = sub {'OVER'};
+    eval '*My::Child::own = sub {"OVER"}';    ## no critic
     $child->mark_as_overridden('own');
     $child->extend_with('My::Parent');
     is(My::Child->own, 'OVER');
@@ -236,7 +277,7 @@ OVERRIDEN: {
 
 CLASH_SUB: {
     my $child = gen_meta('My::Child');
-    local *My::Child::pub1 = sub { };
+    eval '*My::Child::pub1 = sub {"OVER"}';    ## no critic
     like exception { $child->extend_with('My::Parent') }, qr/My::Child.+pub1.+$0/;
   }
 
@@ -248,7 +289,7 @@ CLASH_ATTR: {
 
 CLASH_METHOD: {
     my $child = gen_meta('My::Child');
-    local *My::Child::pub1 = sub {'FOO'};
+    eval '*My::Child::pub1 = sub {"FOO"}';     ## no critic
     $child->reg_method('pub1');
     like exception { $child->extend_with('My::Parent') }, qr/My::Child.+pub1.+$0/;
     is(My::Child->pub1, 'FOO');
@@ -260,8 +301,9 @@ CLASH_METHOD: {
 REQUIREMENTS: {
   my $meta  = gen_meta;
   my $child = gen_meta('My::Child');
-  local *My::Class::bad   = sub { };
-  local *My::Class::meth1 = sub { };
+  eval '*My::Class::bad = sub {"FOO"}';        ## no critic
+  eval '*My::Class::meth1 = sub {"FOO"}';      ## no critic
+  eval 'package My::Class; sub own {}';        ## no critic
   $meta->reg_attr('attr1');
   $meta->reg_method('meth1');
   $meta->reg_requirement('req1');
@@ -277,8 +319,9 @@ REQUIREMENTS: {
 EXTEND_REQUIREMENTS: {
   my $meta  = gen_meta;
   my $child = gen_meta('My::ChildR');
-  local *My::Class::meth1 = sub { };
-  local *My::Class::metho = sub { };
+  eval '*My::Class::meth1 = sub {"FOO"}';       ## no critic
+  eval '*My::Class::methpriv = sub {"FOO"}';    ## no critic
+  eval 'package My::Class; sub own {}';         ## no critic
   $meta->reg_requirement('req1');
   $meta->reg_method('meth1');
   $meta->reg_attr('attr1');
@@ -304,9 +347,8 @@ CHECK_IMPLEMENTATION: {
 
   # method, attr, sub
   $meta->reg_attr('myattr');
-  local *My::Class::mymeth = sub { };
-  $meta->reg_method('mymeth');
-  local *My::Class::mysub = sub { };
+  eval 'package My::Class; sub mymeth {"FOO"}';    ## no critic
+  eval '*My::Class::mysub = sub {"FOO"}';          ## no critic
 
   $meta->check_implementation('My::Inter');
   is $loaded, 'My::Inter';
