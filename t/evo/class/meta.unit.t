@@ -364,16 +364,15 @@ ERRORS: {
 
   # perl6 && mojo style for default
   is_deeply { parse_attr('FOO') }, {default => 'FOO'};
-  is_deeply { parse_attr($dc) }, {default => $dc, default_is_code => 1};
+  is_deeply { parse_attr($dc) },   {default => $dc};
 
   # perl6 style
   is_deeply { parse_attr('FOO', is => 'ro') }, {ro => 1, default => 'FOO'};
-  is_deeply { parse_attr($dc, is => 'ro') }, {default => $dc, default_is_code => 1, ro => 1};
+  is_deeply { parse_attr($dc, is => 'ro') }, {default => $dc, ro => 1};
 
   #  moose style
   is_deeply { parse_attr(is => 'rw', default => 'FOO') }, {default => 'FOO'};
-  is_deeply { parse_attr(is => 'ro', default => $dc) },
-    {ro => 1, default => $dc, default_is_code => 1};
+  is_deeply { parse_attr(is => 'ro', default => $dc) }, {ro => 1, default => $dc};
 
   # required
   is_deeply { parse_attr(is => 'ro', required => 1) }, {ro => 1, required => 1};

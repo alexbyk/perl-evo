@@ -1,12 +1,41 @@
 package Evo::Class::Gen;
-use Evo '/::Common::Util; Carp croak';
+use Evo '/::Common::Util; Scalar::Util reftype; Carp croak';
 
 use Hash::Util::FieldHash 'fieldhash';
 fieldhash my %DATA;
 
-sub gen_init($class) {
+sub gen_init($self) {
+  my $attrs = $self->{attrs};
   sub ($class, $obj, %opts) {
-    $DATA{$obj} = [];
+    my @arr;
+
+    # iterate passed args and fill @arr
+    foreach my $k (keys %opts) {
+      exists $attrs->{$k}{index} or croak qq#Unknown attribute "$k"#;
+      my $index = $attrs->{$k}{index};
+      if (my $check = $attrs->{$k}{check}) {
+        my ($ok, $err) = $check->($opts{$k});
+        Evo::Class::Common::Util::croak_bad_value($opts{$k}, $k, $err) unless $ok;
+      }
+      @arr[$index] = $opts{$k};
+    }
+
+    # iterate known attrs
+    foreach my $k (keys %$attrs) {
+      my $index = $attrs->{$k}{index};
+      next if exists $arr[$index];
+
+      # required and default are mutually exclusive
+      if ($attrs->{$k}{required}) {
+        exists $arr[$index] or croak qq#Attribute "$k" is required#;
+      }
+      elsif (exists $attrs->{$k}{default}) {
+        $arr[$index]
+          = ref $attrs->{$k}{default} ? $attrs->{$k}{default}->() : $attrs->{$k}{default};
+      }
+    }
+
+    $DATA{$obj} = \@arr;
     bless $obj, $class;
   };
 }

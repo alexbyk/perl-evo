@@ -188,11 +188,8 @@ sub parse_attr ($self, @attr) {
   croak "providing default and setting required doesn't make sense"
     if exists $opts{default} && $opts{required};
 
-  if (ref $opts{default}) {
-    croak qq#"default" should be either a code reference or a scalar value#
-      unless reftype($opts{default}) eq 'CODE';
-    $opts{default_is_code} = 1;
-  }
+  croak qq#"default" should be either a code reference or a scalar value#
+    if ref $opts{default} && !(reftype($opts{default}) eq 'CODE');
 
   croak qq#"lazy" should be a code reference# if exists $opts{lazy} && ref $opts{lazy} ne 'CODE';
   croak qq#"check" should be a code reference#
