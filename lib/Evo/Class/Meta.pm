@@ -179,9 +179,16 @@ sub check_implementation ($self, $inter_class) {
   croak qq/Bad implementation of "$inter_class", missing in "$class": /, join ';', @not_exists;
 }
 
+# -- class methods for usage from other modules too
 my @KNOWN = qw(default required lazy check is);
 
-sub parse_attr ($self, @attr) {
+sub bad_value ($me, $value, $name, $msg = undef) {
+  my $err = qq'Bad value "$value" for attribute "$name"';
+  $err .= ": $msg" if $msg;
+  $err;
+}
+
+sub parse_attr ($me, @attr) {
   my %unknown = my %opts = (@attr % 2 ? (default => @attr) : @attr);
   delete $unknown{$_} for @KNOWN;
   croak "unknown options: " . join(',', sort keys %unknown) if keys %unknown;

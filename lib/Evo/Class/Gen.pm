@@ -1,5 +1,5 @@
 package Evo::Class::Gen;
-use Evo '/::Common::Util; Scalar::Util reftype; Carp croak';
+use Evo 'Carp croak; -Class::Meta';
 
 use Hash::Util::FieldHash 'fieldhash';
 fieldhash my %DATA;
@@ -16,7 +16,7 @@ sub gen_init($self) {
       my $index = $attrs->{$k}{index};
       if (my $check = $attrs->{$k}{check}) {
         my ($ok, $err) = $check->($opts{$k});
-        Evo::Class::Common::Util::croak_bad_value($opts{$k}, $k, $err) unless $ok;
+        croak(Evo::Class::Meta->bad_value($opts{$k}, $k, $err)) unless $ok;
       }
       @arr[$index] = $opts{$k};
     }
@@ -49,14 +49,19 @@ sub gen_new($self) {
 
 sub new ($me) { bless {ai => 0, attrs => {}}, $me; }
 
-sub gen_attr ($self, $name, %opts) {
+sub reg_attr ($self, $name, %opts) {
 
   # gen attr index
   my $index = exists $self->{attrs}{$name} ? $self->{attrs}{$name}{index} : $self->{ai}++;
   $self->{attrs}{$name} = {%opts, index => $index};
+  $index;
+}
+
+sub gen_attr ($self, $name, %opts) {
+  my $index = $self->reg_attr($name, %opts);
 
   # closure
-  my ($ro, $lazy, $check) = @opts{qw(ro lazy check)};
+  my ($ro, $lazy, $check) = @{$self->{attrs}{$name}}{qw(ro lazy check)};
 
   # simplest and popular
   if (!$ro && !$lazy && !$check) {
@@ -77,14 +82,13 @@ sub gen_attr ($self, $name, %opts) {
     croak qq{Attribute "$name" is readonly} if $ro;
     if ($check) {
       my ($ok, $msg) = $check->($_[1]);
-      Evo::Class::Common::Util::croak_bad_value($_[1], $name, $msg) unless $ok;
+      croak(Evo::Class::Meta->bad_value($_[1], $name, $msg)) unless $ok;
     }
     $DATA{$_[0]}[$index] = $_[1];
     $_[0];
   };
 
 }
-
 
 my sub index_of ($self, $name) {
   croak qq{attribute "$name" wasn't registered } unless exists $self->{attrs}{$name};
