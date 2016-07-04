@@ -29,18 +29,6 @@ sub requires ($me, $dest) : ExportGen {
   };
 }
 
-sub implements ($me, $dest) : ExportGen {
-
-  sub (@interfaces) {
-    my $meta = Evo::Class::Meta->find_or_croak($dest);
-    foreach my $inter (@interfaces) {
-      $inter = Evo::Internal::Util::resolve_package($dest, $inter);
-      my $inter_meta = $meta->find_or_croak($inter);
-      $meta->check_implementation($inter);
-    }
-  };
-}
-
 
 sub Over ($dest, $code, $name) : Attr {
   Evo::Class::Meta->find_or_croak($dest)->mark_as_overridden($name);
@@ -85,7 +73,15 @@ sub _extend ($me, $dest, @parents) {
 }
 
 sub extends ($me, $dest) : ExportGen {
-  sub(@parents) { _extend($me, $dest, @parents); };
+  sub(@parents) {
+    Evo::Class::Meta->find_or_croak($dest)->extend_with($_) for @parents;
+  };
+}
+
+sub implements ($me, $dest) : ExportGen {
+  sub(@parents) {
+    Evo::Class::Meta->find_or_croak($dest)->check_implementation($_) for @parents;
+  };
 }
 
 
@@ -93,12 +89,10 @@ sub with ($me, $dest) : ExportGen {
 
   sub (@parents) {
     my $meta = Evo::Class::Meta->find_or_croak($dest);
-    foreach my $par (@parents) {
-      $par = Evo::Internal::Util::resolve_package($dest, $par);
-      _extend($me, $dest, $par);
-      $meta->check_implementation($par);
+    foreach my $parent (@parents) {
+      $meta->extend_with($parent);
+      $meta->check_implementation($parent);
     }
-    $me->class_of_gen->find_or_croak($dest)->sync_attrs($meta->attrs->%*);
   };
 }
 

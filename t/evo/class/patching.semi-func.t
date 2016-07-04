@@ -25,7 +25,7 @@ is $obj->attr1, 1;
 is $obj->attr2, 2;
 is ref $obj, 'My::Class';
 
-my $obj = My::Class->init([], attr1 => 1, attr2 => 2);
+$obj = My::Class->init([], attr1 => 1, attr2 => 2);
 is $obj->attr1, 1;
 is $obj->attr2, 2;
 is ref $obj, 'My::Class';

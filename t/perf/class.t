@@ -5,7 +5,7 @@ use Test::More;
 
 plan skip_all => 'set TEST_EVO_PERF env to enable this test' unless $ENV{TEST_EVO_PERF};
 
-my $EXPECT = 250_000 * $ENV{TEST_EVO_PERF};
+my $EXPECT = 100_000 * $ENV{TEST_EVO_PERF};
 
 my $N = 300_000;
 
@@ -14,7 +14,7 @@ my $k = 0;
 {
 
   package My::Obj;
-  use Evo '-Class *';
+  use Evo -Class;
   has 'simple';
   has 'default', is => 'rw', default => 'foo';
   has 'lazy', is => 'rw', lazy => sub { $k++; 'bar' };

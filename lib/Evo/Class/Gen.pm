@@ -12,7 +12,7 @@ sub gen_init($self) {
 
     # iterate passed args and fill @arr
     foreach my $k (keys %opts) {
-      exists $attrs->{$k}{index} or croak qq#Unknown attribute "$k"#;
+      exists $attrs->{$k} && exists $attrs->{$k}{index} or croak qq#Unknown attribute "$k"#;
       my $index = $attrs->{$k}{index};
       if (my $check = $attrs->{$k}{check}) {
         my ($ok, $err) = $check->($opts{$k});
@@ -50,10 +50,9 @@ sub gen_new($self) {
 sub new ($me) { bless {ai => 0, attrs => {}}, $me; }
 
 sub gen_attr ($self, $name, %opts) {
-  croak qr{Attribute "$name" was already generated} if exists $self->{attrs}{$name};
 
   # gen attr index
-  my $index = $self->{ai}++;
+  my $index = exists $self->{attrs}{$name} ? $self->{attrs}{$name}{index} : $self->{ai}++;
   $self->{attrs}{$name} = {%opts, index => $index};
 
   # closure
