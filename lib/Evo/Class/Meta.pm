@@ -2,22 +2,19 @@ package Evo::Class::Meta;
 use Evo -Internal::Util;
 use Evo 'Carp croak; Scalar::Util reftype; -Internal::Util; Module::Load ()';
 
-our @CARP_NOT = qw(Evo::Class::Role Evo::Class::Out Evo::Class
-  Evo::Class::Common::StorageFunctions Evo::Class::Common::RoleFunctions);
-
-no warnings 'redefine';    ## no critic
+our @CARP_NOT = qw(Evo::Class);
 
 sub register ($me, $package, $gen_class) {
   my $self = Evo::Internal::Util::pkg_stash($package, $me);
   return $self if $self;
   $self = bless {
-    _package    => $package,
-    _gen        => $gen_class->new,
-    _private    => {},
-    _attrs      => {},
-    _methods    => {},
-    _reqs       => {},
-    _overridden => {}
+    package    => $package,
+    gen        => $gen_class->new,
+    private    => {},
+    attrs      => {},
+    methods    => {},
+    reqs       => {},
+    overridden => {}
   }, $me;
   Evo::Internal::Util::pkg_stash($package, $me, $self);
   $self;
@@ -27,14 +24,14 @@ sub find_or_croak ($self, $package) {
   Evo::Internal::Util::pkg_stash($package, $self) or croak "$package isn't Evo::Class";
 }
 
-sub package($self) { $self->{_package} }
-sub attrs($self)   { $self->{_attrs} }
-sub methods($self) { $self->{_methods} }
-sub reqs($self)    { $self->{_reqs} }
-sub gen($self)     { $self->{_gen} }
+sub package($self) { $self->{package} }
+sub attrs($self)   { $self->{attrs} }
+sub methods($self) { $self->{methods} }
+sub reqs($self)    { $self->{reqs} }
+sub gen($self)     { $self->{gen} }
 
-sub overridden($self) { $self->{_overridden} }
-sub private($self)    { $self->{_private} }
+sub overridden($self) { $self->{overridden} }
+sub private($self)    { $self->{private} }
 
 sub mark_as_overridden ($self, $name) {
   $self->overridden->{$name}++;
@@ -127,6 +124,7 @@ sub public_attrs($self) {
 }
 
 sub extend_with ($self, $source_p) {
+  $source_p = Evo::Internal::Util::resolve_package($self->package, $source_p);
   Module::Load::load($source_p);
   my $source  = $self->find_or_croak($source_p);
   my $dest_p  = $self->package;
@@ -168,6 +166,7 @@ sub requirements($self) {
 }
 
 sub check_implementation ($self, $inter_class) {
+  $inter_class = Evo::Internal::Util::resolve_package($self->package, $inter_class);
   Module::Load::load($inter_class);
   my $class = $self->package;
   my $inter = $self->find_or_croak($inter_class);

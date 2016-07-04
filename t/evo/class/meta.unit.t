@@ -131,7 +131,7 @@ EXTEND_METHODS: {
 NORMAL: {
     eval 'package My::Class; sub own {"OWN"}';    ## no critic
     my $child = gen_meta('My::Child');
-    $child->extend_with('My::Class');
+    $child->extend_with('/::Class');
     is $loaded, 'My::Class';
     ok $child->is_method('own');
     is(My::Child->own, 'OWN');
@@ -338,7 +338,7 @@ CHECK_IMPLEMENTATION: {
   eval 'package My::Class; sub mymeth {"FOO"}';    ## no critic
   eval '*My::Class::mysub = sub {"FOO"}';          ## no critic
 
-  $meta->check_implementation('My::Inter');
+  $meta->check_implementation('/::Inter');
   is $loaded, 'My::Inter';
 }
 
