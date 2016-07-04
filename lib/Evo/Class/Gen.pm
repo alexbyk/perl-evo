@@ -11,30 +11,14 @@ sub gen_init($class) {
   };
 }
 
-sub new ($me) {
-  bless {
-    ai      => 0,
-    indexes => {},
-    builder => {dv => {}, dfn => {}, check => {}, required => [], known => {}},
-  }, $me;
-}
-
-my sub sync_attr ($self, $name, %o) {
-  my $builder = $self->{builder};
-  $builder->{known}{$name}++;
-  push $builder->{required}->@*, $name if $o{required};
-  (ref $o{default} ? $builder->{dfn} : $builder->{dv})->{$name} = $o{default}
-    if exists $o{default};
-  $builder->{check}{$name} = $o{check} if $o{check};
-}
+sub new ($me) { bless {ai => 0, attrs => {}}, $me; }
 
 sub gen_attr ($self, $name, %opts) {
-
-  croak qr{Attribute "$name" was already generated} if exists $self->{indexes}{$name};
-  sync_attr($self, $name, %opts);
+  croak qr{Attribute "$name" was already generated} if exists $self->{attrs}{$name};
 
   # gen attr index
-  my $index = $self->{indexes}{$name} = $self->{ai}++;
+  my $index = $self->{ai}++;
+  $self->{attrs}{$name} = {%opts, index => $index};
 
   # closure
   my ($ro, $lazy, $check) = @opts{qw(ro lazy check)};
@@ -48,8 +32,9 @@ sub gen_attr ($self, $name, %opts) {
     };
   }
 
+  # more complex. we can optimize it by splitting to 6 other. but better use XS
   return sub {
-    if (@_ == 1) {    # get
+    if (@_ == 1) {
       return $DATA{$_[0]}[$index] if !$lazy;
       return $DATA{$_[0]}[$index] if exists $DATA{$_[0]}[$index];
       return $DATA{$_[0]}[$index] = $lazy->($_[0]);
@@ -67,8 +52,8 @@ sub gen_attr ($self, $name, %opts) {
 
 
 my sub index_of ($self, $name) {
-  croak qq{attribute "$name" wasn't registered } unless exists $self->{indexes}{$name};
-  $self->{indexes}{$name};
+  croak qq{attribute "$name" wasn't registered } unless exists $self->{attrs}{$name};
+  $self->{attrs}{$name}{index};
 }
 
 sub gen_attr_exists ($self) {

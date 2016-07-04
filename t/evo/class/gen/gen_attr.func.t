@@ -17,7 +17,6 @@ sub test_gen ($gclass, $bargs) {
   }
 
 EXISTS_DELETE: {
-
     before();
 
     like exception { $exists->($obj, 'name'); }, qr/name.+registered.+$0/;
