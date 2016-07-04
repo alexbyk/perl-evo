@@ -4,13 +4,14 @@ use Evo 'Test::More; -Class::Common::Util; -Internal::Exception';
 *process_is   = *Evo::Class::Common::Util::process_is;
 
 # compile
-is_deeply [compile_attr()], [qw(gen_gs)];
-is_deeply [compile_attr(check => 'CH')], [qw(gen_gsch CH)];
+is_deeply [compile_attr('name')], [qw(gen_gs name)];
+is_deeply [compile_attr('name', check => 'CH')], [qw(gen_gsch name CH)];
 
 my ($lazy, $check) = (sub {'l'}, sub {'ch'});
-is_deeply [compile_attr(lazy => $lazy)], [qw(gen_gs_code), $lazy];
+is_deeply [compile_attr('name', lazy => $lazy)], [qw(gen_gs_code name), $lazy];
 
-is_deeply [compile_attr(lazy => $lazy, check => $check)], [qw(gen_gsch_code), $check, $lazy];
+is_deeply [compile_attr('name', lazy => $lazy, check => $check)],
+  [qw(gen_gsch_code name), $check, $lazy];
 
 # process is
 

@@ -1,27 +1,40 @@
-use Evo 'Test::More; Evo::Class::Gen::Out';
+use Evo 'Test::More; Evo::Class::Gen; -Internal::Exception';
 
-my $gen   = Evo::Class::Gen::Out->register('My::Class');
-my $dfn   = sub {'DFN'};
-my $check = sub {1};
-$gen->sync_attrs(
-  req    => {required => 1},
-  dv     => {default  => 'DV'},
-  dfn    => {default  => $dfn},
-  ch     => {check    => $check},
-  simple => {},
-);
+BUILD_SHAPE: {
+  my $gen   = Evo::Class::Gen->new();
+  my $dfn   = sub {'DFN'};
+  my $check = sub {1};
+  $gen->gen_attr('simple_rw');
+  $gen->gen_attr('simple_ro', is => 'ro');
+  $gen->gen_attr(req => required => 1);
+  $gen->gen_attr(dv  => default  => 'DV');
+  $gen->gen_attr(dfn => default  => $dfn);
+  $gen->gen_attr(ch  => check    => $check);
 
-is_deeply [sort keys $gen->{_known}->%*], [sort qw(req dv dfn simple ch)];
-is_deeply [$gen->{_required}->@*], [qw(req)];
-is_deeply $gen->{_dv},    {dv  => 'DV'};
-is_deeply $gen->{_dfn},   {dfn => $dfn};
-is_deeply $gen->{_check}, {ch  => $check};
+  is_deeply $gen->{builder},
+    {
+    known    => {simple_rw => 1, simple_ro => 1, req => 1, dv => 1, dfn => 1, ch => 1},
+    dv       => {dv        => 'DV'},
+    dfn      => {dfn       => $dfn},
+    check    => {ch        => $check},
+    required => ['req'],
+    };
 
-$gen->sync_attrs();
-is_deeply $gen->{_known}, {};
-is_deeply $gen->{_required}, [];
-is_deeply $gen->{_dv},    {};
-is_deeply $gen->{_dfn},   {};
-is_deeply $gen->{_check}, {};
+}
+
+INDEXES: {
+  my $gen = Evo::Class::Gen->new();
+  $gen->gen_attr('a0');
+  is_deeply $gen->{indexes}, {a0 => 0};
+
+  # can't generate twice
+  like exception { $gen->gen_attr('a0', required => 1) }, qr/Attribute "a0".+already/;
+  is_deeply $gen->{builder},
+    {known => {a0 => 1}, dv => {}, dfn => {}, check => {}, required => []};
+
+  $gen->gen_attr('a1');
+  is_deeply $gen->{indexes}, {a0 => 0, a1 => 1};
+}
+
 
 done_testing;
