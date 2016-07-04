@@ -34,7 +34,7 @@ sub overridden($self) { $self->{overridden} }
 sub private($self)    { $self->{private} }
 
 sub mark_as_overridden ($self, $name) {
-  $self->overridden->{$name}++;
+  $self->overridden->{$name} = 1;
   $self;
 }
 
