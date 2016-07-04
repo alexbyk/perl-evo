@@ -1,5 +1,5 @@
 package Evo::Io::Handle;
-use Evo '-Class::Out; -Loop *; Symbol gensym';
+use Evo '-Class; -Loop *; Symbol gensym';
 
 use Fcntl qw(F_SETFL F_GETFL O_NONBLOCK);
 

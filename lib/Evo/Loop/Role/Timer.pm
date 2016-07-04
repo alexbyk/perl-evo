@@ -1,5 +1,5 @@
 package Evo::Loop::Role::Timer;
-use Evo -Class::Role, 'Carp croak; List::Util first';
+use Evo '-Class *, -new', 'Carp croak; List::Util first';
 
 requires qw(zone_cb tick_time gen_id);
 

@@ -21,30 +21,7 @@ use Evo::Internal::Exception;
   has with_dv => 'DV';
   has with_dfn => sub {'DFN'};
 
-  package My::Bar;
-  use Evo -Class, -Loaded;
-  has 'bar';
-
-  package My::Child;
-  use Evo -Class;
-  extends 'My::Foo', 'My::Bar';
-  has_over 'req' => 'OVER';
-
-  package My::Child2;
-  use Evo -Class;
-  with 'My::Foo', 'My::Bar';
-  has_over 'req' => 'OVER';
-
 };
-
-
-# Child
-for my $class (qw(My::Child My::Child2)) {
-  my $child = $class->new(foo => 1, bar => 2);
-  is $child->foo, 1;
-  is $child->bar, 2;
-  is $child->req, 'OVER';
-}
 
 
 ok(My::Empty->new());

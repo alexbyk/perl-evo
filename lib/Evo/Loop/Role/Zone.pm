@@ -1,5 +1,5 @@
 package Evo::Loop::Role::Zone;
-use Evo -Class::Role, '-Lib *; Carp carp croak';
+use Evo '-Class *, -new', '-Lib *; Carp carp croak';
 
 has zone_data => sub { {middleware => [[]]} };
 
