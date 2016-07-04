@@ -58,10 +58,14 @@ sub reg_attr ($self, $name, %opts) {
 }
 
 sub gen_attr ($self, $name, %opts) {
-  my $index = $self->reg_attr($name, %opts);
+  $self->reg_attr($name, %opts);
+  $self->gen_attr_code($name);
+}
+
+sub gen_attr_code ($self, $name) {
 
   # closure
-  my ($ro, $lazy, $check) = @{$self->{attrs}{$name}}{qw(ro lazy check)};
+  my ($ro, $lazy, $check, $index) = @{$self->{attrs}{$name}}{qw(ro lazy check index)};
 
   # simplest and popular
   if (!$ro && !$lazy && !$check) {
