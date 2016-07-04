@@ -1,22 +1,107 @@
 package Evo::Class;
-use Evo '-Export export_proxy; Evo::Class::Gen::In; -Class::Common::Util';
+use Evo '-Export export_proxy; Evo::Class::Gen; Evo::Class::Meta';
 
-export_proxy 'Evo::Class::Common::RoleFunctions',    '*';
-export_proxy 'Evo::Class::Common::StorageFunctions', '*';
+my $GEN_IMPL = eval { require Evo::Class::Gen::XS; 1 } ? 'Evo::Class::Gen::XS' : 'Evo::Class::Gen';
 
 sub new ($me, $dest) : ExportGen {
-  $me->class_of_gen->find_or_croak($dest)->gen_new;
+  Evo::Class::Meta->find_or_croak($dest)->gen->gen_new;
 }
 
-my $GEN_IMPL
-  = eval { require Evo::Class::Gen::In::XS; 1 }
-  ? 'Evo::Class::Gen::In::XS'
-  : 'Evo::Class::Gen::In';
+sub init ($me, $dest) : ExportGen {
+  Evo::Class::Meta->find_or_croak($dest)->gen->gen_init;
+}
 
-sub class_of_gen($self) {$GEN_IMPL}
+sub import ($me, @list) {
+  my $caller = caller;
+  Evo::Class::Meta->register($caller, $GEN_IMPL);
+  Evo::Export->install_in($caller, $me, @list ? @list : '*');
+}
 
-no warnings 'once';
-*import = *Evo::Class::Common::Util::register_and_import;
+sub META ($me, $dest) : ExportGen {
+  sub { Evo::Class::Meta->find_or_croak($dest); };
+}
+
+sub requires ($me, $dest) : ExportGen {
+
+  sub (@names) {
+    my $meta = Evo::Class::Meta->find_or_croak($dest);
+    $meta->reg_requirement($_) for @names;
+  };
+}
+
+sub implements ($me, $dest) : ExportGen {
+
+  sub (@interfaces) {
+    my $meta = Evo::Class::Meta->find_or_croak($dest);
+    foreach my $inter (@interfaces) {
+      $inter = Evo::Internal::Util::resolve_package($dest, $inter);
+      my $inter_meta = $meta->find_or_croak($inter);
+      $meta->check_implementation($inter);
+    }
+  };
+}
+
+
+sub Over ($dest, $code, $name) : Attr {
+  Evo::Class::Meta->find_or_croak($dest)->mark_as_overridden($name);
+}
+
+
+sub attr_exists ($me, $dest) : ExportGen {
+  Evo::Class::Meta->find_or_croak($dest)->gen->gen_attr_exists;
+}
+
+sub attr_delete ($me, $dest) : ExportGen {
+  Evo::Class::Meta->find_or_croak($dest)->gen->gen_attr_delete;
+}
+
+sub has ($me, $dest) : ExportGen {
+  sub ($name, @opts) {
+    my %parsed = Evo::Class::Meta->parse_attr(@opts);
+    Evo::Class::Meta->find_or_croak($dest)->reg_attr($name, %parsed);
+  };
+}
+
+sub has_over ($me, $dest) : ExportGen {
+  sub ($name, @opts) {
+    my %parsed = Evo::Class::Meta->parse_attr(@opts);
+    Evo::Class::Meta->find_or_croak($dest)->reg_attr_over($name, %parsed);
+  };
+}
+
+sub _extend ($me, $dest, @parents) {
+  my $meta = Evo::Class::Meta->find_or_croak($dest);
+  my $gen  = $me->class_of_gen->find_or_croak($dest);
+  my @names;
+  foreach my $par (@parents) {
+    $par = Evo::Internal::Util::resolve_package($dest, $par);
+    push @names, $meta->extend_with($par);
+  }
+  $me->class_of_gen->find_or_croak($dest)->sync_attrs($meta->attrs->%*);
+  foreach my $name (@names) {
+    my $sub = $gen->gen_attr($name, $meta->attrs->{$name}->%*);
+    my $fn = Evo::Internal::Util::monkey_patch $dest, $name, $sub;
+  }
+}
+
+sub extends ($me, $dest) : ExportGen {
+  sub(@parents) { _extend($me, $dest, @parents); };
+}
+
+
+sub with ($me, $dest) : ExportGen {
+
+  sub (@parents) {
+    my $meta = Evo::Class::Meta->find_or_croak($dest);
+    foreach my $par (@parents) {
+      $par = Evo::Internal::Util::resolve_package($dest, $par);
+      _extend($me, $dest, $par);
+      $meta->check_implementation($par);
+    }
+    $me->class_of_gen->find_or_croak($dest)->sync_attrs($meta->attrs->%*);
+  };
+}
+
 
 1;
 
@@ -131,7 +216,7 @@ Return current L<Evo::Class::Meta> object for the class
 
 The big advantage of Evo object that it's not tied with implementation. The default uses hashes L<Evo::Class>, but you can easily switch for example to L<Evo::Class::Out> and use any other refs
 
-=head2 Declaring attribute 
+=head2 Declaring attribute
 
   package My::Foo;
   use Evo '-Class *';
@@ -182,7 +267,7 @@ Like default, but will be filled at the first invocation, not in constructor, an
 
 Attributes with this options are required
 
-=head4 check 
+=head4 check
 
 You can provide function that will check passed value (via constuctor and changing), and if that function doesn't return true, an exception will be thrown.
 

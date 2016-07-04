@@ -7,6 +7,7 @@ fieldhash my %DATA;
 sub gen_init($self) {
   my $attrs = $self->{attrs};
   sub ($class, $obj, %opts) {
+    croak "Not a reference" unless ref $obj;
     my @arr;
 
     # iterate passed args and fill @arr
@@ -35,9 +36,15 @@ sub gen_init($self) {
       }
     }
 
-    $DATA{$obj} = \@arr;
     bless $obj, $class;
+    $DATA{$obj} = \@arr;
+    $obj;
   };
+}
+
+sub gen_new($self) {
+  my $init = $self->gen_init();
+  sub { $init->(shift, {}, @_); };
 }
 
 sub new ($me) { bless {ai => 0, attrs => {}}, $me; }

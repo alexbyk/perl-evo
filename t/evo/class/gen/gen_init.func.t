@@ -18,43 +18,53 @@ sub test_gen ($gclass) {
     $meta = Evo::Class::Meta->register('My::Class::Parent', $gclass);
     $gen = $meta->gen;
     ok $My::Class::Parent::EVO_CLASS_META;
-    $build = sub { $gen->gen_init()->('My::Class', {}, @_) };
   }
 
-REQUIRED: {
-    before();
-    $gen->gen_attr(req => required => 1);
-    like exception { $build->() }, qr#"req" is required.+$0#;
-  }
+  my $init = sub { $gen->gen_init()->('My::Class', {}, @_) };
+  my $new = sub { $gen->gen_new()->('My::Class', @_) };
 
-UNKNOWN: {
-    before();
-    like exception { $build->(bad => 1) }, qr#Unknown.+"bad".+$0#;
-  }
+  foreach my $build ($init, $new) {
 
-CHECK: {
-    # check if passed but bypass checking of default value, even if it's negative
-    before();
-    my $sub = $gen->gen_attr(foo => default => 0, check => $positive);
-    like exception { $build->(foo => 0) }, qr#Bad value.+"0".+"foo".+OOPS.+$0#i;
-    is $sub->($build->()), 0;
-  }
+  EXCEPTION: {
+      before();
+      like exception { $meta->gen->gen_init()->('My::Class', "NOT A REF"); }, qr/ref.+$0/;
+    }
 
-DEFAULT_VALUE: {
-    before();
-    my $sub = $gen->gen_attr(foo => default => 222);
-    is $sub->($build->()), '222';
-    is $sub->($build->(foo => 'mine')), 'mine';
-  }
+  REQUIRED: {
+      before();
+      $gen->gen_attr(req => required => 1);
+      like exception { $build->() }, qr#"req" is required.+$0#;
+    }
 
-DEFAULT_CODE: {
-    before();
-    my $sub = sub {222};
-    my $sub = $gen->gen_attr(foo => default => $sub);
-    is $sub->($build->()), '222';
-    is $sub->($build->(foo => 'mine')), 'mine';
-  }
+  UNKNOWN: {
+      before();
+      like exception { $build->(bad => 1) }, qr#Unknown.+"bad".+$0#;
+    }
 
+  CHECK: {
+      # check if passed but bypass checking of default value, even if it's negative
+      before();
+      my $sub = $gen->gen_attr(foo => default => 0, check => $positive);
+      like exception { $build->(foo => 0) }, qr#Bad value.+"0".+"foo".+OOPS.+$0#i;
+      is $sub->($build->()), 0;
+    }
+
+  DEFAULT_VALUE: {
+      before();
+      my $sub = $gen->gen_attr(foo => default => 222);
+      is $sub->($build->()), '222';
+      is $sub->($build->(foo => 'mine')), 'mine';
+    }
+
+  DEFAULT_CODE: {
+      before();
+      my $def = sub {222};
+      my $sub = $gen->gen_attr(foo => default => $def);
+      is $sub->($build->()), '222';
+      is $sub->($build->(foo => 'mine')), 'mine';
+    }
+
+  }
 }
 
 test_gen('Evo::Class::Gen');
