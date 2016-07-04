@@ -1,6 +1,6 @@
 package Evo::Class::Meta;
 use Evo -Internal::Util;
-use Evo 'Carp croak; -Internal::Util; Module::Load ()';
+use Evo 'Carp croak; Scalar::Util reftype; -Internal::Util; Module::Load ()';
 
 our @CARP_NOT = qw(Evo::Class::Role Evo::Class::Out Evo::Class
   Evo::Class::Common::StorageFunctions Evo::Class::Common::RoleFunctions);
@@ -189,15 +189,20 @@ sub parse_attr ($self, @attr) {
   croak "providing default and setting required doesn't make sense"
     if exists $opts{default} && $opts{required};
 
-  croak qq#"default" should be either a code reference or a scalar value#
-    if ref $opts{default} && ref $opts{default} ne 'CODE';
+  if (ref $opts{default}) {
+    my $default = delete $opts{default};
+    croak qq#"default" should be either a code reference or a scalar value#
+      unless reftype($default) eq 'CODE';
+    $opts{default_code} = $default;
+  }
 
   croak qq#"lazy" should be a code reference# if exists $opts{lazy} && ref $opts{lazy} ne 'CODE';
   croak qq#"check" should be a code reference#
-    if exists $opts{check} && ref $opts{check} ne 'CODE';
+    if exists $opts{check} && (reftype($opts{check}) // '') ne 'CODE';
 
-  if ($opts{is}) {
-    croak qq#invalid "is": "$opts{is}"# unless $opts{is} eq 'ro' || $opts{is} eq 'rw';
+  if (my $is = delete $opts{is}) {
+    croak qq#invalid "is": "$is"# unless $is eq 'ro' || $is eq 'rw';
+    $opts{ro} = 1 if $is eq 'ro';
   }
   %opts;
 }

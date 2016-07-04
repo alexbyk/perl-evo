@@ -351,34 +351,44 @@ ERRORS: {
     # default or lazy should be either scalar or coderef
     like exception { parse_attr(default => {}) }, qr/default.+$0/;
     like exception { parse_attr(lazy    => {}) }, qr/lazy.+$0/;
-    like exception { parse_attr(lazy  => 0) }, qr/lazy.+$0/;
-    like exception { parse_attr(check => 0) }, qr/check.+$0/;
-
-    # extra known
+    like exception { parse_attr(lazy  => 0) },     qr/lazy.+$0/;
+    like exception { parse_attr(check => 0) },     qr/check.+$0/;
+    like exception { parse_attr(is    => 'foo') }, qr/invalid "is".+$0/;
     like exception { parse_attr(un1 => 1, un2 => 2) }, qr/unknown.+un1.+un2.+$0/;
   }
 
 
   is_deeply { parse_attr() }, {};
 
+  my $dc = sub { };
+
   # perl6 && mojo style for default
-  is_deeply { parse_attr('FOO') }, {default => 'FOO'};
+  is_deeply { parse_attr('FOO') }, {default      => 'FOO'};
+  is_deeply { parse_attr($dc) },   {default_code => $dc};
 
   # perl6 style
-  is_deeply { parse_attr('FOO', is => 'rw') }, {is => 'rw', default => 'FOO'};
+  is_deeply { parse_attr('FOO', is => 'ro') }, {ro => 1, default => 'FOO'};
+  is_deeply { parse_attr($dc, is => 'ro') }, {default_code => $dc, ro => 1};
 
   #  moose style
-  is_deeply { parse_attr(is => 'rw', default => 'FOO') }, {is => 'rw', default => 'FOO'};
+  is_deeply { parse_attr(is => 'rw', default => 'FOO') }, {default => 'FOO'};
+  is_deeply { parse_attr(is => 'ro', default => $dc) }, {ro => 1, default_code => $dc};
 
   # required
-  is_deeply { parse_attr(is => 'rw', required => 1) }, {is => 'rw', required => 1};
+  is_deeply { parse_attr(is => 'ro', required => 1) }, {ro => 1, required => 1};
+
+
+  # rw ro
+  is_deeply { parse_attr() }, {};
+  is_deeply { parse_attr(is => 'rw') }, {};
+  is_deeply { parse_attr(is => 'ro') }, {ro => 1};
 
 
   # all
   my $t    = sub {1};
   my $lazy = sub { };
-  is_deeply { parse_attr(is => 'rw', check => $t, required => 1, lazy => $lazy,) },
-    {is => 'rw', required => 1, lazy => $lazy, check => $t};
+  is_deeply { parse_attr(is => 'ro', check => $t, required => 1, lazy => $lazy,) },
+    {ro => 1, required => 1, lazy => $lazy, check => $t};
 
 
 }
