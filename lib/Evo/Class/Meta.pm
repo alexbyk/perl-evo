@@ -182,12 +182,6 @@ sub check_implementation ($self, $inter_class) {
 # -- class methods for usage from other modules too
 my @KNOWN = qw(default required lazy check is);
 
-sub bad_value ($me, $value, $name, $msg = undef) {
-  my $err = qq'Bad value "$value" for attribute "$name"';
-  $err .= ": $msg" if $msg;
-  $err;
-}
-
 sub parse_attr ($me, @attr) {
   my %unknown = my %opts = (@attr % 2 ? (default => @attr) : @attr);
   delete $unknown{$_} for @KNOWN;

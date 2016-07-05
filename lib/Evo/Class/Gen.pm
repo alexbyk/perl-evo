@@ -4,6 +4,11 @@ use Evo 'Carp croak; -Class::Meta';
 use Hash::Util::FieldHash 'fieldhash';
 fieldhash my %DATA;
 
+my sub _croak_bad_value ($val, $name, $msg) {
+  $msg //= '';
+  croak qq{Bad value "$val" for attribute "$name": $msg};
+}
+
 sub gen_init($self) {
   my $attrs = $self->{attrs};
   sub ($class, $obj, %opts) {
@@ -16,7 +21,7 @@ sub gen_init($self) {
       my $index = $attrs->{$k}{index};
       if (my $check = $attrs->{$k}{check}) {
         my ($ok, $err) = $check->($opts{$k});
-        croak(Evo::Class::Meta->bad_value($opts{$k}, $k, $err)) unless $ok;
+        _croak_bad_value($opts{$k}, $k, $err) if !$ok;
       }
       @arr[$index] = $opts{$k};
     }
@@ -62,6 +67,7 @@ sub gen_attr ($self, $name, %opts) {
   $self->gen_attr_code($name);
 }
 
+
 sub gen_attr_code ($self, $name) {
 
   # closure
@@ -86,7 +92,7 @@ sub gen_attr_code ($self, $name) {
     croak qq{Attribute "$name" is readonly} if $ro;
     if ($check) {
       my ($ok, $msg) = $check->($_[1]);
-      croak(Evo::Class::Meta->bad_value($_[1], $name, $msg)) unless $ok;
+      _croak_bad_value($_[1], $name, $msg) if !$ok;
     }
     $DATA{$_[0]}[$index] = $_[1];
     $_[0];
