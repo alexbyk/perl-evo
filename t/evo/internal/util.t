@@ -84,7 +84,8 @@ MONKEY_PATCH: {
   is Foo::foo(), 'pfoo';
   is Foo::bar(), 'pbar';
 
-  my $restore = Evo::Internal::Util::monkey_patch_silent('Bar', foo => sub {'pfoo'}, bar => sub {'pbar'});
+  my $restore
+    = Evo::Internal::Util::monkey_patch_silent('Bar', foo => sub {'pfoo'}, bar => sub {'pbar'});
   is Bar::foo(), 'pfoo';
   is Bar::bar(), 'pbar';
 
@@ -112,7 +113,8 @@ PKG_STASH: {
   is $My::Pkg::MY_META, 'VAL2';
 
   # first should be a package
-  like exception { Evo::Internal::Util::pkg_stash($obj, 'My::Class') }, qr/My::Meta=HASH.+package.+$0/;
+  like exception { Evo::Internal::Util::pkg_stash($obj, 'My::Class') },
+    qr/My::Meta=HASH.+package.+$0/;
 }
 
 RESOLVE_PACKAGE: {
@@ -142,7 +144,8 @@ RESOLVE_PACKAGE: {
   like exception { resolve(':::Foo') }, qr/Can't resolve.+:::Foo/i;
 
   # package can't start with 3, so Main, ::3 isn't good idea
-  like exception { Evo::Internal::Util::resolve_package('My', '/::3') }, qr/Can't resolve.+::3.+My/i;
+  like exception { Evo::Internal::Util::resolve_package('My', '/::3') },
+    qr/Can't resolve.+::3.+My/i;
 }
 
 UNIQ: {
@@ -180,8 +183,6 @@ HERE
   Evo::Internal::Util::suppress_carp("My::Src", "My::Dst") for 1 .. 2;
   is_deeply \@My::Dst::CARP_NOT, [qw(My::Pkg My::Src)];
 }
-
-
 
 
 done_testing;

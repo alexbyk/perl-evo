@@ -8,12 +8,16 @@ use Evo '-Internal::Util';
   use Evo 'Evo::Export::Meta; Evo::Export';
 
   sub import ($me, @list) {
-    Evo::Export->install_in(scalar caller, $me, @list)
+    Evo::Export->install_in(scalar caller, $me, @list);
   }
 
   my $meta = Evo::Export::Meta->find_or_bind_to(__PACKAGE__);
   $meta->export('foo');
-  $meta->export_gen(foo_gen => sub ($me, $dest) { sub {"gen-$me-$dest"}; });
+  $meta->export_gen(
+    foo_gen => sub ($me, $dest) {
+      sub {"gen-$me-$dest"};
+    }
+  );
   $meta->export_code(foo_anon => sub {'anon'});
   sub foo {'sub'}
 }

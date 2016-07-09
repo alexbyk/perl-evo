@@ -36,7 +36,8 @@ do {
 
   eval $code;
   die $@ if $@;
-} for qw(Moo Mouse Moose);
+  }
+  for qw(Moo Mouse Moose);
 
 say "----------\n\n";
 say "Simple accessors";

@@ -16,7 +16,9 @@ PREPARE_PACKAGE: {
 REGISTER_HANDLER: {
   local %Evo::Attr::HANDLERS;
   Evo::Attr::register_attribute('My::Provider1', H1 => sub { });
-  like exception { Evo::Attr::register_attribute('My::Provider1', H1 => sub { }); }, qr/H1.+My::Provider1.+$0/;
+  like exception {
+    Evo::Attr::register_attribute('My::Provider1', H1 => sub { });
+  }, qr/H1.+My::Provider1.+$0/;
 }
 
 PARSE_ATTR: {
