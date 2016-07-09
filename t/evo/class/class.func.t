@@ -6,15 +6,10 @@ use Evo::Internal::Exception;
 {
 
   package My::Empty;
-  use Evo '-Class::Out *';
+  use Evo '-Class *';
 
-  package Foo;
-  use Evo '-Class::Out *';
-
-
-  sub new {
-    shift->init(sub {'ok'}, @_);
-  }
+  package My::Foo;
+  use Evo -Class, -Loaded;
 
   has 'foo', is => 'ro';
   has 'gt10', check => sub { $_[0] > 10 }, is => 'ro';
@@ -25,20 +20,20 @@ use Evo::Internal::Exception;
   has lazyfnch => lazy => sub { 'LFNCH' . rand() }, check => sub {1};
   has with_dv => 'DV';
   has with_dfn => sub {'DFN'};
+
 };
 
-my $obj = [];
-isa_ok(My::Empty->init([]), 'My::Empty');
-is(My::Empty->init($obj), $obj);
 
+ok(My::Empty->new());
 
-like exception { Foo->new() }, qr/req.+required.+$0/;
-like exception { Foo->new(gt10   => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { Foo->new(gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { Foo->new(req    => 1, unknown => 1); }, qr/"unknown".+$0/;
+my $obj = {};
 
+like exception { My::Foo->new() }, qr/req.+required.+$0/;
+like exception { My::Foo->new(gt10   => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { My::Foo->new(gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { My::Foo->new(req    => 1, unknown => 1); }, qr/"unknown".+$0/;
 
-$obj = Foo->new(gt10 => 10 + 1, foo => 'FOO', req => 1);
+$obj = My::Foo->new(gt10 => 10 + 1, foo => 'FOO', req => 1);
 like exception { $obj->gt10(11); },  qr/gt10.+readonly.+$0/;
 like exception { $obj->gt10rw(9); }, qr/9.+gt10.+$0/;
 like exception { $obj->foo('Bad') }, qr/foo.+readonly.+$0/;
@@ -55,5 +50,8 @@ is $obj->gt10rw(12)->gt10rw, 12;
 is $obj->with_dv,  'DV';
 is $obj->with_dfn, 'DFN';
 
+
+$obj = My::Foo::->new(req => 1, foo => 'foo');
+is $obj->foo, 'foo';
 
 done_testing;

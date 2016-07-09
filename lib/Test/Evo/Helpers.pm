@@ -3,7 +3,7 @@ package Test::Evo::Helpers;
 
 use Evo '-Export *';
 
-use Evo '-Class::Meta; Socket :all; -Io *; -Lib::Net *; Socket AF_INET6; Fcntl O_NONBLOCK';
+use Evo 'Socket :all; -Io *; -Lib::Net *; Socket AF_INET6; Fcntl O_NONBLOCK';
 
 use constant CAN_BIND6 => eval {
   my ($saddr, $family) = net_gen_saddr_family('::1', undef);

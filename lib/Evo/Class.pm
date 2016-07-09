@@ -1,22 +1,101 @@
 package Evo::Class;
-use Evo '-Export export_proxy; Evo::Class::Gen::In; -Class::Common::Util';
+use Evo '-Export export_proxy; Evo::Class::Gen; Evo::Class::Meta';
 
-export_proxy 'Evo::Class::Common::RoleFunctions',    '*';
-export_proxy 'Evo::Class::Common::StorageFunctions', '*';
+my $GEN_IMPL = eval { require Evo::Class::Gen::XS; 1 } ? 'Evo::Class::Gen::XS' : 'Evo::Class::Gen';
 
 sub new ($me, $dest) : ExportGen {
-  $me->class_of_gen->find_or_croak($dest)->gen_new;
+  Evo::Class::Meta->find_or_croak($dest)->gen->gen_new;
 }
 
-my $GEN_IMPL
-  = eval { require Evo::Class::Gen::In::XS; 1 }
-  ? 'Evo::Class::Gen::In::XS'
-  : 'Evo::Class::Gen::In';
+sub init ($me, $dest) : ExportGen {
+  Evo::Class::Meta->find_or_croak($dest)->gen->gen_init;
+}
 
-sub class_of_gen($self) {$GEN_IMPL}
+sub import ($me, @list) {
+  my $caller = caller;
+  Evo::Class::Meta->register($caller, $GEN_IMPL);
+  Evo::Export->install_in($caller, $me, @list ? @list : '*');
+}
 
-no warnings 'once';
-*import = *Evo::Class::Common::Util::register_and_import;
+sub META ($me, $dest) : ExportGen {
+  sub { Evo::Class::Meta->find_or_croak($dest); };
+}
+
+sub requires ($me, $dest) : ExportGen {
+
+  sub (@names) {
+    my $meta = Evo::Class::Meta->find_or_croak($dest);
+    $meta->reg_requirement($_) for @names;
+  };
+}
+
+
+sub Over ($dest, $code, $name) : Attr {
+  Evo::Class::Meta->find_or_croak($dest)->mark_as_overridden($name);
+}
+
+
+sub attr_exists ($me, $dest) : ExportGen {
+  Evo::Class::Meta->find_or_croak($dest)->gen->gen_attr_exists;
+}
+
+sub attr_delete ($me, $dest) : ExportGen {
+  Evo::Class::Meta->find_or_croak($dest)->gen->gen_attr_delete;
+}
+
+sub has ($me, $dest) : ExportGen {
+  sub ($name, @opts) {
+    my $parsed = Evo::Class::Meta->parse_attr(@opts);
+    Evo::Class::Meta->find_or_croak($dest)->reg_attr($name, $parsed);
+  };
+}
+
+sub has_over ($me, $dest) : ExportGen {
+  sub ($name, @opts) {
+    my $parsed = Evo::Class::Meta->parse_attr(@opts);
+    Evo::Class::Meta->find_or_croak($dest)->reg_attr_over($name, $parsed);
+  };
+}
+
+sub _extend ($me, $dest, @parents) {
+  my $meta = Evo::Class::Meta->find_or_croak($dest);
+  my $gen  = $me->class_of_gen->find_or_croak($dest);
+  my @names;
+  foreach my $par (@parents) {
+    $par = Evo::Internal::Util::resolve_package($dest, $par);
+    push @names, $meta->extend_with($par);
+  }
+  $me->class_of_gen->find_or_croak($dest)->sync_attrs($meta->attrs->%*);
+  foreach my $name (@names) {
+    my $sub = $gen->gen_attr($name, $meta->attrs->{$name}->%*);
+    my $fn = Evo::Internal::Util::monkey_patch $dest, $name, $sub;
+  }
+}
+
+sub extends ($me, $dest) : ExportGen {
+  sub(@parents) {
+    Evo::Class::Meta->find_or_croak($dest)->extend_with($_) for @parents;
+  };
+}
+
+sub implements ($me, $dest) : ExportGen {
+  sub(@parents) {
+    Evo::Class::Meta->find_or_croak($dest)->check_implementation($_) for @parents;
+  };
+}
+
+
+sub with ($me, $dest) : ExportGen {
+
+  sub (@parents) {
+    my $meta = Evo::Class::Meta->find_or_croak($dest);
+    foreach my $parent (@parents) {
+      $meta->extend_with($parent);
+      $meta->check_implementation($parent);
+    }
+  };
+}
+
 
 1;
 
@@ -86,8 +165,10 @@ A new promising inject-code programming concepts based on mixins. Documentation 
 
 =head2 Why not OO and Moose like?
 
+The main difference is C<Evo> stores attributes outside the object, so any ref could be an object, while Moose allow you to use only hashes. This makes possible, for example, to avoid delegating C<$stream-E<gt>fh> and makes a code faster. Also avoiding hashes improves performance (Evo::XS should be faster Moose like modules 2-5 times). (see L<Evo::XS>)
 
-The syntax differs from Moose, I fixed most frustating parts of it. It's not Moose-compatible at all. C<Evo::Class> is more strict by default and prevents many errors.
+
+The syntax differs from Moose too, I fixed most frustating parts of it. It's not Moose-compatible at all. C<Evo::Class> is more strict by default and prevents many errors.
 
 Every class is a role (C<Evo::Class::Role>) and we don't use perl's C<@ISA> OO inheritance. Code reuse is based on so called "mixins".
 This concept doesn't suffer a C<fragile base class problem> from traditional OO
@@ -129,9 +210,20 @@ Return current L<Evo::Class::Meta> object for the class
 
 =head2 Storage
 
-The big advantage of Evo object that it's not tied with implementation. The default uses hashes L<Evo::Class>, but you can easily switch for example to L<Evo::Class::Out> and use any other refs
+The big advantage of Evo object that it's not tied with hashes. You can use C<init> to bless and init any reference.
 
-=head2 Declaring attribute 
+  package My::Obj;
+  use Evo 'Evo::Class *, -new';    # load all except "new"
+
+  sub new ($me, %opts) {
+    $me->init([], %opts);
+  }
+
+  package main;
+  use Evo;
+  say My::Obj->new();
+
+=head2 Declaring attribute
 
   package My::Foo;
   use Evo '-Class *';
@@ -166,8 +258,8 @@ Can be 'rw' or 'ro'; Unlike Perl6 is 'rw' by default
 
 Attribute will be filled with this value if isn't provided to the C<new> constructor You can't use references, but you can provide a coderef instead of value, in this case return value of an invocation of this function will be used.
 
-  has ref => sub(%build_args) { {} };
-  has foo => default => sub(%build_args) { [] };
+  has ref => sub($class) { {} };
+  has foo => default => sub($class) { [] };
 
 This is a good way to init some attribute that should always exists. Arguments, passed to C<new> or C<init>  will be passed to the function without object itself (because there are no object yet). If you're expecting another behaviour, check L</lazy>
 
@@ -178,11 +270,15 @@ Like default, but will be filled at the first invocation, not in constructor, an
   # pay attention, an instance is passed
   has foo => lazy => sub($self) { [] };
 
+You should now that using this feature is an antipattern in the mose of the cases. L</default> is preferable if you're not sure
+
 =head4 required
+
+  has 'foo', required => 1;
 
 Attributes with this options are required
 
-=head4 check 
+=head4 check
 
 You can provide function that will check passed value (via constuctor and changing), and if that function doesn't return true, an exception will be thrown.
 

@@ -154,20 +154,18 @@ You can export with another name
 If you want to write your own C<import> method, do it this way:
 
   package My::Lib;
-  use Evo -Export; # don't import "import"
+  use Evo -Export;    # don't import "import"
   use Evo -Loaded;
 
   sub import ($self, @list) {
     my $dest = scalar caller;
-    @list = ('*') if !@list;    # force to export all without args
-    say "exporting to $dest: ", join ',', @list;
-    Evo::Export::install($self, $dest, @list);
+    Evo::Export->install_in($dest, $self, @list ? @list : ('*'));    # force to install all
   }
   sub foo : Export { say 'foo' }
 
 
   package main;
-  use Evo 'My::Lib foo';
+  use Evo 'My::Lib';
   foo();
 
 =head4 export;

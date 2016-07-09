@@ -92,9 +92,6 @@ It provides rewritten and postmodern features like
 [almost ready] Post modern code injection programming L<Evo::Class> instead of traditional OO
 
 =item *
-(no docs yet, not ready) Fast Event-Loop L<Evo::Loop> with unique feature C<zones>
-
-=item *
 [almost ready] Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible. + Nice syntax via experimental L<Evo::Prm>
 
 =item *

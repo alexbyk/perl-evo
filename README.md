@@ -7,7 +7,6 @@ It provides rewritten and postmodern features like
 
 - Rewritten sexy [Evo::Export](https://metacpan.org/pod/Evo::Export)
 - Post modern object oriented programming with code injections [Evo::Class](https://metacpan.org/pod/Evo::Class) instead of traditional OO
-- (no docs yet) Fast Event-Loop [Evo::Loop](https://metacpan.org/pod/Evo::Loop) with unique feature zones (Not ready)
 - Fast non recursive [Evo::Promise](https://metacpan.org/pod/Evo::Promise), 100% Promises/Spec A compatible. + Nice syntax with [Evo::Prm](https://metacpan.org/pod/Evo::Prm)
 - Exception handling in pure perl: [Evo::Eval](https://metacpan.org/pod/Evo::Eval), "try catch" alternative. Like `Try::Tiny`, but without its bugs and much faster
 - [Evo::Ee](https://metacpan.org/pod/Evo::Ee) - a class role that gives your component "EventEmitter" abilities

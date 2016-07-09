@@ -1,5 +1,5 @@
 package Evo::Io::Socket;
-use Evo -Class::Out;
+use Evo -Class;
 with 'Evo::Io::Handle';
 
 use Evo '-Lib::Net *; Symbol gensym; Carp croak';

@@ -1,22 +1,20 @@
 package Evo::Class::Meta;
 use Evo -Internal::Util;
-use Evo 'Carp croak; -Internal::Util; Module::Load ()';
+use Evo 'Carp croak; Scalar::Util reftype; -Lib strict_opts; -Internal::Util; Module::Load ()';
 
-our @CARP_NOT = qw(Evo::Class::Role Evo::Class::Out Evo::Class
-  Evo::Class::Common::StorageFunctions Evo::Class::Common::RoleFunctions);
+our @CARP_NOT = qw(Evo::Class);
 
-no warnings 'redefine';    ## no critic
-
-sub register ($me, $package) {
+sub register ($me, $package, $gen_class) {
   my $self = Evo::Internal::Util::pkg_stash($package, $me);
   return $self if $self;
   $self = bless {
-    package     => $package,
-    _private    => {},
-    _attrs      => {},
-    _methods    => {},
-    _reqs       => {},
-    _overridden => {}
+    package    => $package,
+    gen        => $gen_class->new,
+    private    => {},
+    attrs      => {},
+    methods    => {},
+    reqs       => {},
+    overridden => {}
   }, $me;
   Evo::Internal::Util::pkg_stash($package, $me, $self);
   $self;
@@ -27,15 +25,16 @@ sub find_or_croak ($self, $package) {
 }
 
 sub package($self) { $self->{package} }
+sub attrs($self)   { $self->{attrs} }
+sub methods($self) { $self->{methods} }
+sub reqs($self)    { $self->{reqs} }
+sub gen($self)     { $self->{gen} }
 
-sub attrs($self)      { $self->{_attrs} }
-sub methods($self)    { $self->{_methods} }
-sub reqs($self)       { $self->{_reqs} }
-sub overridden($self) { $self->{_overridden} }
-sub private($self)    { $self->{_private} }
+sub overridden($self) { $self->{overridden} }
+sub private($self)    { $self->{private} }
 
 sub mark_as_overridden ($self, $name) {
-  $self->overridden->{$name}++;
+  $self->overridden->{$name} = 1;
   $self;
 }
 
@@ -86,17 +85,20 @@ sub _check_exists_valid_name ($self, $name) {
   _check_exists($self, $name);
 }
 
-sub reg_attr ($self, $name, %opts) {
+sub reg_attr ($self, $name, $opts) {
   _check_exists_valid_name($self, $name);
   my $pkg = $self->package;
   croak qq{$pkg already has subroutine "$name"} if Evo::Internal::Util::names2code($pkg, $name);
-  $self->attrs->{$name} = \%opts;
+  $self->attrs->{$name} = $opts;    # register
+  Evo::Internal::Util::monkey_patch $pkg, $name, $self->gen->gen_attr($name, $opts);
 }
 
-sub reg_attr_over ($self, $name, %opts) {
+sub reg_attr_over ($self, $name, $opts) {
   _check_valid_name($self, $name);
-  $self->attrs->{$name} = \%opts;
   $self->mark_as_overridden($name);
+  $self->attrs->{$name} = $opts;
+  my $pkg = $self->package;
+  Evo::Internal::Util::monkey_patch_silent $pkg, $name, $self->gen->gen_attr($name, $opts);
 }
 
 # means register external sub as method. Because every sub in the current package
@@ -120,6 +122,7 @@ sub public_attrs($self) {
 }
 
 sub extend_with ($self, $source_p) {
+  $source_p = Evo::Internal::Util::resolve_package($self->package, $source_p);
   Module::Load::load($source_p);
   my $source  = $self->find_or_croak($source_p);
   my $dest_p  = $self->package;
@@ -135,7 +138,7 @@ sub extend_with ($self, $source_p) {
     next if $self->is_overridden($name);
     croak qq/$dest_p already has a subroutine with name "$name"/
       if Evo::Internal::Util::names2code($dest_p, $name);
-    $self->reg_attr($name, $attrs{$name}->%*);
+    $self->reg_attr($name, {$attrs{$name}->%*});
     push @new_attrs, $name;
   }
 
@@ -161,6 +164,7 @@ sub requirements($self) {
 }
 
 sub check_implementation ($self, $inter_class) {
+  $inter_class = Evo::Internal::Util::resolve_package($self->package, $inter_class);
   Module::Load::load($inter_class);
   my $class = $self->package;
   my $inter = $self->find_or_croak($inter_class);
@@ -173,26 +177,53 @@ sub check_implementation ($self, $inter_class) {
   croak qq/Bad implementation of "$inter_class", missing in "$class": /, join ';', @not_exists;
 }
 
-my @KNOWN = qw(default required lazy check is);
+# -- class methods for usage from other modules too
 
-sub parse_attr ($self, @attr) {
+
+# rtype: default, default_code, required, lazy, relaxed
+# rvalue?
+# check?
+# is_ro?
+
+my @KNOWN_HAS = qw(default required lazy check is);
+
+sub parse_attr ($me, @attr) {
   my %unknown = my %opts = (@attr % 2 ? (default => @attr) : @attr);
-  delete $unknown{$_} for @KNOWN;
+  delete $unknown{$_} for @KNOWN_HAS;
   croak "unknown options: " . join(',', sort keys %unknown) if keys %unknown;
-  croak "providing default and setting required doesn't make sense"
-    if exists $opts{default} && $opts{required};
 
-  croak qq#"default" should be either a code reference or a scalar value#
-    if ref $opts{default} && ref $opts{default} ne 'CODE';
+  my %attr;
 
-  croak qq#"lazy" should be a code reference# if exists $opts{lazy} && ref $opts{lazy} ne 'CODE';
-  croak qq#"check" should be a code reference#
-    if exists $opts{check} && ref $opts{check} ne 'CODE';
-
-  if ($opts{is}) {
-    croak qq#invalid "is": "$opts{is}"# unless $opts{is} eq 'ro' || $opts{is} eq 'rw';
+  # detect rtype
+  my $seen = 0;
+  if (exists $opts{default}) {
+    croak qq#"default" should be either a code reference or a scalar value#
+      if ref($opts{default}) && (reftype($opts{default}) // '') ne 'CODE';
+    ++$seen;
+    $attr{rtype} = ref($opts{default}) ? 'default_code' : 'default';
+    $attr{rvalue} = $opts{default};
   }
-  %opts;
+  do { ++$seen; $attr{rtype} = 'required' } if $opts{required};
+  if (exists $opts{lazy}) {
+    croak qq#"lazy" should be a code reference# if (reftype($opts{lazy}) // '') ne 'CODE';
+    ++$seen;
+    $attr{rtype}  = 'lazy';
+    $attr{rvalue} = $opts{lazy};
+  }
+  croak qq{providing more than one of "default", "lazy", "required" doesn't make sense}
+    if $seen > 1;
+
+  croak qq#"check" should be a code reference#
+    if exists($opts{check}) && (reftype($opts{check}) // '') ne 'CODE';
+
+  my $is = $opts{is} // 'rw';
+  croak qq#invalid "is": "$is"# unless $is eq 'ro' || $is eq 'rw';
+
+  $attr{ro}    = 1            if $is eq 'ro';
+  $attr{check} = $opts{check} if exists $opts{check};
+  $attr{rtype} ||= 'relaxed';
+
+  \%attr;
 }
 
 
@@ -214,7 +245,7 @@ Meta is stored in C<$Some::Class::META_CLASS> global variable and lives as long 
 "overridden" means this symbol will be skept during L</extend_with> so if you marked something as overridden, you should define method or sub yourself too.  This is not a problem with C<sub foo : Over {}> or L</reg_attr_over> because it marks symbol as overridden and also registers a symbol.
 
 BUT!!!
-Calling L</reg_attr_over> should be called 
+Calling L</reg_attr_over> should be called
 
 
 =head2 private
@@ -241,6 +272,6 @@ All methods compiled in the class are public by default. But what to do if you m
 
 =head2 check_implementation
 
-If implementation requires "attribute", L</reg_attr> should be called before checking implementation 
+If implementation requires "attribute", L</reg_attr> should be called before checking implementation
 
 =cut

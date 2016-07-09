@@ -4,10 +4,10 @@ my %hash = (foo => 33, bar => 44, baz => 55);
 
 {
 
-  package My::Foo;
+  package My::Foo; ## no critic
   use Evo::Lib 'strict_opts';
 
-  sub foo(%opts) { strict_opts(1, \%opts, 'foo', 'bar'); }
+  sub foo(%opts) { strict_opts(\%opts, [qw(foo bar)]); }
 };
 
 is_deeply [My::Foo::foo(foo => 33, bar => 44)], [33, 44];

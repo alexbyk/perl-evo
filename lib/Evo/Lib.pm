@@ -50,9 +50,9 @@ sub combine_thunks : Export {
   sub { @args = @_; $cb->(); return };
 }
 
-sub strict_opts ($level, $hash, @keys) : Export {
+sub strict_opts ($hash, $keys, $level = 1) : Export {
   my %opts = %$hash;
-  my @opts = map { delete $opts{$_} } @keys;
+  my @opts = map { delete $opts{$_} } @$keys;
   if (my @remaining = keys %opts) {
     local $Carp::CarpLevel = $level;
     croak "Unknown options: ", join ',', @remaining;

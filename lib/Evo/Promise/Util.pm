@@ -14,7 +14,7 @@ sub is_locked_in ($parent, $child) : Export {
 
 sub is_fulfilled_with ($v, $p) : Export {
   croak unless defined wantarray;
-  return unless $p->d_settled && $p->{state} eq FULFILLED;
+  return unless $p->d_settled && $p->state eq FULFILLED;
   my $dv = $p->d_v;
 
   return defined $dv ? $v eq $dv : !defined $v;
@@ -22,7 +22,7 @@ sub is_fulfilled_with ($v, $p) : Export {
 
 sub is_rejected_with ($v, $p) : Export {
   croak unless defined wantarray;
-  return unless $p->d_settled && $p->{state} eq REJECTED;
+  return unless $p->d_settled && $p->state eq REJECTED;
   my $dv = $p->d_v;
   return defined $dv ? $v eq $dv : !defined $v;
 }
