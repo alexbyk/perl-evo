@@ -175,15 +175,9 @@ This concept doesn't suffer a C<fragile base class problem> from traditional OO
 
 Every class is also an interface and can be used to check the shape of other classes.
 
-A tiny amount of code means less bugs.
+A tiny amount of code means less bugs. You can make a code review in 5 minutes and understand everything.
 
 These advantages make C<Evo::Class> perfect for both "corporate level" and "small" projects
-
-=head2 ROLES, INTERFACES
-
-Every class can be a Role. Every Class/Role can be an Interface. This means you can extend
-class with roles, roles with roles, ioc with hash-classes and so on.
-
 
 =head1 Usage
 
@@ -380,6 +374,17 @@ This does "extend + check implementation". Consider this example:
 C<My::Role::Happy> requires C<name> in derivered class. We could install shared code with C<extends> and then check implemantation with C<implements>. Or just use C<with> wich does both.
 
 You may want to use C<extends> and C<implements> separately to resolve circular requirements, for example
+
+=head2 attr_exists
+
+=head2 attr_delete
+
+  my $alex = My::Human->new(gender => 'male', age => 31);
+  say $alex->attr_exists('age') ? 'exists' : 'not';
+  say $alex->attr_delete('age');
+  say $alex->attr_exists('age') ? 'exists' : 'not';
+
+Like C<exists> and C<delete> but for attributes and check if attribute was registered (croak otherwise).
 
 =head1 CODE ATTRIBUTES
 
