@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0229    2016-07-09 19:30:32+03:00 Europe/Kiev
+
 0.0228    2016-07-09 17:03:11+03:00 Europe/Kiev
 
   - Change -Class syntax and implementation. For extending with XS (soon)
