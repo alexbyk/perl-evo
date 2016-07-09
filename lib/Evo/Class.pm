@@ -165,7 +165,7 @@ A new promising inject-code programming concepts based on mixins. Documentation 
 
 =head2 Why not OO and Moose like?
 
-The main difference is C<Evo> stores attributes outside the object, so any ref could be an object, while Moose allow you to use only hashes. This makes possible, for example, to avoid delegating C<$stream-E<gt>fh> and makes a code faster. Also avoiding hashes improves performance (Evo::XS should be faster Moose like modules 2-5 times). (see L<Evo::XS>)
+The main difference is C<Evo> stores attributes outside the object, so any ref could be an object, while Moose allow you to use only hashes. This makes possible, for example, to avoid delegating C<$stream-E<gt>fh> and makes a code faster. Also avoiding hashes improves performance (Evo::Class with XS backend should be 50-100% faster than similar hash-based modules). (see L<https://github.com/alexbyk/perl-evo/tree/master/bench>)
 
 
 The syntax differs from Moose too, I fixed most frustating parts of it. It's not Moose-compatible at all. C<Evo::Class> is more strict by default and prevents many errors.
