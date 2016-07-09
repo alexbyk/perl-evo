@@ -179,6 +179,10 @@ A tiny amount of code means less bugs. You can make a code review in 5 minutes a
 
 These advantages make C<Evo::Class> perfect for both "corporate level" and "small" projects
 
+=head1 XS
+
+This module will automatically load and use XS generator, if available. Install L<Evo::XS> module to get benefits
+
 =head1 Usage
 
 =head2 creating an object
