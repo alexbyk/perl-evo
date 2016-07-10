@@ -5,20 +5,29 @@
 
 ##results
 
-    Simple accessors
-               Rate  Mojo Moose Mouse   Moo   Evo
-    Mojo  1953125/s    --   -1%  -51%  -53%  -56%
-    Moose 1968504/s    1%    --  -51%  -53%  -56%
-    Mouse 4000000/s  105%  103%    --   -4%  -10%
-    Moo   4166667/s  113%  112%    4%    --   -6%
-    Evo   4424779/s  127%  125%   11%    6%    --
-    ----------
+    ->new(...) - benchmark object initialization with 3 values
+               Rate Moose   Moo Mouse  Mojo   Evo
+    Moose  373134/s    --  -33%  -51%  -69%  -79%
+    Moo    555556/s   49%    --  -27%  -54%  -69%
+    Mouse  763359/s  105%   37%    --  -37%  -58%
+    Mojo  1219512/s  227%  120%   60%    --  -33%
+    Evo   1818182/s  387%  227%  138%   49%    --
 
 
-    Roundtip
-                  Rate My::Moose   My::Moo My::Mouse  My::Mojo   My::Evo
-    My::Moose 200401/s        --      -33%      -40%      -51%      -69%
-    My::Moo   299401/s       49%        --      -10%      -26%      -54%
-    My::Mouse 332226/s       66%       11%        --      -18%      -49%
-    My::Mojo  406504/s      103%       36%       22%        --      -38%
-    My::Evo   653595/s      226%      118%       97%       61%        --
+
+    ->foo('SIMPLE'); ->foo; Simple accessors
+               Rate  Mojo Moose   Moo Mouse   Evo
+    Mojo  1908397/s    --   -6%  -48%  -50%  -56%
+    Moose 2040816/s    7%    --  -45%  -46%  -53%
+    Moo   3703704/s   94%   81%    --   -2%  -15%
+    Mouse 3787879/s   98%   86%    2%    --  -13%
+    Evo   4347826/s  128%  113%   17%   15%    --
+
+
+
+    Roundtrip
+              Rate Moose   Moo Mouse   Evo
+    Moose 202020/s    --  -34%  -42%  -70%
+    Moo   306748/s   52%    --  -12%  -55%
+    Mouse 348432/s   72%   14%    --  -49%
+    Evo   680272/s  237%  122%   95%    --
