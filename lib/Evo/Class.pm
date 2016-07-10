@@ -134,7 +134,7 @@ sub with ($me, $dest) : ExportGen {
 
   ## will die, age must be >= 18
   #My::Human->new(age => 17, gender => 'male');
-  #My::Human->new()->age(17, gender => 'male');
+  #My::Human->new(gender => 'male')->age(17);
 
   # --------- code reuse
   {
