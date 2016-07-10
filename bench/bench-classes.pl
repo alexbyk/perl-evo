@@ -5,9 +5,9 @@ use Evo '-Class::Gen::XS; Benchmark cmpthese';
 
   package My::Evo;
   use Evo -Class, -Loaded;
-  has 'sm', is => 'rw';
-  has 'df', is => 'rw', default => sub {'DEF'};
-  has 'lz', is => 'rw', lazy => sub {'LAZY'};
+  has 'sm';
+  has 'df', default => sub {'DEF'};
+  has 'lz', lazy    => sub {'LAZY'};
 
   package My::Simple::Evo;
   use Evo -Class, -Loaded;
