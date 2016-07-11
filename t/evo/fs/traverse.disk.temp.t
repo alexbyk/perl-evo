@@ -1,8 +1,9 @@
 use Evo 'Test::More; Evo::Internal::Exception; -Fs::Class::Temp';
 use Evo 'File::Spec; File::Temp';
+use File::Basename 'fileparse';
 
 # traverse
-foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::Temp->new()) {
+foreach my $fs (Evo::Fs::Class::Temp->new(), Evo::Fs::Class->new(cwd => File::Temp->newdir)) {
   $fs->write_many(
     'f.txt' => 'txt',
     File::Spec->catdir($fs->cwd, "a/1/f.txt") => 'foo',
@@ -18,15 +19,15 @@ foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::
     sub ($path, $stat) {
       push @children, $path;
     },
-    sub ($d, $stat) {
-      push @dirs, $d;
-      $d->name ne 'skip_further';
+    sub ($path, $stat) {
+      push @dirs, $path;
+      scalar fileparse($path) ne 'skip_further';
     },
   );
 
 
   my @rel_children = sort map { File::Spec->abs2rel($_,       $fs->cwd) } @children;
-  my @rel_dirs     = sort map { File::Spec->abs2rel($_->path, $fs->cwd) } @dirs;
+  my @rel_dirs     = sort map { File::Spec->abs2rel($_, $fs->cwd) } @dirs;
 
   # see skip once only
   is_deeply \@rel_dirs, [sort qw(a a/1 a/2 b b/1 skip_further)];
@@ -37,7 +38,6 @@ foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::
       a b skip_further
       a/1 a/2 b/1
       a/1/f.txt a/2/f.txt b/1/f.txt
-
       )
   ];
 
@@ -101,7 +101,7 @@ foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::
 
 
   my @rel_children = sort map { File::Spec->abs2rel($_,       $fs->cwd) } @children;
-  my @rel_dirs     = sort map { File::Spec->abs2rel($_->path, $fs->cwd) } @dirs;
+  my @rel_dirs     = sort map { File::Spec->abs2rel($_, $fs->cwd) } @dirs;
 
   is_deeply \@rel_children, [sort qw(a a/1 a/1/a.slnk a/1/f.slnk a/1/f.hlnk a/1/f.txt)],;
 }
@@ -127,7 +127,7 @@ foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::
 
 
   my @rel_children = sort map { File::Spec->abs2rel($_,       $fs->cwd) } @children;
-  my @rel_dirs     = sort map { File::Spec->abs2rel($_->path, $fs->cwd) } @dirs;
+  my @rel_dirs     = sort map { File::Spec->abs2rel($_, $fs->cwd) } @dirs;
 
   # see skip once only
   is_deeply \@rel_dirs,     [sort qw(good)];
@@ -155,14 +155,14 @@ foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::
     sub ($path, $stat) {
       push @files, $path;
     },
-    sub ($d, @) {
-      push @dirs, $d;
-      $d->name ne 'skip_further';
+    sub ($path, @) {
+      push @dirs, $path;
+      scalar fileparse($path) ne 'skip_further';
     },
   );
 
-  my @rel_files = sort map { File::Spec->abs2rel($_->path, $fs->cwd) } @files;
-  my @rel_dirs  = sort map { File::Spec->abs2rel($_->path, $fs->cwd) } @dirs;
+  my @rel_files = sort map { File::Spec->abs2rel($_, $fs->cwd) } @files;
+  my @rel_dirs  = sort map { File::Spec->abs2rel($_, $fs->cwd) } @dirs;
 
   $, = '; ';
   is_deeply \@rel_dirs,  [sort qw(a a/1 b b/1 links skip_further)];

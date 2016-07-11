@@ -6,16 +6,16 @@ my $fs = Evo::Fs::Class::Temp->new();
 ok $fs->stat($fs->cwd)->is_dir;
 
 sub _write ($path, $what) {
-  my $file = $fs->open($path, 'w');
-  $fs->syswrite($file, $what);
-  $fs->close($file);
+  $fs->sysopen(my $fh, $path, 'w');
+  $fs->syswrite($fh, $what);
+  $fs->close($fh);
 }
 
 sub _slurp ($path) {
-  my $file = $fs->open($path, 'r');
+  $fs->sysopen(my $fh, $path, 'r');
   my $buf;
-  $fs->sysread($file, \$buf, 100);
-  $fs->close($file);
+  $fs->sysread($fh, \$buf, 100);
+  $fs->close($fh);
   $buf;
 }
 
@@ -31,19 +31,19 @@ EXISTS_SIZE: {
 
 # maybe superfluous
 #SYSOPEN_CLOSE: {
-#  my $file = $fs->sysopen('/foo', O_WRONLY | O_CREAT);
-#  $fs->syswrite($file, "123456");
-#  $fs->close($file);
+#  my $fh = $fs->sysopen('/foo', O_WRONLY | O_CREAT);
+#  $fs->syswrite($fh, "123456");
+#  $fs->close($fh);
 #  is _slurp('/foo'), '123456';
 #
-#  $file = $fs->sysopen('/foo', O_WRONLY | O_CREAT);
-#  $fs->syswrite($file, "xxx");
-#  $fs->close($file);
+#  $fh = $fs->sysopen('/foo', O_WRONLY | O_CREAT);
+#  $fs->syswrite($fh, "xxx");
+#  $fs->close($fh);
 #  is _slurp('/foo'), 'xxx456';
 #
-#  $file = $fs->sysopen('/foo', O_WRONLY | O_CREAT | O_TRUNC);
-#  $fs->syswrite($file, "new");
-#  $fs->close($file);
+#  $fh = $fs->sysopen('/foo', O_WRONLY | O_CREAT | O_TRUNC);
+#  $fs->syswrite($fh, "new");
+#  $fs->close($fh);
 #  is _slurp('/foo'), 'new';
 #
 #  $fs->unlink('/foo');
@@ -52,20 +52,20 @@ EXISTS_SIZE: {
 READ: {
   _write('/foo', '123456');
 
-  my $file = $fs->open('/foo', 'r');
+  $fs->sysopen(my $fh, '/foo', 'r');
   my $buf = 'xxBAD';
-  $fs->sysread($file, \$buf, 3, 2);
+  $fs->sysread($fh, \$buf, 3, 2);
   is $buf, 'xx123';
 
   $buf = '';
-  $fs->sysread($file, \$buf, 2);
+  $fs->sysread($fh, \$buf, 2);
   is $buf, '45';
 
   # read many
   $fs->unlink('/foo');
   _write('/foo', '123456');
-  $file = $fs->open('/foo', 'r');
-  is $fs->sysread($file, \$buf, 1000), 6;
+  $fs->sysopen($fh, '/foo', 'r');
+  is $fs->sysread($fh, \$buf, 1000), 6;
 
   $fs->unlink('/foo');
 }
@@ -74,25 +74,25 @@ SEEK: {
   # sysseek
   _write('/foo', '123456');
 
-  my $file = $fs->open('/foo', 'r');
+  $fs->sysopen(my $fh, '/foo', 'r');
 
-  like exception { $fs->sysseek($file, 10, 'BAD') }, qr/bad.+BAD.+$0/i;
+  like exception { $fs->sysseek($fh, 10, 'BAD') }, qr/bad.+BAD.+$0/i;
   my $buf = '';
-  $fs->sysread($file, \$buf, 100);    # to end
-  $fs->sysseek($file, 0);
+  $fs->sysread($fh, \$buf, 100);    # to end
+  $fs->sysseek($fh, 0);
   $buf = '';
-  $fs->sysread($file, \$buf, 100);
+  $fs->sysread($fh, \$buf, 100);
   is $buf, '123456';
 
 
   $buf = '';
-  $fs->sysseek($file, -3, 'cur');
-  $fs->sysread($file, \$buf, 100);
+  $fs->sysseek($fh, -3, 'cur');
+  $fs->sysread($fh, \$buf, 100);
   is $buf, '456';
 
   $buf = '';
-  $fs->sysseek($file, -2, 'end');
-  $fs->sysread($file, \$buf, 100);
+  $fs->sysseek($fh, -2, 'end');
+  $fs->sysread($fh, \$buf, 100);
   is $buf, '56';
 
   $fs->unlink('/foo');
@@ -102,23 +102,23 @@ SEEK: {
 # different forms of read
 # different forms of write
 WRITE: {
-  my $file = $fs->open('/foo', 'w');
-  is $fs->syswrite($file, "123456"), 6;
+  $fs->sysopen(my $fh, '/foo', 'w');
+  is $fs->syswrite($fh, "123456"), 6;
   is _slurp('/foo'), '123456';
   $fs->unlink('/foo');
 
-  $file = $fs->open('/foo', 'w');
-  is $fs->syswrite($file, "123456", 2), 2;
+  $fs->sysopen($fh, '/foo', 'w');
+  is $fs->syswrite($fh, "123456", 2), 2;
   is _slurp('/foo'), '12';
   $fs->unlink('/foo');
 
-  $file = $fs->open('/foo', 'w');
-  is $fs->syswrite($file, "123456", 3, 1), 3;
+  $fs->sysopen($fh, '/foo', 'w');
+  is $fs->syswrite($fh, "123456", 3, 1), 3;
   is _slurp('/foo'), '234';
   $fs->unlink('/foo');
 
-  $file = $fs->open('/foo', 'w');
-  is $fs->syswrite($file, "123456", 1000), 6;
+  $fs->sysopen($fh, '/foo', 'w');
+  is $fs->syswrite($fh, "123456", 1000), 6;
   is _slurp('/foo'), '123456';
   $fs->unlink('/foo');
 }
@@ -141,7 +141,7 @@ STAT: {
   $fs->remove_tree('/somedir');
 
   # cando
-  $fs->open("/foo", 'w', oct 000);
+  $fs->sysopen(my $fh, "/foo", 'w', oct 000);
   $stat = $fs->stat('/foo');
   ok !$stat->can_read;
   ok !$stat->can_write;
@@ -149,7 +149,7 @@ STAT: {
   is $stat->perms, oct 000;
   $fs->unlink('/foo');
 
-  $fs->open("/foo", 'w', oct 700);
+  $fs->sysopen($fh, "/foo", 'w', oct 700);
   $stat = $fs->stat('/foo');
   ok $stat->can_read;
   ok $stat->can_write;
@@ -168,20 +168,20 @@ UTIMES: {
 
 LOCK: {
   _write('/foo', 'hello');
-  my $file1 = $fs->open('/foo', 'r');
-  my $file2 = $fs->open('/foo', 'r');
-  my $file3 = $fs->open('/foo', 'r+');
-  my $file4 = $fs->open('/foo', 'r+');
+  $fs->sysopen(my $fh1, '/foo', 'r');
+  $fs->sysopen(my $fh2, '/foo', 'r');
+  $fs->sysopen(my $fh3, '/foo', 'r+');
+  $fs->sysopen(my $fh4, '/foo', 'r+');
 
-  ok $fs->flock($file1, 'sh');
-  ok $fs->flock($file2, 'sh');
+  ok $fs->flock($fh1, 'sh');
+  ok $fs->flock($fh2, 'sh');
 
-  ok !$fs->flock($file3, 'ex_nb');
+  ok !$fs->flock($fh3, 'ex_nb');
 
-  ok $fs->flock($file1, 'un');
-  ok $fs->flock($file2, 'un');
+  ok $fs->flock($fh1, 'un');
+  ok $fs->flock($fh2, 'un');
 
-  ok $fs->flock($file3, 'ex_nb');
+  ok $fs->flock($fh3, 'ex_nb');
   $fs->unlink('/foo');
 }
 
@@ -248,8 +248,8 @@ MKDIR: {
 
 # list
 $fs->mkdir('/bar');
-$fs->open('/bar/f1', 'w');
-$fs->open('/bar/f2', 'w');
+$fs->sysopen(my $f1, '/bar/f1', 'w');
+$fs->sysopen(my $f2, '/bar/f2', 'w');
 is_deeply [sort $fs->ls('/bar')], [qw(f1 f2)];
 
 $fs->remove_tree('/bar');
@@ -259,22 +259,22 @@ ERRORS: {
   # exceptions file
   local $SIG{__WARN__} = sub { };
   _write('/existing', 'foo');
-  my $file = $fs->open('/existing', 'r');
+  $fs->sysopen(my $fh, '/existing', 'r');
 
   # flock
-  $file = $fs->open('/existing', 'r');
-  like exception { $fs->flock($file, 'boo') }, qr/flag.+$0/i;
+  $fs->sysopen($fh, '/existing', 'r');
+  like exception { $fs->flock($fh, 'boo') }, qr/flag.+$0/i;
 
-  $file = $fs->open('/existing', 'r');
-  $fs->close($file);
-  like exception { $fs->flock($file, 'sh') }, qr/bad.+descriptor.+$0/i;
+  $fs->sysopen($fh, '/existing', 'r');
+  $fs->close($fh);
+  like exception { $fs->flock($fh, 'sh') }, qr/bad.+descriptor.+$0/i;
 
   # utimes
   like exception { $fs->utimes('/not_exists', undef, undef); }, qr/No such.+$0/;
 
 
   $fs->mkdir('/existing_dir');
-  like exception { $fs->open('/existing_dir', 'w'); }, qr/is a directory.+$0/i;
+  like exception { $fs->sysopen(my $fh, '/existing_dir', 'w'); }, qr/is a directory.+$0/i;
   like exception { $fs->unlink('/not_exists'); }, qr/No such file.+$0/;
   like exception { $fs->stat('/not_exists'); },   qr/No such file or directory.+$0/;
 

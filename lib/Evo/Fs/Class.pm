@@ -1,9 +1,7 @@
 package Evo::Fs::Class;
-use Evo '/::Stat; /::File; /::Dir';
-use Evo -Class;
-use Evo 'Carp croak)';
+use Evo -Class, '/::Stat', 'Carp croak';
 use Fcntl qw(:seek O_RDWR O_RDONLY O_WRONLY O_RDWR O_CREAT O_TRUNC O_APPEND O_EXCL :flock);
-use Evo 'File::Spec; File::Path; Cwd() abs_path; File::Basename fileparse';
+use Evo 'File::Spec; File::Path; Cwd() abs_path; File::Basename fileparse; Symbol()';
 use Time::HiRes ();
 use List::Util 'first';
 use Errno qw(EAGAIN);
@@ -40,14 +38,6 @@ sub cdm ($self, $path) {
   $self->cd($path);
 }
 
-
-sub file ($self, $path) {
-  Evo::Fs::File->new(path => $self->to_abs($path));
-}
-
-sub dir ($self, $path) {
-  Evo::Fs::Dir->new(path => $self->to_abs($path));
-}
 
 sub to_abs ($self, $path) {
   File::Spec->rel2abs($path, $self->cwd);
@@ -87,41 +77,13 @@ sub is_symlink ($self, $path) {
 }
 
 
-my %open_map = (
-  r    => O_RDONLY,
-  'r+' => O_RDWR,
-
-  w     => O_WRONLY | O_CREAT | O_TRUNC,
-  wx    => O_WRONLY | O_CREAT | O_EXCL,
-  'w+'  => O_RDWR | O_CREAT | O_TRUNC,
-  'wx+' => O_RDWR | O_CREAT | O_EXCL,
-  a     => O_WRONLY | O_CREAT | O_APPEND,
-  ax    => O_WRONLY | O_CREAT | O_APPEND | O_EXCL,
-
-  'a+'  => O_RDWR | O_CREAT | O_APPEND,
-  'ax+' => O_RDWR | O_CREAT | O_APPEND | O_EXCL,
-);
-
-sub sysopen ($self, $file, $mode, $perms = undef) {
-  croak "Bad mode $mode" unless exists $open_map{$mode};
-  &CORE::sysopen($file, $self->path2real($file->path),
-    $open_map{$mode}, (defined($perms) ? $perms : ()))
-    or croak $file->path . ": $!";
-}
-
-sub open ($self, $path, $mode, $perms = undef) {
-  my $file = $self->file($path);
-  $self->sysopen($file, $mode, $perms);
-  $file;
-}
-
 sub utimes ($self, $path, $atime = undef, $mtime = undef) {
   my $real = $self->path2real($path);
   utime($atime // undef, $mtime // undef, $real) or croak "utimes $path: $!";
 }
 
-sub close ($self, $file) {
-  close $file;
+sub close ($self, $fh) {
+  close $fh;
 }
 
 sub stat ($self, $path) {
@@ -138,9 +100,32 @@ sub rename ($self, $old, $new) {
 
 my %seek_map = (start => SEEK_SET, cur => SEEK_CUR, end => SEEK_END,);
 
-sub sysseek ($self, $file, $pos, $whence = 'start') {
+my %open_map = (
+  r    => O_RDONLY,
+  'r+' => O_RDWR,
+
+  w     => O_WRONLY | O_CREAT | O_TRUNC,
+  wx    => O_WRONLY | O_CREAT | O_EXCL,
+  'w+'  => O_RDWR | O_CREAT | O_TRUNC,
+  'wx+' => O_RDWR | O_CREAT | O_EXCL,
+  a     => O_WRONLY | O_CREAT | O_APPEND,
+  ax    => O_WRONLY | O_CREAT | O_APPEND | O_EXCL,
+
+  'a+'  => O_RDWR | O_CREAT | O_APPEND,
+  'ax+' => O_RDWR | O_CREAT | O_APPEND | O_EXCL,
+);
+
+# self, fh, path, mode, perm?
+sub sysopen ($, $, $, $, @) {
+  croak "Bad mode $_[3]" unless exists $open_map{$_[3]};
+  &CORE::sysopen($_[1], $_[0]->path2real($_[2]), $open_map{$_[3]}, (defined($_[4]) ? $_[4] : ()))
+    or croak "sysopen: $!";
+}
+
+
+sub sysseek ($self, $fh, $pos, $whence = 'start') {
   croak "Bad whence $whence" unless exists $seek_map{$whence};
-  &CORE::sysseek($file, $pos, $seek_map{$whence}) // croak "Can't sysseek $!";
+  &CORE::sysseek($fh, $pos, $seek_map{$whence}) // croak "Can't sysseek $!";
 }
 
 sub syswrite ($, $, $, @) {    # other lengh, scalar offset
@@ -181,57 +166,40 @@ my %flock_map = (
 );
 
 
-sub flock ($self, $file, $flag) {
+sub flock ($self, $fh, $flag) {
   croak "Bad flag $flag" unless exists $flock_map{$flag};
-  my $res = flock($file, $flock_map{$flag});
+  my $res = flock($fh, $flock_map{$flag});
   croak "$!" unless $res || $! == EAGAIN;
   $res;
 }
 
 
-my sub make_dirs ($self, $path) {
-  my (undef, $dirs) = fileparse($path);
-  $self->make_tree($dirs);
-}
-
-# don't copy 3rd arg
-sub append_file ($self, $file, $) {
-  make_dirs($self, $file->path);
-  $self->sysopen($file, 'a');
-  $self->flock($file, 'ex');
-  $self->syswrite($file, $_[2]);
-  $self->flock($file, 'un');
-  $file;
-}
-
 sub append ($self, $path, $) {
-  $self->append_file($self->file($path), $_[2]);
+  $self->make_tree((fileparse($path))[1]);
+  $self->sysopen(my $fh, $path, 'a');
+  $self->flock($fh, 'ex');
+  $self->syswrite($fh, $_[2]);
+  $self->flock($fh, 'un');
+  return;
 }
 
 # don't copy 3rd arg
-sub write_file ($self, $file, $) {
-  make_dirs($self, $file->path);
-  $self->sysopen($file, 'w');
-  $self->flock($file, 'ex');
-  $self->syswrite($file, $_[2]);
-  $self->flock($file, 'un');
-  $file;
-}
-
 sub write ($self, $path, $) {
-  $self->write_file($self->file($path), $_[2]);
+  $self->make_tree((fileparse($path))[1]);
+  $self->sysopen(my $fh, $path, 'w');
+  $self->flock($fh, 'ex');
+  $self->syswrite($fh, $_[2]);
+  $self->flock($fh, 'un');
+  return;
 }
 
-sub read_file ($self, $file) {
-  $self->sysopen($file, 'r');
-  $self->flock($file, 'sh');
-  $self->sysread($file, \my $buf, $self->stat($file->path)->size);
-  $self->flock($file, 'un');
-  $buf;
-}
 
 sub read ($self, $path) {
-  $self->read_file($self->file($path));
+  $self->sysopen(my $fh, $path, 'r');
+  $self->flock($fh, 'sh');
+  $self->sysread($fh, \my $buf, $self->stat($path)->size);
+  $self->flock($fh, 'un');
+  $buf;
 }
 
 sub write_many ($self, %map) {
@@ -239,14 +207,14 @@ sub write_many ($self, %map) {
   $self;
 }
 
-sub find_files ($self, $start, $files_fn, $pick = undef) {
+sub find_files ($self, $start, $fhs_fn, $pick = undef) {
   my %seen;
   my $fn = sub ($path, $stat) {
     return unless $stat->is_file;
     return
       if $seen{$stat->dev, '-',
       $stat->ino}++;    # to avoid messing hardlinks, also works for symlinks
-    $files_fn->($self->file($path), $stat);
+    $fhs_fn->($path, $stat);
   };
   $self->traverse($start, $fn, $pick);
 }
@@ -276,7 +244,7 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
         && $stat->can_exec
         && $stat->can_read
         && !($seen{$stat->dev, '-', $stat->ino}++)
-        && (!$pick_d || $pick_d->($self->dir($abs), $stat)))
+        && (!$pick_d || $pick_d->($abs, $stat)))
       {
         unshift @dirs, [$abs, $stat];
       }
@@ -292,8 +260,8 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
 
 =head1 SYNOPSIS
 
-  use Evo::Fs::Class;
-  use Evo;
+  use Evo '-Fs::Class; File::Basename fileparse';
+
   my $orig_fs = Evo::Fs::Class->new;
   my $fs      = $orig_fs->cd('/tmp');    # new Fs with cwd as '/tmp'
   $fs->write('a/foo', 'one');
@@ -304,10 +272,10 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
   # bulk
   $fs->write_many('/tmp/a/foo' => 'afoo', '/tmp/b/foo' => 'bfoo');
 
-  my $file = $fs->open('/tmp/c', 'w+');
-  $fs->syswrite($file, "123456");
-  $fs->sysseek($file, 0);
-  $fs->sysread($file, \my $buf, 3);
+  $fs->sysopen(my $fh, '/tmp/c', 'w+');
+  $fs->syswrite($fh, "123456");
+  $fs->sysseek($fh, 0);
+  $fs->sysread($fh, \my $buf, 3);
   say $buf;                              # 123
 
   $fs->find_files(
@@ -316,20 +284,20 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
     './',
 
     # do something with file
-    sub ($file, $stat) {
-      say $file->name;
+    sub ($path, $stat) {
+      say $path;
     },
 
     # skip dirs like .git
-    sub ($dir, $stat) {
-      $dir->name !~ /^\./;
+    sub ($path, $stat) {
+      scalar fileparse($path) !~ /^\./;
     }
   );
 
   $fs->find_files(
     ['/tmp'],
-    sub ($file, $stat) {
-      say $file->path;
+    sub ($path, $stat) {
+      say $path;
     }
   );
 
@@ -351,18 +319,18 @@ Returns new FS with passed C<cwd>
 
 Same as L</cd> but also calls L</make_tree> before
 
-=head2 append_path, write_path
+=head2 append, write
 
-Append or write content to file. Dirs will be created if they don't exist.
-Use lock 'ex' during each invocation
+$fs->write('/tmp/my/file', 'foo');
+$fs->append('/tmp/my/file', 'bar');
+say $fs->read('/tmp/my/file');    # foobar
+
+Read, write or append a content to the file. Dirs will be created if they don't exist.
+Use lock 'ex' for append and write and lock 'sh' for read during each invocation
 
 =head2 write_many
 
-Write many files using L<write_path>
-
-=head2 read_path
-
-Read the whole file and returns the content. Lock with 'sh' during reading
+Write many files using L<write>
 
 =head2 sysseek($self, $position, $whence='start')
 
@@ -373,17 +341,18 @@ Whence can be one of:
 * cur
 * end
 
-=head2 read ($self, $file, $ref, $length[, $offset])
+
+=head2 sysread ($self, $fh, $ref, $length[, $offset])
 
 Calls C<sysread> but accepts scalar reference for convinience
 
-=head2 write($self, $file, $scalar, $length, $offset)
+=head2 write($self, $fh, $scalar, $length, $offset)
 
 Calls C<syswrite>
 
-=head2 open ($self, $path, $mode)
+=head2 sysopen ($self, $fh, $path, $mode)
 
-  my $file = $fs->open('/tmp/foo', 'r');
+  $fs->sysopen(my $fh, '/tmp/foo', 'r');
 
 Mode can be one of:
 
@@ -413,7 +382,7 @@ Like C<a+> but fails if path exists.
 
 =head2 rename($self, $oldpath, $newpath)
 
-Rename a file. Doesn't change opened paths of files (because right now doesn't register them, but in the future this may be changed).
+Rename a file.
 
 =head2 stat($self, $path)
 
@@ -441,11 +410,11 @@ Convert a virtual path to the real one.
 
 =head2 find_files($self, $dirs, $fn, $pick=undef)
 
-  $fs->find_files('./tmp', sub ($file, $stat) {...}, sub ($dir, $stat) {...});
-  $fs->find_files(['/tmp'], sub ($file, $stat) {...});
+  $fs->find_files('./tmp', sub ($fh, $stat) {...}, sub ($dir, $stat) {...});
+  $fs->find_files(['/tmp'], sub ($fh, $stat) {...});
 
 Find files in given directories. You can skip some directories by providing C<$pick-E<gt>($dir, $stat)> function.
-This will work ok on circular links, hard links and so on. Every file and it's stat will be passed to C<$fn-E<gt>($file, $stat)>only once
+This will work ok on circular links, hard links and so on. Every file and it's stat will be passed to C<$fn-E<gt>($fh, $stat)>only once
 even if it has many links.
 
 So, in situations, when a file have several hard and symbolic links, only one of them will be passed to C<$fn>, and potentially

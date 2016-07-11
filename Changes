@@ -2,8 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0232    2016-07-11 06:12:46+03:00 Europe/Kiev
-
+  - Change api of Evo::Fs 
   - Added Evo::Fs 
   - Change -Class syntax and implementation. For extending with XS (soon)
   - Change -Attr syntax
