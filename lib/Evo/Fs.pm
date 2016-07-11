@@ -62,7 +62,7 @@ See more documentation in L<Evo::Fs::Class>
 
 Return a single instance of L<Evo::Fs::Class>, the same as C<$Evo::Fs::SINGLE>
 
-=head2 fs
+=head2 fs_temp
 
 Build and return an instance of L<Evo::Fs::Class::Temp>
 

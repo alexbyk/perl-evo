@@ -338,7 +338,7 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
 Virtual testable mockable FileSystem.
 11% slower than simple functions, but benefits worth it
 
-=head2 cd, cdm ($self, $path)
+=head2 cd ($self, $path)
 
   my $new = $fs->cd('foo/bar');
   say $new->cwd;    # ~/foo/bar
