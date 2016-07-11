@@ -2,14 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0231    2016-07-10 00:31:22+03:00 Europe/Kiev
-
-0.0230    2016-07-09 19:49:22+03:00 Europe/Kiev
-
-0.0229    2016-07-09 19:30:32+03:00 Europe/Kiev
-
-0.0228    2016-07-09 17:03:11+03:00 Europe/Kiev
-
+  - Added Evo::Fs 
   - Change -Class syntax and implementation. For extending with XS (soon)
   - Change -Attr syntax
   - Change -Export implementation

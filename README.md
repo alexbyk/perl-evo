@@ -6,6 +6,7 @@ This framework opens new age of perl programming
 It provides rewritten and postmodern features like
 
 - Rewritten sexy [Evo::Export](https://metacpan.org/pod/Evo::Export)
+- [Evo::Fs](https://metacpan.org/pod/Evo::Fs) - abstraction layer between you app and FileSystem for simple testing
 - Post modern object oriented programming with code injections [Evo::Class](https://metacpan.org/pod/Evo::Class) instead of traditional OO
 - Fast non recursive [Evo::Promise](https://metacpan.org/pod/Evo::Promise), 100% Promises/Spec A compatible. + Nice syntax with [Evo::Prm](https://metacpan.org/pod/Evo::Prm)
 - Exception handling in pure perl: [Evo::Eval](https://metacpan.org/pod/Evo::Eval), "try catch" alternative. Like `Try::Tiny`, but without its bugs and much faster

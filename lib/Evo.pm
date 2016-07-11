@@ -101,6 +101,9 @@ It provides rewritten and postmodern features like
 (experimental) L<Evo::Ee> - a role that provides "EventEmitter" abilities
 
 =item *
+(experimental) L<Evo::Fs> - abstraction layer between you app and FileSystem for simple testing
+
+=item *
 (experimental, not ready) C<Boa> - new sexy testing framework and runner for both blocking and non-blocking tests (Unit testing + functional testing). 10-100 times faster than traditional C<prove> and has a C<"watch"> mode.
 
 =item *
