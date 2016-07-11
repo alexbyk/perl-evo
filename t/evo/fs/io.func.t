@@ -227,10 +227,10 @@ MAKE_TREE: {
   ok $fs->stat('/bar/p2/p3')->is_dir;
   $fs->remove_tree('/bar');
 
-  $fs->make_tree('/bar/p2/p3', oct 700);
-  is $fs->stat('/bar/p2/p3')->perms, oct 700;
-
-  $fs->remove_tree('/bar');
+  # TODO: - test with cur mask
+  # $fs->make_tree('/bar/p2/p3', oct 700);
+  # is $fs->stat('/bar/p2/p3')->perms, oct 700;
+  # $fs->remove_tree('/bar');
 }
 
 
@@ -240,9 +240,10 @@ MKDIR: {
   ok $fs->stat('/bar')->is_dir;
   $fs->remove_tree('/bar');
 
-  $fs->mkdir('/bar', oct 700);
-  is $fs->stat('/bar')->perms, oct 700;
-  $fs->remove_tree('/bar');
+  # TODO: - test with cur mask
+  # $fs->mkdir('/bar', oct 700);
+  # is $fs->stat('/bar')->perms, oct 700;
+  # $fs->remove_tree('/bar');
 }
 
 # list
