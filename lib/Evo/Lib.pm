@@ -18,7 +18,7 @@ my $HAS_M_TIME = eval { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); 1; };
 
 export_code steady_time => $HAS_M_TIME
   ? sub { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); }
-  : \&Time::HiRes::time;
+  : sub { Time::HiRes::time() };
 
 
 # combine higher order function without any protection and passing arguments
