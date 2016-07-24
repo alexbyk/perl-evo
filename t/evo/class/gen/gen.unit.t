@@ -10,9 +10,12 @@ REG_ATTR: {
     {a0 => {ro => 1, rtype => 'relaxed', index => 0}, a1 => {rtype => 'relaxed', index => 1}};
 
   # change attr but don't change an index
-  $gen->reg_attr('a0', parse(required => 1));
+  $gen->reg_attr('a0', parse(required => 'Foo'));
   is_deeply $gen->{attrs},
-    {a0 => {rtype => 'required', index => 0}, a1 => {rtype => 'relaxed', index => 1}};
+    {
+    a0 => {rtype => 'required', rvalue => 'Foo', index => 0},
+    a1 => {rtype => 'relaxed',  index  => 1}
+    };
 }
 
 GEN_MAP: {

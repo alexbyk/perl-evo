@@ -234,6 +234,19 @@ PUBLIC_ATTRS: {
   $meta->mark_as_private('attr1');
   %map = $meta->public_attrs;
   is_deeply [sort keys %map], [sort qw(attr2)];
+
+
+}
+
+ATTRS: {
+  my $meta = gen_meta;
+  $meta->reg_attr('attr1', parse default => 'DEF');
+  $meta->reg_attr_over('attr2', parse required => 'DEP');
+  is_deeply $meta->attrs,
+    {
+    attr1 => {rtype => 'default',  rvalue => 'DEF'},
+    attr2 => {rtype => 'required', rvalue => 'DEP'},
+    };
 }
 
 EXTEND_ATTRS: {
@@ -390,8 +403,9 @@ ERRORS: {
     {rtype => 'default_code', ro => 1, rvalue => $dc};
 
   # required
-  is_deeply parse_attr(required => 1), {rtype => 'required'};
-  is_deeply parse_attr(required => 0), {rtype => 'relaxed'};
+  is_deeply parse_attr(required => 1),         {rtype => 'required', rvalue => 1};
+  is_deeply parse_attr(required => 'My::Foo'), {rtype => 'required', rvalue => 'My::Foo'};
+  is_deeply parse_attr(required => 0),         {rtype => 'relaxed'};
   is_deeply parse_attr(), {rtype => 'relaxed'};
 
 
@@ -403,7 +417,7 @@ ERRORS: {
   my $check = sub {1};
   my $lazy  = sub { };
   is_deeply parse_attr(is => 'ro', check => $check, required => 1),
-    {rtype => 'required', check => $check, ro => 1};
+    {rtype => 'required', check => $check, ro => 1, rvalue => 1};
 
   is_deeply parse_attr(is => 'ro', check => $check, lazy => $lazy),
     {rtype => 'lazy', check => $check, rvalue => $lazy, ro => 1};

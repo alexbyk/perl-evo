@@ -181,7 +181,7 @@ sub check_implementation ($self, $inter_class) {
 
 
 # rtype: default, default_code, required, lazy, relaxed
-# rvalue?
+# rvalue is used as meta for required(di), default and lazy
 # check?
 # is_ro?
 
@@ -203,7 +203,7 @@ sub parse_attr ($me, @attr) {
     $attr{rtype} = ref($opts{default}) ? 'default_code' : 'default';
     $attr{rvalue} = $opts{default};
   }
-  do { ++$seen; $attr{rtype} = 'required' } if $opts{required};
+  do { ++$seen; $attr{rtype} = 'required'; $attr{rvalue} = $opts{required}; } if $opts{required};
   if (exists $opts{lazy}) {
     croak qq#"lazy" should be a code reference# if (reftype($opts{lazy}) // '') ne 'CODE';
     ++$seen;
@@ -273,5 +273,11 @@ All methods compiled in the class are public by default. But what to do if you m
 =head2 check_implementation
 
 If implementation requires "attribute", L</reg_attr> should be called before checking implementation
+
+=head2 attrs (EXPERIMENTAL)
+
+You can examine current attributes this way:
+
+  say Dumper META()->attrs;
 
 =cut
