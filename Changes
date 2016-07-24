@@ -2,11 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0234    2016-07-24 12:16:00+03:00 Europe/Kiev
-
-  - Make Evo::Class::Meta->attrs api public 
-  - Change api of Evo::Fs 
-  - Added Evo::Fs 
-  - Change -Class syntax and implementation. For extending with XS (soon)
-  - Change -Attr syntax
-  - Change -Export implementation
+- implemented Evo::Class attrs_map  
+- Make Evo::Class::Meta->attrs api public 
+- Change api of Evo::Fs 
+- Added Evo::Fs 
+- Change -Class syntax and implementation. For extending with XS (soon)
+- Change -Attr syntax
+- Change -Export implementation

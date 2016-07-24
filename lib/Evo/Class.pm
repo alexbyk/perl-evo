@@ -43,6 +43,10 @@ sub attr_delete ($me, $dest) : ExportGen {
   Evo::Class::Meta->find_or_croak($dest)->gen->gen_attr_delete;
 }
 
+sub attrs_map ($me, $dest) : ExportGen {
+  Evo::Class::Meta->find_or_croak($dest)->gen->gen_attrs_map;
+}
+
 sub has ($me, $dest) : ExportGen {
   sub ($name, @opts) {
     my $parsed = Evo::Class::Meta->parse_attr(@opts);
@@ -165,12 +169,12 @@ A new promising inject-code programming concepts based on mixins. Documentation 
 
 =head2 Why not OO and Moose like?
 
-The main difference is C<Evo> stores attributes outside the object, so any ref could be an object, while Moose allow you to use only hashes. This makes possible, for example, to avoid delegating C<$stream-E<gt>fh> and makes a code faster. Also avoiding hashes improves performance (Evo::Class with XS backend should be 50-100% faster than similar hash-based modules). (see L<https://github.com/alexbyk/perl-evo/tree/master/bench>)
+The main difference is C<Evo> stores attributes outside the object, so any ref could be an object, while Moose allow you to use only hashes. This makes possible, for example, to avoid delegating C<$stream-E<gt>fh> and makes a code faster. Also avoiding hashes improves performance 
 
 
 The syntax differs from Moose too, I fixed most frustating parts of it. It's not Moose-compatible at all. C<Evo::Class> is more strict by default and prevents many errors.
 
-Every class is a role (C<Evo::Class::Role>) and we don't use perl's C<@ISA> OO inheritance. Code reuse is based on so called "mixins".
+Every class is also a role. We don't use perl's C<@ISA> OO inheritance. Code reuse is based on so called "mixins".
 This concept doesn't suffer a C<fragile base class problem> from traditional OO
 
 Every class is also an interface and can be used to check the shape of other classes.
@@ -179,9 +183,9 @@ A tiny amount of code means less bugs. You can make a code review in 5 minutes a
 
 These advantages make C<Evo::Class> perfect for both "corporate level" and "small" projects
 
-=head1 XS
+=head1 XS AND PERFORMANCE
 
-This module will automatically load and use XS generator, if available. Install L<Evo::XS> module to get benefits
+This module will automatically load and use XS generator, if available. Install L<Evo::XS> module to get benefits. PP is only "fast enough", buth with XS this module is one of the fastest in CPAN. (Should be 50-100% faster than similar hash-based modules, see L<https://github.com/alexbyk/perl-evo/tree/master/bench>)
 
 =head1 Usage
 
@@ -274,7 +278,13 @@ You should now that using this feature is an antipattern in the mose of the case
 
   has 'foo', required => 1;
 
-Attributes with this options are required
+Attributes with this options are required and will be checked in C<new> and C<init>, an exception will be thrown if required attributes don't exist in arguments hash.
+
+  has 'db', required => 'My::DB';
+
+You can also pass any C<TRUE> value for storing in the L</META> of the class.
+
+TODO: describe how to use it with dependency injection
 
 =head4 check
 
@@ -389,6 +399,17 @@ You may want to use C<extends> and C<implements> separately to resolve circular 
   say $alex->attr_exists('age') ? 'exists' : 'not';
 
 Like C<exists> and C<delete> but for attributes and check if attribute was registered (croak otherwise).
+
+=head2 attrs_map
+
+Return a list of key-values of attributes. Because attributes are stored outside of objects, use this method instead of dumping object
+
+  my $alex = My::Human->new(gender => 'male', name => 'alex');
+  use Data::Dumper;
+  say Dumper {$alex->attrs_map}; # instead of say Dumper $alex;
+
+Pay attention, every registered attribute will be listed here, even not-existing (with undef as a value).
+To check if an attribute was settled, see L</attr_exists>
 
 =head1 CODE ATTRIBUTES
 

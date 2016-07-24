@@ -21,6 +21,12 @@ use Evo::Internal::Exception;
   has with_dv => 'DV';
   has with_dfn => sub {'DFN'};
 
+  package My::Bar;
+  use Evo -Class, -Loaded;
+  has adef => 1;
+  has 'alazy', lazy => sub {'L'};
+  has 'asimple';
+
 };
 
 
@@ -50,8 +56,15 @@ is $obj->gt10rw(12)->gt10rw, 12;
 is $obj->with_dv,  'DV';
 is $obj->with_dfn, 'DFN';
 
-
 $obj = My::Foo::->new(req => 1, foo => 'foo');
 is $obj->foo, 'foo';
+
+# attrs map
+$obj = My::Bar::->new();
+is_deeply { $obj->attrs_map }, {adef => 1, alazy => undef, asimple => undef};
+ok $obj->alazy;
+is_deeply { $obj->attrs_map }, {adef => 1, alazy => 'L', asimple => undef};
+ok $obj->asimple('S');
+is_deeply { $obj->attrs_map }, {adef => 1, alazy => 'L', asimple => 'S'};
 
 done_testing;

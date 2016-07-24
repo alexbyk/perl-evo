@@ -1,5 +1,5 @@
-requires 'perl',                '5.22.0';
-recommends 'Evo::XS';
+requires 'perl',      '5.22.0';
+recommends 'Evo::XS', '0.04';
 
 on test => sub {
   requires 'Test::More', '0.88';
