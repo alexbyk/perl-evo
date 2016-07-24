@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0234    2016-07-24 12:16:00+03:00 Europe/Kiev
+
   - Make Evo::Class::Meta->attrs api public 
   - Change api of Evo::Fs 
   - Added Evo::Fs 
