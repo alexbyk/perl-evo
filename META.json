@@ -28,7 +28,7 @@
       },
       "runtime" : {
          "recommends" : {
-            "Evo::XS" : "0.04"
+            "Evo::XS" : "0.004"
          },
          "requires" : {
             "perl" : "v5.22.0"
@@ -50,6 +50,6 @@
          "web" : "http://github.com/alexbyk/perl-evo"
       }
    },
-   "version" : "0.0235"
+   "version" : "0.0236"
 }
 
