@@ -127,7 +127,8 @@ WRITE: {
 STAT: {
   $fs->write("/foo", 'hello');
   my $stat = $fs->stat('/foo');
-  ok $stat->dev;
+  ok defined $stat->dev;
+  ok defined $stat->ino;
   is $stat->size, 5;
   ok $stat->is_file;
   ok !$stat->is_dir;
@@ -135,7 +136,8 @@ STAT: {
 
   $fs->mkdir('/somedir');
   $stat = $fs->stat('/somedir');
-  ok $stat->dev;
+  ok defined $stat->dev;
+  ok defined $stat->ino;
   ok !$stat->is_file;
   ok $stat->is_dir;
   $fs->remove_tree('/somedir');
