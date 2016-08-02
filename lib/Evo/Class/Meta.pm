@@ -280,4 +280,20 @@ You can examine current attributes this way:
 
   say Dumper META()->attrs;
 
+=head2 mark_as_private
+
+If you want to hide method, you should use C<my sub> feature. But sometimes this also will help. It doesn't hide you method from being executed, it hides it from inheritance
+
+  package Foo;
+  use Evo -Class;
+  sub foo { }
+
+  local $, = ' ';
+  say 'LIST: ', META->public_methods;
+
+  META->mark_as_private('foo');    # hide foo
+  say 'LIST: ', META->public_methods;
+
+But C<foo> is still available via C<Foo::-E<gt>foo>
+
 =cut

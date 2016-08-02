@@ -206,10 +206,6 @@ We're protected from common mistakes, because constructor won't accept unknown a
 You may think why not C<My::Class::new>? You're right. The first option isn't really necessary and even constructor doesn't use it at all. But I decided to leave it that way
 because many developers are familiar with C<My::Class-E<gt>new> form. There is also an L</init> function for perfectionists
 
-=head2 META
-
-Return current L<Evo::Class::Meta> object for the class
-
 =head2 Storage
 
 The big advantage of Evo object that it's not tied with hashes. You can use C<init> to bless and init any reference.
@@ -234,7 +230,7 @@ The big advantage of Evo object that it's not tied with hashes. You can use C<in
   has 'short' => 'value';
   has 'foo' => default => 'value', is => 'rw', check => sub {1};
 
-=head3 Syntax
+=head2 Syntax
 
 Simple rw attribute
 
@@ -342,6 +338,15 @@ Evo protects you from method clashing. But if you want to override method or fix
 
 
 This differs from traditional OO style. With compoment programming, you should reuse code via L<Evo::Class::Role> or just organize classes with independed pieces of code like "mixing". So, try to override less
+
+=head1 FUNCTIONS
+
+
+This functions will be exported by default even without export list C<use Evo::Class>; You can always export something else like C<use Evo::Class 'has';> or export nothing C<use Evo::Class (); >
+
+=head2 META
+
+Return current L<Evo::Class::Meta> object for the class
 
 =head2 extends
 
