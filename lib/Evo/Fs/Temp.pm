@@ -1,9 +1,9 @@
-package Evo::Fs::Class::Temp;
+package Evo::Fs::Temp;
 use Evo 'File::Temp; File::Spec::Functions catdir file_name_is_absolute';
 use Evo '-Class *, -new, new:_new';
 use Carp 'croak';
 
-with '-Fs::Class';
+with '-Fs';
 
 sub new : Over {
   my $fs = _new(shift, @_);

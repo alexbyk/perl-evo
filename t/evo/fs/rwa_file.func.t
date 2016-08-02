@@ -1,13 +1,13 @@
-use Evo 'Test::More; Evo::Internal::Exception; -Fs::Class::Temp';
+use Evo 'Test::More; Evo::Internal::Exception; -Fs::Temp';
 use Evo 'Fcntl';
 
 
 RWA: {
 
-  my $fs = Evo::Fs::Class::Temp->new();
+  my $fs = Evo::Fs::Temp->new();
   my $called;
   no warnings 'redefine';
-  local *Evo::Fs::Class::Temp::flock = sub { $called++ };
+  local *Evo::Fs::Temp::flock = sub { $called++ };
 
   $fs->write('/a/foo', 'bad');
   $fs->write('/a/foo', 'hello');
@@ -19,7 +19,7 @@ RWA: {
 }
 
 WRITE_MANY: {
-  my $fs  = Evo::Fs::Class::Temp->new();
+  my $fs  = Evo::Fs::Temp->new();
   $fs->write_many('/a/foo' => 'afoo', '/b/foo' => 'bfoo', 'bar' => 'bar');
   is $fs->read('/a/foo'), 'afoo';
   is $fs->read('/b/foo'), 'bfoo';

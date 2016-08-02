@@ -1,7 +1,7 @@
-use Evo 'Test::More; Evo::Internal::Exception; -Fs::Class::Temp';
+use Evo 'Test::More; Evo::Internal::Exception; -Fs::Temp';
 use Evo 'Fcntl; Time::HiRes time';
 
-my $fs = Evo::Fs::Class::Temp->new();
+my $fs = Evo::Fs::Temp->new();
 
 ok $fs->stat($fs->cwd)->is_dir;
 

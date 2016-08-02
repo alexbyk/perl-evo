@@ -1,8 +1,8 @@
-use Evo 'Test::More; Evo::Internal::Exception; -Fs::Class::Temp';
+use Evo 'Test::More; Evo::Internal::Exception; -Fs::Temp';
 use Evo 'Fcntl; File::Spec';
 
 
-my $fs = Evo::Fs::Class::Temp->new();
+my $fs = Evo::Fs::Temp->new();
 
 sub _write ($path, $what) {
   $fs->sysopen(my $fh, $path, 'w');

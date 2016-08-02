@@ -1,9 +1,9 @@
-use Evo 'Test::More; Evo::Internal::Exception; -Fs::Class::Temp';
+use Evo 'Test::More; Evo::Internal::Exception; -Fs::Temp';
 use Evo 'File::Spec; File::Temp';
 use File::Basename 'fileparse';
 
 # traverse
-foreach my $fs (Evo::Fs::Class::Temp->new(), Evo::Fs::Class->new(cwd => File::Temp->newdir)) {
+foreach my $fs (Evo::Fs::Temp->new(), Evo::Fs->new(cwd => File::Temp->newdir)) {
   $fs->write_many(
     'f.txt' => 'txt',
     File::Spec->catdir($fs->cwd, "a/1/f.txt") => 'foo',
@@ -44,7 +44,7 @@ foreach my $fs (Evo::Fs::Class::Temp->new(), Evo::Fs::Class->new(cwd => File::Te
 }
 
 # order
-foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::Temp->new()) {
+foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
   $fs->write_many('a/1/f.txt' => 'bar', 'b/1/f.txt' => 'bar', 'c/1/2/f.txt' => 'bar');
 
   my @children;
@@ -66,7 +66,7 @@ foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::
 }
 
 # many sources
-foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::Temp->new()) {
+foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
   $fs->write_many('a/1/f.txt' => 'bar', 'b/1/f.txt' => 'bar');
 
   my @children;
@@ -82,7 +82,7 @@ foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::
 }
 
 # circular
-foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::Temp->new()) {
+foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
   $fs->write('a/1/f.txt' => 'foo');
   $fs->symlink('a',         'a/1/a.slnk');
   $fs->symlink('a/1/f.txt', 'a/1/f.slnk');
@@ -107,7 +107,7 @@ foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::
 }
 
 # skip dir can't read
-foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::Temp->new()) {
+foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
   $fs->mkdir('bad1', oct 100);
   $fs->mkdir('bad2', oct 400);
   $fs->mkdir('bad3', oct 600);
@@ -137,7 +137,7 @@ foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::
 
 
 # files
-foreach my $fs (Evo::Fs::Class->new(cwd => File::Temp->newdir), Evo::Fs::Class::Temp->new()) {
+foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
   $fs->write_many(
     'f.txt'                => 'txt',
     'a/1/f.txt'            => 'bar',
