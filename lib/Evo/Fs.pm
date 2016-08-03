@@ -384,11 +384,11 @@ Returns new FS with passed C<cwd>
 
 Same as L</cd> but also calls L</make_tree> before
 
-=head2 append, write
+=head2 append, write, read
 
-$fs->write('/tmp/my/file', 'foo');
-$fs->append('/tmp/my/file', 'bar');
-say $fs->read('/tmp/my/file');    # foobar
+  $fs->write('/tmp/my/file', 'foo');
+  $fs->append('/tmp/my/file', 'bar');
+  say $fs->read('/tmp/my/file');    # foobar
 
 Read, write or append a content to the file. Dirs will be created if they don't exist.
 Use lock 'ex' for append and write and lock 'sh' for read during each invocation
@@ -409,11 +409,11 @@ Whence can be one of:
 
 =head2 sysread ($self, $fh, $ref, $length[, $offset])
 
-Calls C<sysread> but accepts scalar reference for convinience
+Call C<sysread> but accepts scalar reference for convinience
 
-=head2 write($self, $fh, $scalar, $length, $offset)
+=head2 syswrite($self, $fh, $scalar, $length, $offset)
 
-Calls C<syswrite>
+Call C<syswrite>
 
 =head2 sysopen ($self, $fh, $path, $mode)
 
