@@ -122,7 +122,7 @@ sub gen_attr_code ($self, $name) {
 }
 
 my sub index_of ($self, $name) {
-  croak qq{attribute "$name" wasn't registered } unless exists $self->{attrs}{$name};
+  croak qq{Unknown attribute "$name"} unless exists $self->{attrs}{$name};
   $self->{attrs}{$name}{index};
 }
 

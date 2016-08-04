@@ -1,26 +1,32 @@
 package main;
 use Evo 'Test::More; -Internal::Exception;-Class::Meta; -Class::Gen';
 
-{
-
-  package My::Class;
-}
 
 sub parse { Evo::Class::Meta->parse_attr(@_) }
 my $FILE = __FILE__;
 
 my $positive = sub($v) { $v > 0 ? 1 : (0, 'OOPS') };
 
-sub test_gen ($gclass) {
 
-  like exception { $gclass->new->gen_init()->('My::Class', "NOT A REF"); }, qr/ref.+$0/;
+sub test_gen ($gclass) {
 
   my $gen;
 
+  like exception { $gclass->new->gen_init()->('My::Class', "NOT A REF"); }, qr/ref.+$0/;
+
   my $init = sub { $gen->gen_init()->('My::Class', {}, @_) };
   my $new = sub { $gen->gen_new()->('My::Class', @_) };
-
   foreach my $build ($init, $new) {
+
+  SIMPLE: {
+      $gen = $gclass->new;
+      $gen->gen_attr(simple => parse is => 'rw');
+
+      my $val = 333;
+      my $obj = $build->(simple => $val);
+      $val = 'bad';
+      is_deeply [$gen->gen_attrs_map()->($obj)], ['simple', 333];
+    }
 
   REQUIRED: {
       $gen = $gclass->new;
@@ -34,7 +40,7 @@ sub test_gen ($gclass) {
     }
 
   CHECK: {
-      # check if passed but bypass checking of default value, even if it's negative
+  # check if passed but bypass checking of default value, even if it's negative
       $gen = $gclass->new;
       my $sub = $gen->gen_attr(foo => parse default => 0, check => $positive);
       like exception { $build->(foo => 0) }, qr#Bad value.+"0".+"foo".+OOPS.+$0#i;
@@ -43,7 +49,9 @@ sub test_gen ($gclass) {
 
   DEFAULT_VALUE: {
       $gen = $gclass->new;
-      my $sub = $gen->gen_attr(foo => parse default => 222);
+      my $val = 222;
+      my $sub = $gen->gen_attr(foo => parse default => $val);
+      $val = 'bad';
       is_deeply [$gen->gen_attrs_map()->($build->())], [foo => 222];
       is_deeply [$gen->gen_attrs_map()->($build->(foo => 333))], [foo => 333];
     }
@@ -62,6 +70,7 @@ sub test_gen ($gclass) {
       is_deeply [$gen->gen_attrs_map()->($build->())], [foo => 222];
       is_deeply [$gen->gen_attrs_map()->($build->(foo => 333))], [foo => 333];
     }
+
   }
 }
 

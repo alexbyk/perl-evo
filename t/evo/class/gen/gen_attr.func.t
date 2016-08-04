@@ -4,16 +4,21 @@ use Symbol 'delete_package';
 
 sub parse { Evo::Class::Meta->parse_attr(@_) }
 
-sub test_gen ($gclass, $bargs) {
+sub test_gen ($gclass) {
 
-  my ($gen, $obj, $exists, $delete, $lcalled, $chcalled);
+  my ($gen, $obj, $exists, $delete, $map, $lcalled, $chcalled);
   my $lazy = sub($o) { is $o, $obj; $lcalled++; 'LAZY'; };
   my $check = sub { $chcalled++; $_[0] > 0 ? (1) : (0, "Ooops") };
+
+  # inc passed var, to be sure we don't do extra copies
+  my $check_inc = sub { $_[0]++ };
+
   my sub before() {
     $gen      = $gclass->new;
-    $obj      = $gen->gen_init->($bargs->());
+    $obj      = $gen->gen_new->('My::Class');
     $exists   = $gen->gen_attr_exists;
     $delete   = $gen->gen_attr_delete;
+    $map      = $gen->gen_attrs_map;
     $lcalled  = 0;
     $chcalled = 0;
   }
@@ -21,18 +26,17 @@ sub test_gen ($gclass, $bargs) {
 EXISTS_DELETE: {
     before();
 
-    like exception { $exists->($obj, 'name'); }, qr/name.+registered.+$0/;
-    like exception { $delete->($obj, 'name'); }, qr/name.+registered.+$0/;
-    my $gs = $gen->gen_attr('name', parse());
+    like exception { $exists->($obj, 'name'); }, qr/Unknown.+name.+$0/;
+    like exception { $delete->($obj, 'name'); }, qr/Unknown.+name.+$0/;
 
 
+    $gen->gen_attr('name', parse());
+
+    $obj = $gen->gen_new->('My::Class');
     ok !$exists->($obj, 'name');
 
-    # set 'name'
-    $gs->($obj, 'val');
+    $obj = $gen->gen_new->('My::Class', name => 22);
     ok $exists->($obj, 'name');
-
-    # clear it
     ok $delete->($obj, 'name');
     ok !$exists->($obj, 'name');
   }
@@ -49,11 +53,14 @@ RO: {
 GS: {
     before();
     my $sub = $gen->gen_attr('name', parse is => 'rw');
+    my $val = 'foo';
 
     is $sub->($obj), undef;
     ok !$exists->($obj, 'name');
-    $sub->($obj, 'foo');
+    $sub->($obj, $val);
+    $val = 'BAD';
     is $sub->($obj), 'foo';
+
   }
 
 GS_LAZY: {
@@ -69,7 +76,6 @@ GS_LAZY: {
     is $sub->($obj), 'LAZY';
   }
 
-
 GSCH: {
     before();
     my $sub = $gen->gen_attr('name', parse check => $check);
@@ -80,6 +86,12 @@ GSCH: {
     is $sub->($obj), 22;
 
     like exception { $sub->($obj, -22); }, qr/bad value "-22".+"name".+Ooops.+$0/i;
+
+    # should pass arg as is
+    my $subinc = $gen->gen_attr('nameinc', parse check => sub { $_[0]++ });
+    my $val = 1;
+    $subinc->($obj, $val);
+    is $val, 2;
   }
 
 GSCH_LAZY: {
@@ -94,9 +106,24 @@ GSCH_LAZY: {
 
     like exception { $sub->($obj, -22); }, qr/bad value "-22".+"name".+Ooops.+$0/i;
   }
+
+
+GEN_MAP: {
+    before();
+
+    my $map = $gen->gen_attrs_map;
+    is_deeply [$map->($obj)], [];
+
+    my $foo = $gen->gen_attr('foo', parse());
+    my $bar = $gen->gen_attr('bar', parse());
+
+    is_deeply [$map->($obj)], [foo => undef, bar => undef];
+    $foo->($obj, 'FOO');
+    is_deeply [$map->($obj)], [foo => 'FOO', bar => undef];
+  }
+
 }
 
-
-test_gen('Evo::Class::Gen', sub { 'My::Class', {} });
+test_gen('Evo::Class::Gen');
 
 done_testing;
