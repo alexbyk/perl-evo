@@ -28,7 +28,7 @@
       },
       "runtime" : {
          "recommends" : {
-            "Evo::XS" : "0.004"
+            "Evo::XS" : "0.005"
          },
          "requires" : {
             "perl" : "v5.22.0"
