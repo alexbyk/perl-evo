@@ -14,8 +14,9 @@ RWA: {
   $fs->append('/a/foo', 'bar');
   $fs->append('/b/foo', 'bbb');
   is $fs->read('/a/foo'), 'hellobar';
+  is $fs->read_ref('/a/foo')->$*, 'hellobar';
   is $fs->read('/b/foo'), 'bbb';
-  is $called, 12;
+  is $called, 14;
 }
 
 WRITE_MANY: {

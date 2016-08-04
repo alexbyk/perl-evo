@@ -203,13 +203,16 @@ sub write ($self, $path, $) {
   return;
 }
 
-
-sub read ($self, $path) {
+sub read_ref ($self, $path) {
   $self->sysopen(my $fh, $path, 'r');
   $self->flock($fh, 'sh');
   $self->sysread($fh, \my $buf, $self->stat($path)->size);
   $self->flock($fh, 'un');
-  $buf;
+  \$buf;
+}
+
+sub read ($self, $path) {
+  $self->read_ref($path)->$*;
 }
 
 sub write_many ($self, %map) {
@@ -384,11 +387,12 @@ Returns new FS with passed C<cwd>
 
 Same as L</cd> but also calls L</make_tree> before
 
-=head2 append, write, read
+=head2 append, write, read, read_ref
 
   $fs->write('/tmp/my/file', 'foo');
   $fs->append('/tmp/my/file', 'bar');
-  say $fs->read('/tmp/my/file');    # foobar
+  say $fs->read('/tmp/my/file');            # foobar
+  say $fs->read_ref('/tmp/my/file')->$*;    # foobar
 
 Read, write or append a content to the file. Dirs will be created if they don't exist.
 Use lock 'ex' for append and write and lock 'sh' for read during each invocation
