@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0240    2016-08-04 14:58:53+03:00 Europe/Kiev
+
 - Implement Evo::Fs read_ref method
 - Squash Evo::Fs::Class and Evo::Fs  
 - implemented Evo::Class attrs_map  
