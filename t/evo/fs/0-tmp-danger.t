@@ -1,5 +1,5 @@
 use Evo 'Test::More; -Fs::Temp';
-use Evo 'File::Spec::Functions catdir';
+use Evo 'File::Spec::Functions catdir splitpath';
 
 my $root;
 FOO: {
@@ -7,7 +7,8 @@ FOO: {
   $root = "" . $fs->root;
   BAIL_OUT "Bad Fs::Temp" unless ok $fs->path2real('/foo.txt') eq catdir($root, 'foo.txt');
   BAIL_OUT "Bad Fs::Temp"
-    unless ok $fs->path2real('foo.txt') eq catdir($root, $fs->cwd, 'foo.txt');
+    unless ok $fs->path2real('foo.txt') eq
+    catdir($root, @{[splitpath($fs->cwd)]}[1, 2], 'foo.txt');
 }
 
 BAIL_OUT "Bad Fs::Temp" unless ok !-e $root;

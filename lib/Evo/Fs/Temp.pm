@@ -1,5 +1,5 @@
 package Evo::Fs::Temp;
-use Evo 'File::Temp; File::Spec::Functions catdir file_name_is_absolute';
+use Evo 'File::Temp; File::Spec::Functions file_name_is_absolute';
 use Evo '-Class *, -new, new:_new';
 use Carp 'croak';
 
@@ -17,7 +17,10 @@ has 'root',
   is      => 'ro';
 
 sub path2real ($self, $path) : Over {
-  catdir $self->root, $self->to_abs($path);
+  my (undef, $dir,  $last)  = File::Spec->splitpath($self->to_abs($path));
+  my ($rvol, $rdir, $rlast) = File::Spec->splitpath($self->root);
+  my $realdir = File::Spec->catdir($rdir, $rlast, $dir);
+  File::Spec->catpath($rvol, $realdir, $last);
 }
 
 sub cd ($self, $path) : Over {

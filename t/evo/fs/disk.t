@@ -1,17 +1,17 @@
 use Evo 'Test::More; Evo::Internal::Exception; -Fs';
-use File::Spec::Functions qw(abs2rel catdir );
+use File::Spec::Functions qw(abs2rel catdir rel2abs);
 use File::Temp;
 
 
 PATH2REAL: {
   my $fs = Evo::Fs->new(cwd => File::Temp->newdir);
-  is $fs->path2real('/foo/bar.txt'), '/foo/bar.txt';
+  is $fs->path2real('/foo/bar.txt'), rel2abs '/foo/bar.txt';
   is $fs->path2real('foo.txt'), catdir($fs->cwd, 'foo.txt');
 }
 
 TO_ABS: {
   my $fs = Evo::Fs->new(cwd => my $cwd = File::Temp->newdir);
-  is $fs->to_abs('/baz/'), '/baz';
+  is $fs->to_abs('/baz/'), rel2abs '/baz';
   is $fs->to_abs('baz'), catdir($cwd, 'baz');
 }
 

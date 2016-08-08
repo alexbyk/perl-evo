@@ -14,7 +14,7 @@ use Fcntl qw(:seek O_RDWR O_RDONLY O_WRONLY O_RDWR O_CREAT O_TRUNC O_APPEND O_EX
 use Evo 'File::Spec; File::Path; Cwd() abs_path; File::Basename fileparse; Symbol()';
 use Time::HiRes ();
 use List::Util 'first';
-use Errno qw(EAGAIN);
+use Errno qw(EAGAIN EWOULDBLOCK);
 use Scalar::Util;
 
 our @CARP_NOT = qw(Evo::Fs::Temp);
@@ -179,7 +179,7 @@ my %flock_map = (
 sub flock ($self, $fh, $flag) {
   croak "Bad flag $flag" unless exists $flock_map{$flag};
   my $res = flock($fh, $flock_map{$flag});
-  croak "$!" unless $res || $! == EAGAIN;
+  croak "$!" unless $res || $! == EAGAIN || $! == EWOULDBLOCK;
   $res;
 }
 
@@ -190,6 +190,7 @@ sub append ($self, $path, $) {
   $self->flock($fh, 'ex');
   $self->syswrite($fh, $_[2]);
   $self->flock($fh, 'un');
+  CORE::close $fh;
   return;
 }
 
@@ -200,6 +201,7 @@ sub write ($self, $path, $) {
   $self->flock($fh, 'ex');
   $self->syswrite($fh, $_[2]);
   $self->flock($fh, 'un');
+  CORE::close $fh;
   return;
 }
 
@@ -208,6 +210,7 @@ sub read_ref ($self, $path) {
   $self->flock($fh, 'sh');
   $self->sysread($fh, \my $buf, $self->stat($path)->size);
   $self->flock($fh, 'un');
+  CORE::close $fh;
   \$buf;
 }
 
@@ -224,9 +227,9 @@ sub find_files ($self, $start, $fhs_fn, $pick = undef) {
   my %seen;
   my $fn = sub ($path, $stat) {
     return unless $stat->is_file;
-    return
-      if $seen{$stat->dev, '-',
-      $stat->ino}++;    # to avoid messing hardlinks, also works for symlinks
+
+    # to avoid messing hardlinks, also works for symlinks
+    return if $seen{($^O eq 'MSWin32' ? $path : $stat->dev, '-', $stat->ino)}++;
     $fhs_fn->($path, $stat);
   };
   $self->traverse($start, $fn, $pick);
@@ -236,12 +239,12 @@ sub find_files ($self, $start, $fhs_fn, $pick = undef) {
 sub traverse ($self, $start, $fn, $pick_d = undef) {
 
   $start = [$start] unless ref $start eq 'ARRAY';
-  my %seen;             # don't go into the same dir twice
+  my %seen;    # don't go into the same dir twice
 
   my @stack = map {
     my $abs  = $self->to_abs($_);
     my $stat = $self->stat($abs);
-    $seen{$stat->dev, '-', $stat->ino}++ ? () : [$abs, $stat];
+    $seen{($^O eq 'MSWin32' ? $abs : $stat->dev, '-', $stat->ino)}++ ? () : [$abs, $stat];
   } $start->@*;
 
   while (@stack) {
@@ -253,14 +256,15 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
       my $abs = File::Spec->rel2abs($cur_child, $cur_dir);
       my $stat = $self->stat($abs);
 
-      if ( $stat->is_dir
+
+      my $bool
+        = $stat->is_dir
         && $stat->can_exec
         && $stat->can_read
-        && !($seen{$stat->dev, '-', $stat->ino}++)
-        && (!$pick_d || $pick_d->($abs, $stat)))
-      {
-        unshift @dirs, [$abs, $stat];
-      }
+        && ($^O eq 'MSWin32' ? !($seen{$abs}++) : !($seen{$stat->dev, '-', $stat->ino}++))
+        && (!$pick_d || $pick_d->($abs, $stat));
+
+      unshift @dirs, [$abs, $stat] if $bool;
       push @children, [$abs, $stat];
 
     }

@@ -28,6 +28,8 @@ OPEN_BY_FILE: {
   ok $fs->sysopen($fh, 'foo', 'r'), $fh;
   $fs->sysread($fh, \my $buf, 100);
   is $buf, 'hello';
+  $fs->close($fh);
+  $fs->unlink('foo');
 }
 
 
@@ -35,6 +37,7 @@ OPEN_RELATIVE: {
   my $buf;
   _write('foo', 'hello');
   $fs->sysopen(my $fh, 'foo', 'r');
+  $fs->close($fh);
   $fs->unlink('foo');
 }
 
@@ -50,6 +53,7 @@ OPEN_R: {
 
   local $SIG{__WARN__} = sub { };
   like exception { $fs->syswrite($fh, 'hello') }, qr/Can't write.+$0/;
+  $fs->close($fh);
   $fs->unlink('/foo');
 
 }
@@ -65,6 +69,7 @@ OPEN_R_PLUS: {
   $fs->sysread($fh, \$buf, 100);
   is $buf, '12llo';
 
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -85,6 +90,7 @@ OPEN_W: {
   local $SIG{__WARN__} = sub { };
   like exception { $fs->sysread($fh, \my $buf, 100) }, qr/Can't read.+$0/;
 
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -99,6 +105,7 @@ OPEN_WX: {
 
   # exists
   like exception { $fs->sysopen(my $fh, '/foo', $mode) }, qr/File exists.+$0/;
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -118,6 +125,7 @@ OPEN_W_PLUS: {
   $fs->syswrite($fh, '12');
   is _slurp('/foo'), '12';
 
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -133,6 +141,7 @@ OPEN_WX_PLUS: {
 
   # exists
   like exception { $fs->sysopen($fh, '/foo', $mode) }, qr/File exists.+$0/;
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -156,6 +165,7 @@ A: {
   local $SIG{__WARN__} = sub { };
   like exception { $fs->sysread($fh, \my $buf, 100) }, qr/Can't read.+$0/;
 
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -175,6 +185,7 @@ AX: {
 
   # exists
   like exception { $fs->sysopen($fh, '/foo', $mode) }, qr/File exists.+$0/;
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -198,6 +209,7 @@ A_PLUS: {
   $fs->sysread($fh, \$buf, 100);
   is $buf, 'hellofoo';
 
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -219,6 +231,7 @@ AX_PLUS: {
 
   # exists
   like exception { $fs->sysopen(my $fh, '/foo', $mode) }, qr/File exists.+$0/;
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 

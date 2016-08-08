@@ -62,11 +62,13 @@ READ: {
   is $buf, '45';
 
   # read many
+  $fs->close($fh);
   $fs->unlink('/foo');
   _write('/foo', '123456');
   $fs->sysopen($fh, '/foo', 'r');
   is $fs->sysread($fh, \$buf, 1000), 6;
 
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -95,6 +97,7 @@ SEEK: {
   $fs->sysread($fh, \$buf, 100);
   is $buf, '56';
 
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -105,26 +108,36 @@ WRITE: {
   $fs->sysopen(my $fh, '/foo', 'w');
   is $fs->syswrite($fh, "123456"), 6;
   is _slurp('/foo'), '123456';
+  $fs->close($fh);
   $fs->unlink('/foo');
 
   $fs->sysopen($fh, '/foo', 'w');
   is $fs->syswrite($fh, "123456", 2), 2;
   is _slurp('/foo'), '12';
+  $fs->close($fh);
   $fs->unlink('/foo');
 
   $fs->sysopen($fh, '/foo', 'w');
   is $fs->syswrite($fh, "123456", 3, 1), 3;
   is _slurp('/foo'), '234';
+  $fs->close($fh);
   $fs->unlink('/foo');
 
   $fs->sysopen($fh, '/foo', 'w');
   is $fs->syswrite($fh, "123456", 1000), 6;
   is _slurp('/foo'), '123456';
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
 
 STAT: {
+
+  if ($^O eq 'MSWin32') {
+    diag "skipping stat on windows";
+    last STAT;
+  }
+
   $fs->write("/foo", 'hello');
   my $stat = $fs->stat('/foo');
   ok defined $stat->dev;
@@ -149,6 +162,7 @@ STAT: {
   ok !$stat->can_write;
   ok !$stat->can_exec;
   is $stat->perms, oct 000;
+  $fs->close($fh);
   $fs->unlink('/foo');
 
   $fs->sysopen($fh, "/foo", 'w', oct 700);
@@ -157,6 +171,7 @@ STAT: {
   ok $stat->can_write;
   ok $stat->can_exec;
   is $stat->perms, oct 700;
+  $fs->close($fh);
   $fs->unlink('/foo');
 }
 
@@ -184,10 +199,20 @@ LOCK: {
   ok $fs->flock($fh2, 'un');
 
   ok $fs->flock($fh3, 'ex_nb');
+  $fs->close($fh1);
+  $fs->close($fh2);
+  $fs->close($fh3);
+  $fs->close($fh4);
   $fs->unlink('/foo');
 }
 
 SYMLINK: {
+
+  if ($^O eq 'MSWin32') {
+    diag "skipping symlink on windows";
+    last SYMLINK;
+  }
+
   $fs->write('/foo', 'foo');
   $fs->symlink('/foo', '/link');
   is $fs->read('/link'), 'foo';
@@ -208,7 +233,10 @@ LINK: {
   ok !$fs->is_symlink('/link');
   ok !$fs->is_symlink('/foo');
 
-  like exception { $fs->symlink('/404', '/link') }, qr/exists.+$0/;
+SKIP: {
+    last SKIP if $^O eq 'MSWin32';
+    like exception { $fs->symlink('/404', '/link') }, qr/exists.+$0/;
+  }
   $fs->unlink('/foo');
   is $fs->read('/link'), 'foo';
   $fs->unlink('/link');
@@ -254,6 +282,11 @@ $fs->sysopen(my $f1, '/bar/f1', 'w');
 $fs->sysopen(my $f2, '/bar/f2', 'w');
 is_deeply [sort $fs->ls('/bar')], [qw(f1 f2)];
 
+$fs->close($f1);
+$fs->close($f2);
+$fs->unlink('/bar/f1');
+$fs->unlink('/bar/f2');
+
 $fs->remove_tree('/bar');
 ok !$fs->exists('/bar');
 
@@ -276,7 +309,7 @@ ERRORS: {
 
 
   $fs->mkdir('/existing_dir');
-  like exception { $fs->sysopen(my $fh, '/existing_dir', 'w'); }, qr/is a directory.+$0/i;
+  like exception { $fs->sysopen(my $fh, '/existing_dir', 'w'); }, qr/denied|is a directory.+$0/i;
   like exception { $fs->unlink('/not_exists'); }, qr/No such file.+$0/;
   like exception { $fs->stat('/not_exists'); },   qr/No such file or directory.+$0/;
 
@@ -288,6 +321,8 @@ ERRORS: {
   like exception { $fs->make_tree('/not_a_dir'); }, qr/exists.+$0/i;
   like exception { $fs->mkdir('/not_a_dir') }, qr/exists.+$0/i;
   like exception { $fs->mkdir('/mydir') for 1 .. 2; }, qr/exists.+$0/i;
+
+  $fs->close($fh);
 }
 
 done_testing;
