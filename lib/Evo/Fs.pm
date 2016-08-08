@@ -194,8 +194,7 @@ sub open ($self, $path, $mode, @rest) {
 
 
 sub append ($self, $path, $) {
-  $self->make_tree((fileparse($path))[1]);
-  $self->sysopen(my $fh, $path, 'a');
+  my $fh = $self->open($path, 'a');
   $self->flock($fh, 'ex');
   $self->syswrite($fh, $_[2]);
   $self->flock($fh, 'un');
@@ -205,8 +204,7 @@ sub append ($self, $path, $) {
 
 # don't copy 3rd arg
 sub write ($self, $path, $) {
-  $self->make_tree((fileparse($path))[1]);
-  $self->sysopen(my $fh, $path, 'w');
+  my $fh = $self->open($path, 'w');
   $self->flock($fh, 'ex');
   $self->syswrite($fh, $_[2]);
   $self->flock($fh, 'un');
@@ -215,7 +213,7 @@ sub write ($self, $path, $) {
 }
 
 sub read_ref ($self, $path) {
-  $self->sysopen(my $fh, $path, 'r');
+  my $fh = $self->open($path, 'r');
   $self->flock($fh, 'sh');
   $self->sysread($fh, \my $buf, $self->stat($path)->size);
   $self->flock($fh, 'un');
