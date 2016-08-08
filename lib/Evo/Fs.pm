@@ -183,6 +183,15 @@ sub flock ($self, $fh, $flag) {
   $res;
 }
 
+sub open ($self, $path, $mode, @rest) {
+  my $fh;
+
+  $self->make_tree((fileparse($path))[1]) unless ($mode eq 'r' && $mode eq 'r+');
+  $self->sysopen($fh, $path, $mode, @rest);
+
+  $fh;
+}
+
 
 sub append ($self, $path, $) {
   $self->make_tree((fileparse($path))[1]);
@@ -282,17 +291,24 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
   use Evo '-Fs FS';
   say FS->ls('./');
 
+
   # class
   use Evo '-Fs; File::Basename fileparse';
   my $orig_fs = Evo::Fs->new;
   my $fs      = $orig_fs->cd('/tmp');    # new Fs with cwd as '/tmp'
+
+  my $fh = $fs->open('foo/bar.txt', 'w');    # open and create '/foo' if necessary
+  $fs->close($fh);
+
   $fs->write('a/foo', 'one');
   $fs->append('a/foo', 'two');
   say $fs->read('a/foo');                # onetwo
   say $fs->read('/tmp/a/foo');           # the same, a/foo resolves to /tmp/a/foo
                                          # bulk
+                                         
+
   $fs->write_many('/tmp/a/foo' => 'afoo', '/tmp/b/foo' => 'bfoo');
-  $fs->sysopen(my $fh, '/tmp/c', 'w+');
+  $fs->sysopen($fh, '/tmp/c', 'w+');
   $fs->syswrite($fh, "123456");
   $fs->sysseek($fh, 0);
   $fs->sysread($fh, \my $buf, 3);
@@ -318,6 +334,7 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
       say $path;
     }
   );
+
 
 
 =head1 DESCRIPTION
@@ -378,6 +395,15 @@ Return a single instance of L<Evo::Fs>
 
 =head1 METHODS
 
+=head2 sysopen ($self, $path, $mode, $perm=...)
+
+  my $fh = $fs->open('/foo/bar.txt', 'w');
+
+Open a file and return a filehandle. Create parent directories if necessary.
+ See L</sysopen> for list of modes
+
+  
+
 =head2 cd ($self, $path)
 
   my $new = $fs->cd('foo/bar');
@@ -423,7 +449,7 @@ Call C<sysread> but accepts scalar reference for convinience
 
 Call C<syswrite>
 
-=head2 sysopen ($self, $fh, $path, $mode)
+=head2 sysopen ($self, $fh, $path, $mode, $perm=...)
 
   $fs->sysopen(my $fh, '/tmp/foo', 'r');
 

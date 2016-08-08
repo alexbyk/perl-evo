@@ -235,4 +235,16 @@ AX_PLUS: {
   $fs->unlink('/foo');
 }
 
+
+OPEN_R: {
+  eval { $fs->open('/foo/bar.txt', 'r'); };
+  eval { $fs->open('/foo/bar.txt', 'r+'); };
+  ok !$fs->exists('/foo/bar.txt');
+
+  my $fh = $fs->open('/foo/bar.txt', 'w');
+  $fs->close($fh);
+  ok $fs->exists('/foo/bar.txt');
+  $fs->close($fh);
+}
+
 done_testing;
