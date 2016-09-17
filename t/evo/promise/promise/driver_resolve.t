@@ -1,8 +1,15 @@
 package main;
-use Evo '-Promise::Util *; -Promise::Class';
-use Test::More;
+use Evo '-Promise::Util *; Test::More';
+use FindBin;
 
 {
+
+  package MyTestPromise;
+  use Evo -Class;
+  with 'Evo::Promise::Role';
+
+  sub postpone ($self, $code) {
+  }
 
   package My::Thenable;
   use Evo '-Class *';
@@ -10,7 +17,7 @@ use Test::More;
   sub then { $_[0]->then_fn->(@_); }
 }
 
-sub p { Evo::Promise::Class->new(@_) }
+sub p { MyTestPromise->new(@_) }
 
 VALUE: {
   my $p = p();

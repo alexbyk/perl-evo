@@ -1,4 +1,21 @@
-use Evo 'Test::More; -Promise *; -Loop *';
+package main;
+use Evo 'Test::More';
+
+my @POSTPONE;
+sub loop_start { (shift @POSTPONE)->() while @POSTPONE; }
+sub promise_resolve { MyTestPromise->resolve(@_) }
+sub promise_reject  { MyTestPromise->reject(@_) }
+
+{
+
+  package MyTestPromise;
+  use Evo -Class;
+  with 'Evo::Promise::Role';
+
+  sub postpone ($self, $code) {
+    push @POSTPONE, $code;
+  }
+}
 
 # fulfill chain
 F_FIN_RETURNS_VALUE: {
@@ -43,15 +60,18 @@ F_FIN_DIES: {
   is $fcalled, 1;
 }
 
+
 # reject chain
 R_FIN_RETURNS_VALUE: {
   my $p = promise_reject('REASON');
+
   my ($reason, $fcalled);
   $p->finally(sub() { $fcalled++; "IGNORE" })->catch(sub($r) { $reason = $r; });
   loop_start;
   is $reason,  'REASON';
   is $fcalled, 1;
 }
+
 
 R_FIN_RETURNS_PROMISE_F: {
   my $p = promise_reject('REASON');

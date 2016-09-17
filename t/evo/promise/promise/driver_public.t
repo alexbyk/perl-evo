@@ -1,9 +1,18 @@
 package main;
-use Evo '-Promise::Util *; -Promise::Class';
+use Evo '-Promise::Util *';
 use Test::More;
 use Evo::Internal::Exception;
 
-sub p { Evo::Promise::Class->new(@_) }
+{
+
+  package MyTestPromise;
+  use Evo -Class;
+  with 'Evo::Promise::Role';
+
+  sub postpone ($self, $code) {
+  }
+}
+sub p { MyTestPromise->new(@_) }
 
 # then
 THEN_HANDLERS: {
@@ -50,7 +59,7 @@ THEN_TRAVERSE: {
 CATCH: {
   my @got;
   no warnings 'redefine', 'once';
-  local *Evo::Promise::Class::then = sub { @got = @_ };
+  local *MyTestPromise::then = sub { @got = @_ };
   my $root = p();
   my $p    = $root->catch('REJ');
   is_deeply \@got, [$root, undef, 'REJ'];

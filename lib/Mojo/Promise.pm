@@ -1,26 +1,56 @@
-package Evo::Promise;
-use Evo '-Export *; ::Deferred; ::Class; ::Util *';
+package Mojo::Promise;
+use Evo '-Class; -Export *; -Promise::Deferred';
+use Mojo::IOLoop;
 
-export_proxy '::Util', qw(promise_resolve promise_reject promise_all promise_race);
+with '-Promise::Role';
 
-sub promise($fn) : Export {
-  my $d = Evo::Promise::Deferred->new(promise => my $p = Evo::Promise::Class->new());
+sub postpone ($me, $sub) {
+  Mojo::IOLoop->next_tick($sub);
+}
+
+sub _promise($fn) : Export(promise) {
+  my $d = Evo::Promise::Deferred->new(promise => my $p = __PACKAGE__->new());
   $fn->(sub { $d->resolve(@_) }, sub { $d->reject(@_) });
   $p;
 }
 
-sub deferred : Export :
-  prototype() { Evo::Promise::Deferred->new(promise => Evo::Promise::Class->new()); }
+sub _deferred : Export(deferred) :
+  prototype() { Evo::Promise::Deferred->new(promise => __PACKAGE__->new()); }
+
+
+foreach my $fn (qw(resolve reject race all)) {
+  export_code $fn , sub {
+    __PACKAGE__->$fn(@_);
+  };
+}
 
 1;
+
+=head1 PROMISE
+
+This library is designed to use with other backends. See L<Mojo::Promise>.
+
+=head1 SYNOSIS
+
+  use Evo 'Mojo::Promise *';
+
+  sub load_later($url) {
+    my $d = deferred();
+    Mojo::IOLoop->timer(1 => sub { $d->resolve("HELLO: $url") });
+    $d->promise;
+  }
+
+  load_later('http://alexbyk.com')->then(sub($v) { say $v });
+
+  Mojo::IOLoop->start;
 
 =head1 FUNCTIONS
 
 =head2 promise
 
   promise(
-    sub($resolve, $reject) {
-      loop_timer 1 => sub { $resolve->('HELLO') };
+    sub ($resolve, $reject) {
+      Mojo::IOLoop->timer(1 => sub { $resolve->('HELLO') });
     }
   )->then(sub($v) { say "Fulfilled: $v"; });
 
@@ -34,45 +64,46 @@ Only the first invocation of either C<$resolve> or C<$reject> matters. The secon
 Create a promise and attach it to the deferred object. Deferred object is a handler for the promise.
 
   my $d = deferred();
-  loop_timer 1 => sub { $d->resolve('HELLO') };
+  Mojo::IOLoop->timer(1 => sub { $d->resolve('HELLO') });
   $d->promise->then(sub($v) { say "Fulfilled: $v"; });
 
-=head2 promise_resolve
+=head2 resolve
 
-  my $p = promise_resolve('hello');
+  my $p = resolve('hello');
 
 Generate a resolved promise with a given value. If value is a thenable object or another promise, the resulting promise will follow it. Otherwise it will be fulfilled with that value
 
-=head2 promise_reject
+=head2 reject
 
-  my $p = promise_reject('hello');
+  my $p = reject('hello');
 
 Generate a rejected promise with a reason. If the reason is a promise, resulting promise will NOT follow it.
 
-=head2 promise_all
+=head2 all
 
 Creates a promise that will be resolved only when all promise are resolved. The result will be an array containing resolved value with the same order, as passed to this function. If one of the collected promise become rejected, that promise will be rejected to with that reason.
 
   my ($d1, $d2) = (deferred, deferred);
-  loop_timer 1,   sub { $d1->resolve('first') };
-  loop_timer 0.1, sub { $d2->resolve('second') };
+  Mojo::IOLoop->timer( 1,   sub { $d1->resolve('first') });
+  Mojo::IOLoop->timer( 0.1, sub { $d2->resolve('second') });
 
-  promise_all($d1->promise, $d2->promise)->then(sub($v) { say join ';', $v->@* });
+  all($d1->promise, $d2->promise)->then(sub($v) { say join ';', $v->@* });
 
 Will print C<first;second>
 
 L</"spread"> will help a lot
 
-=head2 promise_race
+=head2 race
 
 Return a promise that will be resolved or rejected with the value/reason of the first resolved/rejected promise
 
-  promise_race($d1->promise, $d1->promise)->then(sub($v) { say $v });
+  my ($d1, $d2) = (deferred, deferred);
+  race($d1->promise, $d1->promise)->then(sub($v) { say $v });
 
-  loop_timer 1 => sub { $d1->resolve('1') };
-  loop_timer 2 => sub { $d2->resolve('2') };
+  Mojo::IOLoop->timer(1 => sub { $d1->resolve('1') });
+  Mojo::IOLoop->timer(2 => sub { $d2->resolve('2') });
 
-Will print C<2>
+Will print C<1>
 
 =head1 METHODS
 
@@ -93,7 +124,7 @@ The same as C<then(undef, sub($r) {})>, recommended form
 
 If you expect promise gets fulfilled with the array reference, you can dereference it and pass to function
 
-promise_all(first => $d1->promise, second => $d2->promise)
+all(first => $d1->promise, second => $d2->promise)
   ->spread(sub(%res) { say $_ , ': ', $res{$_} for keys %res });
 
 
@@ -103,21 +134,9 @@ Chain promise with a handler, that gets called with no argument when the parent 
 
 A shorter. Causes no effect on the chain unless rejection happens
 
-  promise_resolve('VAL')->fin(sub() {'IGNORED'})->then(sub($v) { say $v});
+  resolve('VAL')->fin(sub() {'IGNORED'})->then(sub($v) { say $v});
 
 Usefull for closing connections etc. The idea described here: L<https://github.com/kriskowal/q#propagation>
-
-=head1 IMPLEMENTATION
-
-This is a sexy and fast non-recursive implementation of Promise/A+
-
-The end-user library L<Evo::Promise> works with L<Evo::Loop> (promise require event loop because of L<https://promisesaplus.com/#point-34>)
-But the main part (see L<Evo::Promise::Driver>) is designed to be reused and it's ridiculously simple to implement variant for other loops with a few lines of code (see the source code of L<Evo::Promise>)
-
-
-Different implementations of promise should work together well by design. Right now there are other implementations in CPAN. But when I tested them(2016yr), they were far away from A+ and contained many bugs. So if need to mix different promise libraries, try to start the chain from this one
-
-
 
 =head1 SEE ALSO
 

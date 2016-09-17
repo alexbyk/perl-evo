@@ -27,8 +27,9 @@ EMPTY: {
   Evo::->import('Evo::My()');
   Evo::->import('Evo::My ( ) ');
   Evo::->import('Evo::My ( ); Evo::My second ');
-  is_deeply \@called, [['main', 'Evo::My', 'second']];
-  is scalar(grep { $_ eq 'Evo::My' } @loaded), 5;
+  Evo::->import('Evo::My ( ), Evo::My second ');
+  is_deeply \@called, [['main', 'Evo::My', 'second'], ['main', 'Evo::My', 'second']];
+  is scalar(grep { $_ eq 'Evo::My' } @loaded), 7;
 }
 
 @called = ();
@@ -37,7 +38,7 @@ Evo::->import('Evo::My bar baz');
 Evo::->import('-My(bar baz)');
 Evo::->import('-My');
 Evo::->import('-My');
-Evo::->import('-My(-foo, bar)');
+Evo::->import('-My(-foo bar)');
 
 # multi imports
 Evo::->import('Evo::My foo1 foo2; Evo::My bar1 bar2 ; -My opa');

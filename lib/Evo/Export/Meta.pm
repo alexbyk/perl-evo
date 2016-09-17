@@ -124,4 +124,7 @@ sub install ($self, $dst, @xlist) {
   Evo::Internal::Util::monkey_patch $dst, %patch;
 }
 
+no warnings 'once';
+*info = *symbols;
+
 1;

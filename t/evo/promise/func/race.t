@@ -1,4 +1,23 @@
-use Evo 'Test::More; -Promise *; -Loop *';
+package main;
+use Evo 'Test::More; -Promise::Deferred';
+
+my @POSTPONE;
+sub loop_start { (shift @POSTPONE)->() while @POSTPONE; }
+sub deferred { Evo::Promise::Deferred->new(promise => MyTestPromise->new) }
+sub promise_race    { MyTestPromise->race(@_) }
+sub promise_resolve { MyTestPromise->resolve(@_) }
+sub promise_reject  { MyTestPromise->reject(@_) }
+
+{
+
+  package MyTestPromise;
+  use Evo -Class;
+  with 'Evo::Promise::Role';
+
+  sub postpone ($self, $code) {
+    push @POSTPONE, $code;
+  }
+}
 
 EMPTY: {
   my ($called);

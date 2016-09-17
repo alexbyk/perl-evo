@@ -1,9 +1,16 @@
 package main;
-use Evo '-Promise::Util *; -Promise::Class';
-use Test::More;
+use Evo '-Promise::Util *; Test::More';
+{
 
+  package MyTestPromise;
+  use Evo -Class;
+  with 'Evo::Promise::Role';
 
-sub p { Evo::Promise::Class->new(@_) }
+  sub postpone ($self, $code) {
+  }
+}
+
+sub p { MyTestPromise->new(@_) }
 
 SETTLED: {
   ok !p()->d_settled;
@@ -37,7 +44,7 @@ no warnings 'once', 'redefine';
 CONTINUE: {
 
   my $called;
-  local *Evo::Promise::Class::d_traverse = sub { $called++; };
+  local *MyTestPromise::d_traverse = sub { $called++; };
 
 REJECT_CONTINUE: {
     $called = 0;
@@ -49,8 +56,8 @@ REJECT_CONTINUE: {
 
 RESOLVE_CONTINUE_SETTLED: {
     $called = 0;
-    local *Evo::Promise::Class::d_resolve = sub { };
-    local *Evo::Promise::Class::d_settled = sub {1};
+    local *MyTestPromise::d_resolve = sub { };
+    local *MyTestPromise::d_settled = sub {1};
     my $p = p();
     $p->d_resolve_continue('V');
     is $called, 1;
@@ -58,8 +65,8 @@ RESOLVE_CONTINUE_SETTLED: {
 
 RESOLVE_CONTINUE_PENDING: {
     $called = 0;
-    local *Evo::Promise::Class::d_resolve = sub { };
-    local *Evo::Promise::Class::d_settled = sub { };
+    local *MyTestPromise::d_resolve = sub { };
+    local *MyTestPromise::d_settled = sub { };
     my $p = p();
     $p->d_resolve_continue('V');
     is $called, 0;

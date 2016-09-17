@@ -76,9 +76,9 @@ use Evo 'My::Foo; -My::Bar';
 {
 
   package My::Foo;
-  use Evo '-Export *; -Promise ';
-  use Evo '-Export *; -Promise;';
-  use Evo '-Export *; -Promise; ';
+  use Evo '-Export *; -Lib ';
+  use Evo '-Export *; -Lib;';
+  use Evo '-Export *; -Lib; ';
 }
 
 done_testing;

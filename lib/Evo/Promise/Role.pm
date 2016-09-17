@@ -1,8 +1,9 @@
-package Evo::Promise::Class;
+package Evo::Promise::Role;
 use Evo -Class;
-use Evo '-Loop loop_postpone';
-use Evo '-Promise::Sync; -Promise::Util FULFILLED REJECTED PENDING promise_resolve promise_reject';
-use Evo 'Carp croak;Scalar::Util blessed';
+use Evo '-Promise::Sync; -Promise::Const *; -Promise::Deferred';
+use Evo 'Carp croak; Scalar::Util blessed';
+
+requires 'postpone';
 
 # https://promiseaplus.com/
 
@@ -23,15 +24,78 @@ has 'state' => PENDING;
 #}
 
 
+## CLASS METHODS
+sub resolve ($me, $v) : Export {
+  my $d = Evo::Promise::Deferred->new(promise => $me->new());
+  $d->resolve($v);
+  $d->promise;
+}
+
+sub reject ($me, $v) : Export {
+  my $d = Evo::Promise::Deferred->new(promise => $me->new());
+  $d->reject($v);
+  $d->promise;
+}
+
+sub race($me, @prms) {
+  my $d = Evo::Promise::Deferred->new(promise => $me->new());
+  my $onF = sub { $d->resolve(@_) };
+  my $onR = sub { $d->reject(@_) };
+  foreach my $cur (@prms) {
+    if (ref $cur eq 'Evo::Promise::Class') {
+      $cur->then($onF, $onR);
+    }
+    else {
+      # wrap with our promise
+      my $wd = Evo::Promise::Deferred->new(promise => $me->new());
+      $wd->promise->then($onF, $onR);
+      $wd->resolve($cur);
+    }
+  }
+
+  $d->promise;
+}
+
+
+sub all ($me, @prms) : Export {
+  my $d = Evo::Promise::Deferred->new(promise => $me->new());
+  do { $d->resolve([]); return $d->promise; } unless @prms;
+
+  my $pending = @prms;
+
+  my @result;
+  my $onR = sub { $d->reject($_[0]) };
+
+  for (my $i = 0; $i < @prms; $i++) {
+    my $cur_i = $i;
+    my $cur_p = $prms[$cur_i];
+    my $onF   = sub { $result[$cur_i] = $_[0]; $d->resolve(\@result) if --$pending == 0; };
+
+    if (ref $cur_p eq 'Evo::Promise::Class') {
+      $cur_p->then($onF, $onR);
+    }
+    else {
+      # wrap with our promise
+      my $wd = Evo::Promise::Deferred->new(promise => $me->new());
+      $wd->promise->then($onF, $onR);
+      $wd->resolve($cur_p);
+    }
+  }
+  $d->promise;
+}
+
+### OBJECT METHODS
+
 sub finally ($self, $fn) {
-  my $d = Evo::Promise::Deferred->new(promise => ref($self)->new);
-  my $onF = sub($v) {
+  my $d     = Evo::Promise::Deferred->new(promise => ref($self)->new);
+  my $me = ref($self);
+  my $onF   = sub($v) {
     $d->resolve($fn->());    # need pass result because it can be a promise
     $d->promise->then(sub {$v});
   };
   my $onR = sub($r) {
     $d->resolve($fn->());    # see above
-    $d->promise->then(sub { promise_reject($r) });
+    $d->promise->then(sub { $me->reject($r) });
   };
   $self->then($onF, $onR);
 }
@@ -52,6 +116,8 @@ sub then {
   $self->d_traverse if $self->d_settled;
   $p;
 }
+
+### DRIVER INTERNAL METHODS
 
 sub d_lock_in ($self, $parent) {
 
@@ -157,8 +223,13 @@ sub d_traverse($self) {
 
 }
 
-sub postpone ($self, $fn) {
-  &loop_postpone($fn);
-}
 
 1;
+
+=head1 IMPLEMENTATION
+
+This is a sexy and fast non-recursive implementation of Promise/A+
+See L<Mojo::Promise> for end-user library
+
+=cut
+

@@ -1,8 +1,18 @@
 package main;
-use Evo '-Promise::Util *; -Promise::Class; -Promise *';
+use Evo '-Promise::Util *;';
 use Test::More;
 
-sub p { Evo::Promise::Class->new }
+{
+
+  package MyTestPromise;
+  use Evo -Class;
+  with 'Evo::Promise::Role';
+
+  sub postpone ($self, $code) {
+  }
+}
+
+sub p { MyTestPromise->new(@_) }
 
 # is_fulfilled
 ok is_fulfilled_with(0,     p()->d_fulfill(0));
@@ -23,14 +33,6 @@ unshift $par->d_children->@*, $ch;
 ok is_locked_in($par, $ch);
 ok !is_locked_in(p(), $ch);
 
-# resolved/rejected
-ok is_fulfilled_with 33, promise_resolve(33);
-ok is_rejected_with 44,  promise_reject(44);
-
-# resolve will follow, reject not
-my $p = promise(sub { });
-ok is_locked_in $p,     promise_resolve($p);
-ok is_rejected_with $p, promise_reject($p);
 done_testing;
 
 1;

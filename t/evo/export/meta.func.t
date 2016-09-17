@@ -5,7 +5,7 @@ use Evo '-Internal::Util';
 {
 
   package My::Foo;
-  use Evo 'Evo::Export::Meta; Evo::Export';
+  use Evo 'Evo::Export::Meta; Evo::Export -import';
 
   sub import ($me, @list) {
     Evo::Export->install_in(scalar caller, $me, @list);

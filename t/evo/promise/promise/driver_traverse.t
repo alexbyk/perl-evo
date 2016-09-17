@@ -6,12 +6,14 @@ use Test::More;
 
   package My::P;
   use Evo '-Class *';
-  with '-Promise::Class';
+  with '-Promise::Role';
   has $_ for qw(n x_res x_rej);
+
+  sub postpone ($me, $sub) {
+    $sub->();
+  }
 }
 
-no warnings qw(once redefine);
-local *Evo::Promise::Class::loop_postpone = sub { shift->() };
 
 sub p { My::P->new(@_) }
 

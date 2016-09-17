@@ -3,15 +3,4 @@ Revision history for {{$dist->name}}
 {{$NEXT}}
 
 0.0241    2016-08-08 12:59:41+03:00 Europe/Kiev
-
-- Implemented Evo::Fs::open
-- Fix windows errors
-- Implement Evo::Fs read_ref method
-- Squash Evo::Fs::Class and Evo::Fs  
-- implemented Evo::Class attrs_map  
-- Make Evo::Class::Meta->attrs api public 
-- Change api of Evo::Fs 
-- Added Evo::Fs 
-- Change -Class syntax and implementation. For extending with XS (soon)
-- Change -Attr syntax
-- Change -Export implementation
+Refactoring

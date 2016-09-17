@@ -1,5 +1,6 @@
 package main;
 use Evo 'Test::More; Evo::Internal::Exception; Symbol delete_package; Module::Loaded';
+use Evo 'Evo::Class::Const *';
 
 
 {
@@ -59,10 +60,11 @@ GENERAL: {
   ok(!My::Class->can('not_public'));
   ok(!My::Class->can('SEEK_CUR'));
 
-  is $meta->attrs->{ao1}{rvalue}, 'o1';
-  is $meta->attrs->{ao1}{rtype},  'default';
-  is $meta->attrs->{ao2}{rvalue}, 'o2';
-  is $meta->attrs->{ao2}{rtype},  'default';
+
+  my $obj = My::Class->new;
+  is $obj->ao1, 'o1';
+  is $obj->ao2, 'o2';
+  is $obj->a1,  'ok';
 
   like exception { My::Class->can('has')->('a1') }, qr/already.+a1.+$0/i;
 }

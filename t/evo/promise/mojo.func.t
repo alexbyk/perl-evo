@@ -1,5 +1,11 @@
-use Evo '-Promise *; -Loop *';
+use Evo;
 use Test::More;
+
+BEGIN {
+  eval { require Mojo::IOLoop; 1 } or plan skip_all => 'Install Mojolicious to run this test';
+}
+
+use Mojo::Promise '*';
 
 
 my ($v, $r);
@@ -14,10 +20,11 @@ my $p = promise(
 ok !$v;
 ok !$r;
 
-loop_start();
+Mojo::IOLoop->start;
 
 is $v, 'hello';
 is $r, "Foo\n";
+
 
 # deferred
 ($v, $r) = @_;
@@ -28,9 +35,14 @@ $d->resolve('hello');
 ok !$v;
 ok !$r;
 
-loop_start();
+Mojo::IOLoop->start;
 
 is $v, 'hello';
 is $r, "Foo\n";
+
+# functions
+
+ok(main::->can($_), $_) for qw(resolve reject race all);
+ok resolve(2);
 
 done_testing;

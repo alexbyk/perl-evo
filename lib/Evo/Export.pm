@@ -18,9 +18,23 @@ sub ExportGen ($pkg, $gen, $name, $as = $name) : Attr {
   Evo::Export::Meta->find_or_bind_to($pkg)->export_gen($as, $gen);
 }
 
-sub import ($self, @list) : Export {
+sub import ($self, @list) {
+  my $dest = scalar caller;
+  Evo::Export::Meta->find_or_bind_to($dest);
+  @list = ('*') unless @list;
+  Evo::Export::Meta->find_or_bind_to($self)->install($dest, @list);
+}
+
+sub _import ($self, @list) : Export(import) {
   my $dest = scalar caller;
   Evo::Export::Meta->find_or_bind_to($self)->install($dest, @list);
+}
+
+
+sub EXPORT ($me, $dest) : ExportGen {
+  sub {
+    Evo::Export::Meta->find_or_bind_to($dest);
+  };
 }
 
 sub import_all ($exporter, @list) : Export {
@@ -78,9 +92,10 @@ Standart L<Exporter> wasn't good enough for me, so I've written a new one from t
   use Evo 'Evo::Eval eval_try';
   use Evo '-Promise promise deferred';
 
-For convenient, you can load all above in one line
+For convenient, you can load all above in one line (divide by C<,> or C<;>)
 
   use Evo '-Eval eval_try; -Promise promise deferred';
+  use Evo '-Eval eval_try, -Promise promise deferred';
 
 C<*> means load all. C<-> is a shortcut. See L<Evo/"shortcuts>
 
@@ -91,16 +106,16 @@ You can rename subroutines to avoid method clashing
   # import promise as prm
   use Evo '-Promise promise:prm';
 
-You can use C<*> with exclude C<-> for convinient
+You can use C<*> with exclude C<-> for convinient, use whitespace as a delimiter
 
   # import all except "deferred"
-  use Evo '-Promise *, -deferred';
+  use Evo '-Promise * -deferred';
 
 If one name clashes with yours, you can import all except that name and import
 renamed version of that name
 
   # import all as is but only deferred will be renamed to "renamed_deferred"
-  use Evo '-Promise *, -deferred, deferred:renamed_deferred';
+  use Evo '-Promise * -deferred deferred:renamed_deferred';
 
 
 =head1 EXPORTING
@@ -218,8 +233,14 @@ Export function, that won't be available in the source class
 Very powefull and most exciting feature. C<Evo::Export> exports generators, that produces subroutines. Consider it as a 3nd dimension in 3d programming.
 Better using with C<ExportGen> attribute
 
+=head4 EXPORT
+
+This method returns a bound instance of L<Evo::Export::Meta>.
+
+  say Dumper __PACKAGE__->EXPORT->info;
+
 =head4 import
 
-By default, this method will be exported and do the stuff. If you need replace C<import> of your module, exclude it by C<use Evo '-Export *, -import'>
+By default, this method will be exported and do the stuff. If you need replace C<import> of your module, exclude it by C<use Evo '-Export * -import'>
 
 =cut

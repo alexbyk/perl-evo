@@ -40,7 +40,7 @@ sub import {
   unshift @list, '-Default' unless grep { $_ && $_ eq '-Default' } @list;
 
   # trim
-  @list = grep {$_} map { my $s = $_; $s =~ s/^\s+|\s+$//g; $s } map { split ';', $_ } @list;
+  @list = grep {$_} map { my $s = $_; $s =~ s/^\s+|\s+$//g; $s } map { split /[;,]/, $_ } @list;
   foreach my $key (@list) {
     my ($src, $empty, @args) = _parse($target, $key);
     Module::Load::load($src);
@@ -92,7 +92,7 @@ It provides rewritten and postmodern features like
 [almost ready] Post modern code injection programming L<Evo::Class> instead of traditional OO
 
 =item *
-[almost ready] Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible. + Nice syntax via experimental L<Evo::Prm>
+[almost ready] Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible. + See L<Mojo::Promise>
 
 =item *
 (experimental) Exception handling in pure perl: L<Evo::Eval>, "try catch" alternative. Like C<Try::Tiny>, but without its bugs and much faster
@@ -102,12 +102,6 @@ It provides rewritten and postmodern features like
 
 =item *
 (experimental) L<Evo::Fs> - abstraction layer between you app and FileSystem for simple testing
-
-=item *
-(experimental, not ready) C<Boa> - new sexy testing framework and runner for both blocking and non-blocking tests (Unit testing + functional testing). 10-100 times faster than traditional C<prove> and has a C<"watch"> mode.
-
-=item *
-(not started yet) Base modules for non-blocking client/server programming
 
 =back
 

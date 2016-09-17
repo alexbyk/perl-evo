@@ -1,19 +1,18 @@
 package Evo::Class;
-use Evo '-Export export_proxy; Evo::Class::Gen; Evo::Class::Meta';
+use Evo '-Export export_proxy; Evo::Class::Meta';
 
-my $GEN_IMPL = eval { require Evo::Class::Gen::XS; 1 } ? 'Evo::Class::Gen::XS' : 'Evo::Class::Gen';
+my $ATTRS_IMPL
+  = eval { require Evo::Class::Attrs::XS; 1 }
+  ? 'Evo::Class::Attrs::XS'
+  : do { require Evo::Class::Attrs; 'Evo::Class::Attrs' };
 
 sub new ($me, $dest) : ExportGen {
-  Evo::Class::Meta->find_or_croak($dest)->gen->gen_new;
-}
-
-sub init ($me, $dest) : ExportGen {
-  Evo::Class::Meta->find_or_croak($dest)->gen->gen_init;
+  Evo::Class::Meta->find_or_croak($dest)->attrs->gen_new;
 }
 
 sub import ($me, @list) {
   my $caller = caller;
-  Evo::Class::Meta->register($caller, $GEN_IMPL);
+  Evo::Class::Meta->register($caller, $ATTRS_IMPL);
   Evo::Export->install_in($caller, $me, @list ? @list : '*');
 }
 
@@ -35,45 +34,19 @@ sub Over ($dest, $code, $name) : Attr {
 }
 
 
-sub attr_exists ($me, $dest) : ExportGen {
-  Evo::Class::Meta->find_or_croak($dest)->gen->gen_attr_exists;
-}
-
-sub attr_delete ($me, $dest) : ExportGen {
-  Evo::Class::Meta->find_or_croak($dest)->gen->gen_attr_delete;
-}
-
-sub attrs_map ($me, $dest) : ExportGen {
-  Evo::Class::Meta->find_or_croak($dest)->gen->gen_attrs_map;
-}
 
 sub has ($me, $dest) : ExportGen {
   sub ($name, @opts) {
-    my $parsed = Evo::Class::Meta->parse_attr(@opts);
-    Evo::Class::Meta->find_or_croak($dest)->reg_attr($name, $parsed);
+    my @parsed = Evo::Class::Meta->parse_attr(@opts);
+    Evo::Class::Meta->find_or_croak($dest)->reg_attr($name, @parsed);
   };
 }
 
 sub has_over ($me, $dest) : ExportGen {
   sub ($name, @opts) {
-    my $parsed = Evo::Class::Meta->parse_attr(@opts);
-    Evo::Class::Meta->find_or_croak($dest)->reg_attr_over($name, $parsed);
+    my @parsed = Evo::Class::Meta->parse_attr(@opts);
+    Evo::Class::Meta->find_or_croak($dest)->reg_attr_over($name, @parsed);
   };
-}
-
-sub _extend ($me, $dest, @parents) {
-  my $meta = Evo::Class::Meta->find_or_croak($dest);
-  my $gen  = $me->class_of_gen->find_or_croak($dest);
-  my @names;
-  foreach my $par (@parents) {
-    $par = Evo::Internal::Util::resolve_package($dest, $par);
-    push @names, $meta->extend_with($par);
-  }
-  $me->class_of_gen->find_or_croak($dest)->sync_attrs($meta->attrs->%*);
-  foreach my $name (@names) {
-    my $sub = $gen->gen_attr($name, $meta->attrs->{$name}->%*);
-    my $fn = Evo::Internal::Util::monkey_patch $dest, $name, $sub;
-  }
 }
 
 sub extends ($me, $dest) : ExportGen {
@@ -163,29 +136,11 @@ sub with ($me, $dest) : ExportGen {
 
 =head1 DESCRIPTION
 
-=head2 Mixins programming
+=head2 INTRO
 
-A new promising inject-code programming concepts based on mixins. Documentation will be available if someone will be willing to help write it.
+This module doesn't use perl's @ISA inheritance. This module isn't Moose compatible by design
 
-=head2 Why not OO and Moose like?
-
-The main difference is C<Evo> stores attributes outside the object, so any ref could be an object, while Moose allow you to use only hashes. This makes possible, for example, to avoid delegating C<$stream-E<gt>fh> and makes a code faster. Also avoiding hashes improves performance 
-
-
-The syntax differs from Moose too, I fixed most frustating parts of it. It's not Moose-compatible at all. C<Evo::Class> is more strict by default and prevents many errors.
-
-Every class is also a role. We don't use perl's C<@ISA> OO inheritance. Code reuse is based on so called "mixins".
-This concept doesn't suffer a C<fragile base class problem> from traditional OO
-
-Every class is also an interface and can be used to check the shape of other classes.
-
-A tiny amount of code means less bugs. You can make a code review in 5 minutes and understand everything.
-
-These advantages make C<Evo::Class> perfect for both "corporate level" and "small" projects
-
-=head1 XS AND PERFORMANCE
-
-This module will automatically load and use XS generator, if available. Install L<Evo::XS> module to get benefits. PP is only "fast enough", buth with XS this module is one of the fastest in CPAN. (Should be 50-100% faster than similar hash-based modules, see L<https://github.com/alexbyk/perl-evo/tree/master/bench>)
+Documentation will be available soon.
 
 =head1 Usage
 
@@ -195,31 +150,12 @@ This module will automatically load and use XS generator, if available. Install 
   use Evo -Class;
   has 'simple';
 
-You don't need to call something like C<__PACKAGE__-E<gt>meta-E<gt>make_immutable> unlike in L<Moose>, Evo objects are fast enough by design.
-
 =head2 new
 
   my $foo = My::Class->new(simple => 1);
   my $foo2 = My::Class->new();
 
 We're protected from common mistakes, because constructor won't accept unknown attributes.
-You may think why not C<My::Class::new>? You're right. The first option isn't really necessary and even constructor doesn't use it at all. But I decided to leave it that way
-because many developers are familiar with C<My::Class-E<gt>new> form. There is also an L</init> function for perfectionists
-
-=head2 Storage
-
-The big advantage of Evo object that it's not tied with hashes. You can use C<init> to bless and init any reference.
-
-  package My::Obj;
-  use Evo 'Evo::Class *, -new';    # load all except "new"
-
-  sub new ($me, %opts) {
-    $me->init([], %opts);
-  }
-
-  package main;
-  use Evo;
-  say My::Obj->new();
 
 =head2 Declaring attribute
 
@@ -268,7 +204,7 @@ Like default, but will be filled at the first invocation, not in constructor, an
   # pay attention, an instance is passed
   has foo => lazy => sub($self) { [] };
 
-You should now that using this feature is an antipattern in the mose of the cases. L</default> is preferable if you're not sure
+You should know that using this feature is an antipattern in the most of the cases. L</default> is preferable if you're not sure
 
 =head4 required
 
@@ -346,7 +282,12 @@ This functions will be exported by default even without export list C<use Evo::C
 
 =head2 META
 
-Return current L<Evo::Class::Meta> object for the class
+Return current L<Evo::Class::Meta> object for the class.
+
+  use Data::Dumper;
+  say Dumper __PACKAGE__->META->info;
+
+See what's going on with the help of L<Evo::Class::Meta/info>
 
 =head2 extends
 
@@ -393,28 +334,6 @@ This does "extend + check implementation". Consider this example:
 C<My::Role::Happy> requires C<name> in derivered class. We could install shared code with C<extends> and then check implemantation with C<implements>. Or just use C<with> wich does both.
 
 You may want to use C<extends> and C<implements> separately to resolve circular requirements, for example
-
-=head2 attr_exists
-
-=head2 attr_delete
-
-  my $alex = My::Human->new(gender => 'male', age => 31);
-  say $alex->attr_exists('age') ? 'exists' : 'not';
-  say $alex->attr_delete('age');
-  say $alex->attr_exists('age') ? 'exists' : 'not';
-
-Like C<exists> and C<delete> but for attributes and check if attribute was registered (croak otherwise).
-
-=head2 attrs_map
-
-Return a list of key-values of attributes. Because attributes are stored outside of objects, use this method instead of dumping object
-
-  my $alex = My::Human->new(gender => 'male', name => 'alex');
-  use Data::Dumper;
-  say Dumper {$alex->attrs_map}; # instead of say Dumper $alex;
-
-Pay attention, every registered attribute will be listed here, even not-existing (with undef as a value).
-To check if an attribute was settled, see L</attr_exists>
 
 =head1 CODE ATTRIBUTES
 

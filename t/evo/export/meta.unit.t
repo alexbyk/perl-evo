@@ -112,5 +112,11 @@ REEXPORT_ALL: {
   is $loaded, 'My::Orig';
 }
 
+INFO: {
+  local $My::Foo::EVO_EXPORT_META;
+  my $obj  = Evo::Export::Meta->new('My::Foo');
+  ok $obj->info();
+}
+
 
 done_testing;

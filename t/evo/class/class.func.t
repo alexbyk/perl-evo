@@ -37,7 +37,7 @@ my $obj = {};
 like exception { My::Foo->new() }, qr/req.+required.+$0/;
 like exception { My::Foo->new(gt10   => 9, req     => 1); }, qr/gt10.+$0/;
 like exception { My::Foo->new(gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
-like exception { My::Foo->new(req    => 1, unknown => 1); }, qr/"unknown".+$0/;
+like exception { My::Foo->new(req    => 1, unknown => 1); }, qr/unknown.+$0/;
 
 $obj = My::Foo->new(gt10 => 10 + 1, foo => 'FOO', req => 1);
 like exception { $obj->gt10(11); },  qr/gt10.+readonly.+$0/;
@@ -59,12 +59,11 @@ is $obj->with_dfn, 'DFN';
 $obj = My::Foo::->new(req => 1, foo => 'foo');
 is $obj->foo, 'foo';
 
-# attrs map
 $obj = My::Bar::->new();
-is_deeply { $obj->attrs_map }, {adef => 1, alazy => undef, asimple => undef};
+is_deeply $obj, {adef => 1};
 ok $obj->alazy;
-is_deeply { $obj->attrs_map }, {adef => 1, alazy => 'L', asimple => undef};
+is_deeply $obj, {adef => 1, alazy => 'L'};
 ok $obj->asimple('S');
-is_deeply { $obj->attrs_map }, {adef => 1, alazy => 'L', asimple => 'S'};
+is_deeply $obj, {adef => 1, alazy => 'L', asimple => 'S'};
 
 done_testing;

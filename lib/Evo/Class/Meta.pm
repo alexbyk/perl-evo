@@ -1,17 +1,16 @@
 package Evo::Class::Meta;
-use Evo -Internal::Util;
+use Evo '/::Const *';
 use Evo 'Carp croak; Scalar::Util reftype; -Lib strict_opts; -Internal::Util; Module::Load ()';
 
 our @CARP_NOT = qw(Evo::Class);
 
-sub register ($me, $package, $gen_class) {
+sub register ($me, $package, $attrs_class) {
   my $self = Evo::Internal::Util::pkg_stash($package, $me);
   return $self if $self;
   $self = bless {
     package    => $package,
-    gen        => $gen_class->new,
     private    => {},
-    attrs      => {},
+    attrs      => $attrs_class->new,
     methods    => {},
     reqs       => {},
     overridden => {}
@@ -28,7 +27,6 @@ sub package($self) { $self->{package} }
 sub attrs($self)   { $self->{attrs} }
 sub methods($self) { $self->{methods} }
 sub reqs($self)    { $self->{reqs} }
-sub gen($self)     { $self->{gen} }
 
 sub overridden($self) { $self->{overridden} }
 sub private($self)    { $self->{private} }
@@ -62,12 +60,7 @@ sub is_method ($self, $name) {
 }
 
 sub is_attr ($self, $name) {
-  $self->attrs->{$name};
-}
-
-# has attribute or sub
-sub has_name ($self, $name) {
-  $self->attrs->{$name} || Evo::Internal::Util::names2code($self->package, $name);
+  $self->attrs->exists($name);
 }
 
 sub _check_valid_name ($self, $name) {
@@ -85,20 +78,20 @@ sub _check_exists_valid_name ($self, $name) {
   _check_exists($self, $name);
 }
 
-sub reg_attr ($self, $name, $opts) {
+sub reg_attr ($self, $name, @opts) {
   _check_exists_valid_name($self, $name);
   my $pkg = $self->package;
   croak qq{$pkg already has subroutine "$name"} if Evo::Internal::Util::names2code($pkg, $name);
-  $self->attrs->{$name} = $opts;    # register
-  Evo::Internal::Util::monkey_patch $pkg, $name, $self->gen->gen_attr($name, $opts);
+  my $sub = $self->attrs->gen_attr($name, @opts);    # register
+  Evo::Internal::Util::monkey_patch $pkg, $name, $sub;
 }
 
-sub reg_attr_over ($self, $name, $opts) {
+sub reg_attr_over ($self, $name, @opts) {
   _check_valid_name($self, $name);
   $self->mark_as_overridden($name);
-  $self->attrs->{$name} = $opts;
+  my $sub = $self->attrs->gen_attr($name, @opts);    # register
   my $pkg = $self->package;
-  Evo::Internal::Util::monkey_patch_silent $pkg, $name, $self->gen->gen_attr($name, $opts);
+  Evo::Internal::Util::monkey_patch_silent $pkg, $name, $sub;
 }
 
 # means register external sub as method. Because every sub in the current package
@@ -110,7 +103,11 @@ sub reg_method ($self, $name) {
   $self->methods->{$name}++;
 }
 
-sub public_methods($self) {
+sub _public_attrs_slots($self) {
+  grep { !$self->is_private($_->[I_NAME]) } $self->attrs->slots;
+}
+
+sub _public_methods_map($self) {
   my $pkg = $self->package;
   map { ($_, Evo::Internal::Util::names2code($pkg, $_)) }
     grep { !$self->is_private($_) && $self->is_method($_) }
@@ -118,8 +115,14 @@ sub public_methods($self) {
 }
 
 sub public_attrs($self) {
-  map { ($_, $self->attrs->{$_}) } grep { !$self->is_private($_) } keys $self->attrs->%*;
+  map { $_->[I_NAME] } $self->_public_attrs_slots;
 }
+
+sub public_methods($self) {
+  my %map = $self->_public_methods_map;
+  keys %map;
+}
+
 
 sub extend_with ($self, $source_p) {
   $source_p = Evo::Internal::Util::resolve_package($self->package, $source_p);
@@ -127,18 +130,16 @@ sub extend_with ($self, $source_p) {
   my $source  = $self->find_or_croak($source_p);
   my $dest_p  = $self->package;
   my %reqs    = $source->reqs()->%*;
-  my %attrs   = $source->public_attrs();
-  my %methods = $source->public_methods();
+  my %methods = $source->_public_methods_map();
 
   my @new_attrs;
 
   foreach my $name (keys %reqs) { $self->reg_requirement($name); }
 
-  foreach my $name (keys %attrs) {
+  foreach my $slot ($source->_public_attrs_slots) {
+    my ($name, @opts) = @$slot;
     next if $self->is_overridden($name);
-    croak qq/$dest_p already has a subroutine with name "$name"/
-      if Evo::Internal::Util::names2code($dest_p, $name);
-    $self->reg_attr($name, {$attrs{$name}->%*});
+    $self->reg_attr($name, @opts);
     push @new_attrs, $name;
   }
 
@@ -159,8 +160,7 @@ sub reg_requirement ($self, $name) {
 }
 
 sub requirements($self) {
-  my %all = ($self->public_attrs, $self->public_methods, $self->reqs->%*);
-  keys %all;
+  (keys($self->reqs->%*), $self->public_attrs, $self->public_methods);
 }
 
 sub check_implementation ($self, $inter_class) {
@@ -192,7 +192,8 @@ sub parse_attr ($me, @attr) {
   delete $unknown{$_} for @KNOWN_HAS;
   croak "unknown options: " . join(',', sort keys %unknown) if keys %unknown;
 
-  my %attr;
+  #use constant {I_NAME => 0, I_TYPE => 1, I_RO => 2, I_CHECK => 3, I_VALUE => 4};
+  my ($type, $ro, $check, $value);
 
   # detect rtype
   my $seen = 0;
@@ -200,15 +201,15 @@ sub parse_attr ($me, @attr) {
     croak qq#"default" should be either a code reference or a scalar value#
       if ref($opts{default}) && (reftype($opts{default}) // '') ne 'CODE';
     ++$seen;
-    $attr{rtype} = ref($opts{default}) ? 'default_code' : 'default';
-    $attr{rvalue} = $opts{default};
+    $type = ref($opts{default}) ? A_DEFAULT_CODE : A_DEFAULT;
+    $value = $opts{default};
   }
-  do { ++$seen; $attr{rtype} = 'required'; $attr{rvalue} = $opts{required}; } if $opts{required};
+  do { ++$seen; $type = A_REQUIRED; $value = $opts{required}; } if $opts{required};
   if (exists $opts{lazy}) {
     croak qq#"lazy" should be a code reference# if (reftype($opts{lazy}) // '') ne 'CODE';
     ++$seen;
-    $attr{rtype}  = 'lazy';
-    $attr{rvalue} = $opts{lazy};
+    $type  = A_LAZY;
+    $value = $opts{lazy};
   }
   croak qq{providing more than one of "default", "lazy", "required" doesn't make sense}
     if $seen > 1;
@@ -219,11 +220,24 @@ sub parse_attr ($me, @attr) {
   my $is = $opts{is} // 'rw';
   croak qq#invalid "is": "$is"# unless $is eq 'ro' || $is eq 'rw';
 
-  $attr{ro}    = 1            if $is eq 'ro';
-  $attr{check} = $opts{check} if exists $opts{check};
-  $attr{rtype} ||= 'relaxed';
+  $ro = $is eq 'ro' ? 1 : 0;
+  $check = $opts{check} if exists $opts{check};
+  $type ||= A_RELAXED;
 
-  \%attr;
+  return ($type, $value, $check, $ro);
+}
+
+sub info($self) {
+  my %info = (
+    public => {
+      methods => [sort $self->public_methods],
+      attrs   => [sort $self->public_attrs],
+      reqs    => [sort keys($self->reqs->%*)],
+    },
+    overridden => [sort keys($self->overridden->%*)],
+    private    => [sort keys($self->private->%*)],
+  );
+  \%info;
 }
 
 
@@ -274,11 +288,6 @@ All methods compiled in the class are public by default. But what to do if you m
 
 If implementation requires "attribute", L</reg_attr> should be called before checking implementation
 
-=head2 attrs (EXPERIMENTAL)
-
-You can examine current attributes this way:
-
-  say Dumper META()->attrs;
 
 =head2 mark_as_private
 
@@ -295,5 +304,14 @@ If you want to hide method, you should use C<my sub> feature. But sometimes this
   say 'LIST: ', META->public_methods;
 
 But C<foo> is still available via C<Foo::-E<gt>foo>
+
+=head1 DUMPING (EXPERIMENTAL)
+
+  package My::Foo;
+  use Evo -Class;
+  has 'foo';
+
+  use Data::Dumper;
+  say Dumper __PACKAGE__->META->info;
 
 =cut
