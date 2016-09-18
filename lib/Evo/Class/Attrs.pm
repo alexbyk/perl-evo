@@ -44,11 +44,14 @@ my sub _find_index ($self, $name) {
   $index;
 }
 
-sub gen_attr ($self, $name, $type, $value, $check, $ro) {
+sub _reg_attr ($self, $name, $type, $value, $check, $ro) {
   $self->[_find_index($self, $name)] = my $attr = [$name, $type, $value, $check, $ro];
+}
+
+sub _gen_attr ($self, $name, $lazy, $check, $ro) {
 
   # simplest and popular
-  if (!$ro && $type != A_LAZY && !$check) {
+  if (!$ro && !$lazy && !$check) {
     return sub {
       return $_[0]{$name} if @_ == 1;
       $_[0]{$name} = $_[1];
@@ -56,24 +59,28 @@ sub gen_attr ($self, $name, $type, $value, $check, $ro) {
     };
   }
 
-  #  # more complex. we can optimize it by splitting to 6 other. but better use XS
-  my $is_lazy = $type == A_LAZY;
+  # more complex. we can optimize it by splitting to 6 other. but better use XS
   return sub {
     if (@_ == 1) {
-      return $_[0]{$name} if !$is_lazy;
       return $_[0]{$name} if exists $_[0]{$name};
-      return $_[0]{$name} = $value->($_[0]);
+      return unless $lazy;
+      return $_[0]{$name} = $lazy->($_[0]);
     }
     croak qq{Attribute "$name" is readonly} if $ro;
     if ($check) {
-      my ($ok, $msg) = $check->($_[1]);
-      _croak_bad_value($_[1], $name, $msg) if !$ok;
+      my ($ok, $msg) = $check->(my $val = $_[1]);
+      _croak_bad_value($val, $name, $msg) if !$ok;
     }
     $_[0]{$name} = $_[1];
     $_[0];
   };
-
 }
+
+sub gen_attr ($self, $name, $type, $value, $check, $ro) {
+  $self->_reg_attr($name, $type, $value, $check, $ro);
+  $self->_gen_attr($name, $type == A_LAZY ? $value : undef, $check, $ro);
+}
+
 
 sub gen_new($self) {
 
@@ -87,7 +94,7 @@ sub gen_new($self) {
 
       if (exists $opts{$name}) {
         if ($check) {
-          my ($ok, $err) = $check->($opts{$name});
+          my ($ok, $err) = $check->(my $val = $opts{$name});
           _croak_bad_value($opts{$name}, $name, $err) if !$ok;
         }
         $obj->{$name} = delete $opts{$name};

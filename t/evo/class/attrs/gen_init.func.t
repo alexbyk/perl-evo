@@ -5,11 +5,12 @@ sub parse { Evo::Class::Meta->parse_attr(@_) }
 my $positive = sub($v) { $v > 0 ? 1 : (0, 'OOPS') };
 
 my ($attrs, $new);
+
 sub before() {
   $attrs = Evo::Class::Attrs->new();
   my $_new = $attrs->gen_new;
-  $new = sub {$_new->('My::Class', @_)};
-};
+  $new = sub { $_new->('My::Class', @_) };
+}
 
 
 SIMPLE: {
@@ -55,11 +56,20 @@ DEFAULT_VALUE: {
 
 CHECK: {
   before();
+
   # check if passed but bypass checking of default value, even if it's negative
   $attrs->gen_attr(foo => parse default => 0, check => $positive);
   like exception { $new->(foo => 0) }, qr#Bad value.+"0".+"foo".+OOPS.+$0#i;
   is_deeply $new->(), {foo => 0};
   is_deeply $new->(foo => 1), {foo => 1};
+}
+
+CHECK_CHANGE: {
+  before();
+  $attrs->gen_attr(foo => parse check => sub { $_[0] .= "BAD"; 1 });
+  my $val = "VAL";
+  is_deeply $new->(foo => $val), {foo => "VAL"};
+  is $val, "VAL";
 }
 
 

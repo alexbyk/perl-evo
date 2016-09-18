@@ -4,13 +4,13 @@ use Evo '-Internal::Exception';
 sub parse { Evo::Class::Meta->parse_attr(@_) }
 
 my ($attrs, $obj, $lcalled, $chcalled);
-my $lazy = sub { $lcalled ++; 'LAZY'};
-my $check = sub { $chcalled++; $_[0] > 0 ? (1) : (0, "Ooops") };
+my $lazy = sub { $lcalled++; 'LAZY' };
+my $check = sub { $chcalled++; $_[0] > 0 ? (1) : (0, "Ooops"); };
 
 sub before() {
-  $attrs = Evo::Class::Attrs->new();
-  $obj = {};
-  $lcalled = 0;
+  $attrs    = Evo::Class::Attrs->new();
+  $obj      = {};
+  $lcalled  = 0;
   $chcalled = 0;
 }
 
@@ -56,12 +56,14 @@ GSCH: {
   is $sub->($obj), 22;
 
   like exception { $sub->($obj, -22); }, qr/bad value "-22".+"name".+Ooops.+$0/i;
+}
 
-  # should pass arg as is
-  my $subinc = $attrs->gen_attr('nameinc', parse check => sub { $_[0]++ });
-  my $val = 1;
+GSCH_CHANGE: {
+  my $subinc = $attrs->gen_attr('nameinc', parse check => sub { $_[0] .= "BAD"; 1 });
+  my $val = "VAL";
   $subinc->($obj, $val);
-  is $val, 2;
+  is $subinc->($obj), "VAL";
+  is $val, "VAL";
 }
 
 GSCH_LAZY: {
