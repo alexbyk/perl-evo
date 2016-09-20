@@ -1,18 +1,13 @@
 package Evo::Class;
 use Evo '-Export export_proxy; Evo::Class::Meta';
 
-my $ATTRS_IMPL
-  = eval { require Evo::Class::Attrs::XS; 1 }
-  ? 'Evo::Class::Attrs::XS'
-  : do { require Evo::Class::Attrs; 'Evo::Class::Attrs' };
-
 sub new ($me, $dest) : ExportGen {
   Evo::Class::Meta->find_or_croak($dest)->attrs->gen_new;
 }
 
 sub import ($me, @list) {
   my $caller = caller;
-  Evo::Class::Meta->register($caller, $ATTRS_IMPL);
+  Evo::Class::Meta->register($caller);
   Evo::Export->install_in($caller, $me, @list ? @list : '*');
 }
 

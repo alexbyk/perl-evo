@@ -6,13 +6,13 @@ use constant I_NAME => 0;
 
 our @CARP_NOT = qw(Evo::Class);
 
-sub register ($me, $package, $attrs_class) {
+sub register ($me, $package) {
   my $self = Evo::Internal::Util::pkg_stash($package, $me);
   return $self if $self;
   $self = bless {
     package    => $package,
     private    => {},
-    attrs      => $attrs_class->new,
+    attrs      => Evo::Class::Attrs->new,
     methods    => {},
     reqs       => {},
     overridden => {}

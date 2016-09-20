@@ -7,29 +7,22 @@ no warnings 'redefine';    ## no critic
 my $loaded;
 local *Module::Load::load = sub { $loaded = shift };
 
-{
-
-  package My::Gen;
-  use Evo;
-  use parent 'Evo::Class::Attrs';
-
-  sub gen_attr ($self, $name, @opts) {
-    $self->SUPER::gen_attr($name, @opts);
-    sub { uc "ATTR-$name" };
-  }
-
+my $prev = Evo::Class::Attrs->can('gen_attr');
+local *Evo::Class::Attrs::gen_attr = sub ($self, $name, @opts) {
+  $prev->($self, $name, @opts);
+  sub { uc "ATTR-$name" };
 };
 
 sub gen_meta($class = 'My::Class') {
   delete_package $class;
   Evo::Internal::Util::pkg_stash($class, 'EVO_CLASS_META', undef);
-  Evo::Class::Meta->register($class, 'My::Gen');
+  Evo::Class::Meta->register($class);
 }
 
 REGISTER: {
-  my ($meta) = Evo::Class::Meta->register('My::Class', 'Evo::Class::Attrs');
+  my ($meta) = Evo::Class::Meta->register('My::Class');
   is $My::Class::EVO_CLASS_META, $meta;
-  is $meta, Evo::Class::Meta->register('My::Class', 'Evo::Class::Attrs');
+  is $meta,                      Evo::Class::Meta->register('My::Class');
 }
 
 BUILD_DEF: {
