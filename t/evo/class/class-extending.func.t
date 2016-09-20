@@ -1,6 +1,5 @@
 package main;
 use Evo 'Test::More; Evo::Internal::Exception; Symbol delete_package; Module::Loaded';
-use Evo 'Evo::Class::Const *';
 
 
 {

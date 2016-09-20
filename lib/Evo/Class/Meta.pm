@@ -1,6 +1,8 @@
 package Evo::Class::Meta;
-use Evo '/::Const *';
 use Evo 'Carp croak; Scalar::Util reftype; -Lib strict_opts; -Internal::Util; Module::Load ()';
+use Evo '/::Attrs *';
+use constant I_NAME => 0;
+
 
 our @CARP_NOT = qw(Evo::Class);
 
@@ -201,14 +203,14 @@ sub parse_attr ($me, @attr) {
     croak qq#"default" should be either a code reference or a scalar value#
       if ref($opts{default}) && (reftype($opts{default}) // '') ne 'CODE';
     ++$seen;
-    $type = ref($opts{default}) ? A_DEFAULT_CODE : A_DEFAULT;
+    $type = ref($opts{default}) ? ECA_DEFAULT_CODE : ECA_DEFAULT;
     $value = $opts{default};
   }
-  do { ++$seen; $type = A_REQUIRED; $value = $opts{required}; } if $opts{required};
+  do { ++$seen; $type = ECA_REQUIRED; $value = $opts{required}; } if $opts{required};
   if (exists $opts{lazy}) {
     croak qq#"lazy" should be a code reference# if (reftype($opts{lazy}) // '') ne 'CODE';
     ++$seen;
-    $type  = A_LAZY;
+    $type  = ECA_LAZY;
     $value = $opts{lazy};
   }
   croak qq{providing more than one of "default", "lazy", "required" doesn't make sense}
@@ -222,7 +224,7 @@ sub parse_attr ($me, @attr) {
 
   $ro = $is eq 'ro' ? 1 : 0;
   $check = $opts{check} if exists $opts{check};
-  $type ||= A_RELAXED;
+  $type ||= ECA_RELAXED;
 
   return ($type, $value, $check, $ro);
 }

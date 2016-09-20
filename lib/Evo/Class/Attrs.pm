@@ -1,6 +1,11 @@
 package Evo::Class::Attrs;
-use Evo 'Carp croak confess';
-use Evo '/::Const *';
+use Evo '-Export; Carp croak confess';
+use constant {ECA_RELAXED => 0, ECA_DEFAULT => 1, ECA_DEFAULT_CODE => 2, ECA_REQUIRED => 3,
+  ECA_LAZY => 4,};
+
+export qw(
+  ECA_RELAXED ECA_DEFAULT ECA_DEFAULT_CODE ECA_REQUIRED ECA_LAZY
+);
 
 my sub _croak_bad_value ($val, $name, $msg) {
   $msg //= '';
@@ -10,7 +15,7 @@ my sub _croak_bad_value ($val, $name, $msg) {
 sub new { bless [], shift }
 
 sub exists ($self, $name) {
-  do { return 1 if $_->[I_NAME] eq $name }
+  do { return 1 if $_->[0] eq $name }
     for @$self;
   return;
 }
@@ -20,7 +25,7 @@ sub slots ($self) {
 }
 
 sub list_names($self) {
-  map { $_->[I_NAME] } @$self;
+  map { $_->[0] } @$self;
 }
 
 =method gen_attr ($self, $name, $type, $value, $check, $ro)
@@ -39,7 +44,7 @@ Register attribute and return an 'attribute' code. C<$type> can be on of
 
 my sub _find_index ($self, $name) {
   my $index = 0;
-  do { last if $_->[I_NAME] eq $name; $index++ }
+  do { last if $_->[0] eq $name; $index++ }
     for @$self;
   $index;
 }
@@ -78,7 +83,7 @@ sub _gen_attr ($self, $name, $lazy, $check, $ro) {
 
 sub gen_attr ($self, $name, $type, $value, $check, $ro) {
   $self->_reg_attr($name, $type, $value, $check, $ro);
-  $self->_gen_attr($name, $type == A_LAZY ? $value : undef, $check, $ro);
+  $self->_gen_attr($name, $type == ECA_LAZY ? $value : undef, $check, $ro);
 }
 
 
@@ -102,13 +107,13 @@ sub gen_new($self) {
       }
 
       # required and default are mutually exclusive
-      if ($type == A_REQUIRED) {
+      if ($type == ECA_REQUIRED) {
         croak qq#Attribute "$name" is required#;
       }
-      elsif ($type == A_DEFAULT) {
+      elsif ($type == ECA_DEFAULT) {
         $obj->{$name} = $value;
       }
-      elsif ($type == A_DEFAULT_CODE) {
+      elsif ($type == ECA_DEFAULT_CODE) {
         $obj->{$name} = $value->($class);
       }
 

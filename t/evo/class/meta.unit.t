@@ -1,6 +1,5 @@
 package main;
-use Evo 'Test::More', -Class::Attrs, -Class::Meta, -Internal::Exception;
-use Evo 'Evo::Class::Const *';
+use Evo 'Test::More', '-Class::Attrs *', -Class::Meta, -Internal::Exception;
 use Symbol 'delete_package';
 
 no warnings 'once';        ## no critic
@@ -63,44 +62,44 @@ ERRORS: {
 
   }
 
-  is_deeply [parse_attr()], [A_RELAXED, (undef) x 2, 0];
-  is_deeply [parse_attr(is => 'rw')], [A_RELAXED, (undef) x 2, 0];
+  is_deeply [parse_attr()], [ECA_RELAXED, (undef) x 2, 0];
+  is_deeply [parse_attr(is => 'rw')], [ECA_RELAXED, (undef) x 2, 0];
 
   my $dc = sub { };
 
   # perl6 && mojo style for default
-  is_deeply [parse_attr('FOO')], [A_DEFAULT, 'FOO', undef, 0];
-  is_deeply [parse_attr($dc)], [A_DEFAULT_CODE, $dc, undef, 0];
+  is_deeply [parse_attr('FOO')], [ECA_DEFAULT, 'FOO', undef, 0];
+  is_deeply [parse_attr($dc)], [ECA_DEFAULT_CODE, $dc, undef, 0];
 
 
   # perl6 style
-  is_deeply [parse_attr('FOO', is => 'ro')], [A_DEFAULT, 'FOO', undef, 1];
-  is_deeply [parse_attr($dc, is => 'ro')], [A_DEFAULT_CODE, $dc, undef, 1];
+  is_deeply [parse_attr('FOO', is => 'ro')], [ECA_DEFAULT, 'FOO', undef, 1];
+  is_deeply [parse_attr($dc, is => 'ro')], [ECA_DEFAULT_CODE, $dc, undef, 1];
 
 
   #  moose style
-  is_deeply [parse_attr(is => 'rw', default => 'FOO')], [A_DEFAULT, 'FOO', undef, 0];
+  is_deeply [parse_attr(is => 'rw', default => 'FOO')], [ECA_DEFAULT, 'FOO', undef, 0];
 
-  is_deeply [parse_attr(is => 'ro', default => $dc)], [A_DEFAULT_CODE, $dc, undef, 1];
+  is_deeply [parse_attr(is => 'ro', default => $dc)], [ECA_DEFAULT_CODE, $dc, undef, 1];
 
   # required
-  is_deeply [parse_attr(required => 1)],         [A_REQUIRED, 1,         undef, 0];
-  is_deeply [parse_attr(required => 'My::Foo')], [A_REQUIRED, 'My::Foo', undef, 0];
-  is_deeply [parse_attr(required => 0)],         [A_RELAXED,  undef,     undef, 0];
+  is_deeply [parse_attr(required => 1)],         [ECA_REQUIRED, 1,         undef, 0];
+  is_deeply [parse_attr(required => 'My::Foo')], [ECA_REQUIRED, 'My::Foo', undef, 0];
+  is_deeply [parse_attr(required => 0)],         [ECA_RELAXED,  undef,     undef, 0];
 
 
   # ro
-  is_deeply [parse_attr(is => 'ro')], [A_RELAXED, (undef) x 2, 1];
+  is_deeply [parse_attr(is => 'ro')], [ECA_RELAXED, (undef) x 2, 1];
 
   # all
   my $check = sub {1};
   my $lazy  = sub { {} };
-  is_deeply [parse_attr(is => 'ro', check => $check, required => 1)], [A_REQUIRED, 1, $check, 1];
+  is_deeply [parse_attr(is => 'ro', check => $check, required => 1)], [ECA_REQUIRED, 1, $check, 1];
 
-  is_deeply [parse_attr(is => 'ro', check => $check, lazy => $lazy)], [A_LAZY, $lazy, $check, 1];
+  is_deeply [parse_attr(is => 'ro', check => $check, lazy => $lazy)], [ECA_LAZY, $lazy, $check, 1];
 
   # extra default => undef
-  is_deeply [parse_attr(default => undef)], [A_DEFAULT, undef, undef, 0];
+  is_deeply [parse_attr(default => undef)], [ECA_DEFAULT, undef, undef, 0];
 }
 
 
@@ -153,7 +152,7 @@ REG_METHOD: {
   eval 'package My::Class; sub own {}';      ## no critic
   eval '*My::Class::external = sub { };';    ## no critic
 
-  $meta->attrs->gen_attr('attr1', A_RELAXED, (undef) x 3);
+  $meta->attrs->gen_attr('attr1', ECA_RELAXED, (undef) x 3);
   like exception { $meta->reg_method('attr1'); },        qr/has attribute.+attr1.+$0/;
   like exception { $meta->reg_method('not_existing'); }, qr/doesn't exist.+$0/;
   like exception { $meta->reg_method('own'); },          qr/already.+own.+$0/;
@@ -171,7 +170,7 @@ PUBLIC_METHODS: {
 
 
   # only own
-  $meta->attrs->gen_attr('bad', A_RELAXED, (undef) x 3);
+  $meta->attrs->gen_attr('bad', ECA_RELAXED, (undef) x 3);
   is_deeply { $meta->_public_methods_map }, {own => My::Class->can('own')};
   is_deeply [$meta->public_methods], [qw(own)];
 
