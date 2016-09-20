@@ -1,10 +1,10 @@
 package Evo::Class::Attrs::PP;
 use Evo '-Export; Carp croak confess';
-use constant {ECA_RELAXED => 0, ECA_DEFAULT => 1, ECA_DEFAULT_CODE => 2, ECA_REQUIRED => 3,
+use constant {ECA_SIMPLE => 0, ECA_DEFAULT => 1, ECA_DEFAULT_CODE => 2, ECA_REQUIRED => 3,
   ECA_LAZY => 4,};
 
 export qw(
-  ECA_RELAXED ECA_DEFAULT ECA_DEFAULT_CODE ECA_REQUIRED ECA_LAZY
+  ECA_SIMPLE ECA_DEFAULT ECA_DEFAULT_CODE ECA_REQUIRED ECA_LAZY
 );
 
 my sub _croak_bad_value ($val, $name, $msg) {
@@ -14,6 +14,7 @@ my sub _croak_bad_value ($val, $name, $msg) {
 
 sub new { bless [], shift }
 
+
 sub exists ($self, $name) {
   do { return 1 if $_->[0] eq $name }
     for @$self;
@@ -21,7 +22,11 @@ sub exists ($self, $name) {
 }
 
 sub slots ($self) {
-  map { [@$_] } @$self;
+  map {
+    my %hash;
+    @hash{qw(name type value check ro stash)} = @$_;
+    \%hash;
+  } @$self;
 }
 
 sub list_names($self) {
@@ -35,8 +40,8 @@ my sub _find_index ($self, $name) {
   $index;
 }
 
-sub _reg_attr ($self, $name, $type, $value, $check, $ro) {
-  $self->[_find_index($self, $name)] = my $attr = [$name, $type, $value, $check, $ro];
+sub _reg_attr ($self, $name, $type, $value, $check, $ro, $stash) {
+  $self->[_find_index($self, $name)] = my $attr = [$name, $type, $value, $check, $ro, $stash];
 }
 
 sub _gen_attr ($self, $name, $lazy, $check, $ro) {
@@ -67,8 +72,8 @@ sub _gen_attr ($self, $name, $lazy, $check, $ro) {
   };
 }
 
-sub gen_attr ($self, $name, $type, $value, $check, $ro) {
-  $self->_reg_attr($name, $type, $value, $check, $ro);
+sub gen_attr ($self, $name, $type, $value, $check, $ro, $stash) {
+  $self->_reg_attr($name, $type, $value, $check, $ro, $stash);
   $self->_gen_attr($name, $type == ECA_LAZY ? $value : undef, $check, $ro);
 }
 

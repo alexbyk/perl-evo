@@ -23,3 +23,9 @@ Register attribute and return an 'attribute' code. C<$type> can be on of
 
 =cut
 
+=method slots
+
+return slots of attributes
+
+=cut
+

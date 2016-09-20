@@ -1,7 +1,6 @@
 package Evo::Class::Meta;
 use Evo 'Carp croak; Scalar::Util reftype; -Lib strict_opts; -Internal::Util; Module::Load ()';
 use Evo '/::Attrs *';
-use constant I_NAME => 0;
 
 
 our @CARP_NOT = qw(Evo::Class);
@@ -106,7 +105,7 @@ sub reg_method ($self, $name) {
 }
 
 sub _public_attrs_slots($self) {
-  grep { !$self->is_private($_->[I_NAME]) } $self->attrs->slots;
+  grep { !$self->is_private($_->{name}) } $self->attrs->slots;
 }
 
 sub _public_methods_map($self) {
@@ -117,7 +116,7 @@ sub _public_methods_map($self) {
 }
 
 sub public_attrs($self) {
-  map { $_->[I_NAME] } $self->_public_attrs_slots;
+  map { $_->{name} } $self->_public_attrs_slots;
 }
 
 sub public_methods($self) {
@@ -139,10 +138,9 @@ sub extend_with ($self, $source_p) {
   foreach my $name (keys %reqs) { $self->reg_requirement($name); }
 
   foreach my $slot ($source->_public_attrs_slots) {
-    my ($name, @opts) = @$slot;
-    next if $self->is_overridden($name);
-    $self->reg_attr($name, @opts);
-    push @new_attrs, $name;
+    next if $self->is_overridden($slot->{name});
+    $self->reg_attr(@$slot{qw(name type value check ro stash)});
+    push @new_attrs, $slot->{name};
   }
 
   foreach my $name (keys %methods) {
@@ -187,7 +185,7 @@ sub check_implementation ($self, $inter_class) {
 # check?
 # is_ro?
 
-my @KNOWN_HAS = qw(default required lazy check is);
+my @KNOWN_HAS = qw(default required lazy check is stash);
 
 sub parse_attr ($me, @attr) {
   my %unknown = my %opts = (@attr % 2 ? (default => @attr) : @attr);
@@ -206,7 +204,7 @@ sub parse_attr ($me, @attr) {
     $type = ref($opts{default}) ? ECA_DEFAULT_CODE : ECA_DEFAULT;
     $value = $opts{default};
   }
-  do { ++$seen; $type = ECA_REQUIRED; $value = $opts{required}; } if $opts{required};
+  do { ++$seen; $type = ECA_REQUIRED; } if $opts{required};
   if (exists $opts{lazy}) {
     croak qq#"lazy" should be a code reference# if (reftype($opts{lazy}) // '') ne 'CODE';
     ++$seen;
@@ -224,9 +222,9 @@ sub parse_attr ($me, @attr) {
 
   $ro = $is eq 'ro' ? 1 : 0;
   $check = $opts{check} if exists $opts{check};
-  $type ||= ECA_RELAXED;
+  $type ||= ECA_SIMPLE;
 
-  return ($type, $value, $check, $ro);
+  return ($type, $value, $check, $ro, $opts{stash});
 }
 
 sub info($self) {

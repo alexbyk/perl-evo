@@ -7,6 +7,8 @@ no warnings 'redefine';    ## no critic
 my $loaded;
 local *Module::Load::load = sub { $loaded = shift };
 
+sub parse { Evo::Class::Meta->parse_attr(@_) }
+
 my $prev = Evo::Class::Attrs->can('gen_attr');
 local *Evo::Class::Attrs::gen_attr = sub ($self, $name, @opts) {
   $prev->($self, $name, @opts);
@@ -55,44 +57,49 @@ ERRORS: {
 
   }
 
-  is_deeply [parse_attr()], [ECA_RELAXED, (undef) x 2, 0];
-  is_deeply [parse_attr(is => 'rw')], [ECA_RELAXED, (undef) x 2, 0];
+  is_deeply [parse_attr()], [ECA_SIMPLE, (undef) x 2, 0, undef];
+  is_deeply [parse_attr(is => 'rw')], [ECA_SIMPLE, (undef) x 2, 0, undef];
 
   my $dc = sub { };
 
   # perl6 && mojo style for default
-  is_deeply [parse_attr('FOO')], [ECA_DEFAULT, 'FOO', undef, 0];
-  is_deeply [parse_attr($dc)], [ECA_DEFAULT_CODE, $dc, undef, 0];
+  is_deeply [parse_attr('FOO')], [ECA_DEFAULT, 'FOO', undef, 0, undef];
+  is_deeply [parse_attr($dc)], [ECA_DEFAULT_CODE, $dc, undef, 0, undef];
 
 
   # perl6 style
-  is_deeply [parse_attr('FOO', is => 'ro')], [ECA_DEFAULT, 'FOO', undef, 1];
-  is_deeply [parse_attr($dc, is => 'ro')], [ECA_DEFAULT_CODE, $dc, undef, 1];
+  is_deeply [parse_attr('FOO', is => 'ro')], [ECA_DEFAULT, 'FOO', undef, 1, undef];
+  is_deeply [parse_attr($dc, is => 'ro')], [ECA_DEFAULT_CODE, $dc, undef, 1, undef];
 
 
   #  moose style
-  is_deeply [parse_attr(is => 'rw', default => 'FOO')], [ECA_DEFAULT, 'FOO', undef, 0];
+  is_deeply [parse_attr(is => 'rw', default => 'FOO')], [ECA_DEFAULT, 'FOO', undef, 0, undef];
 
-  is_deeply [parse_attr(is => 'ro', default => $dc)], [ECA_DEFAULT_CODE, $dc, undef, 1];
+  is_deeply [parse_attr(is => 'ro', default => $dc)], [ECA_DEFAULT_CODE, $dc, undef, 1, undef];
 
   # required
-  is_deeply [parse_attr(required => 1)],         [ECA_REQUIRED, 1,         undef, 0];
-  is_deeply [parse_attr(required => 'My::Foo')], [ECA_REQUIRED, 'My::Foo', undef, 0];
-  is_deeply [parse_attr(required => 0)],         [ECA_RELAXED,  undef,     undef, 0];
+  is_deeply [parse_attr(required => 1)],     [ECA_REQUIRED, undef, undef, 0, undef];
+  is_deeply [parse_attr(required => 'BOO')], [ECA_REQUIRED, undef, undef, 0, undef];
+  is_deeply [parse_attr(required => 0)],     [ECA_SIMPLE,   undef, undef, 0, undef];
 
 
   # ro
-  is_deeply [parse_attr(is => 'ro')], [ECA_RELAXED, (undef) x 2, 1];
+  is_deeply [parse_attr(is => 'ro')], [ECA_SIMPLE, (undef) x 2, 1, undef];
 
   # all
   my $check = sub {1};
   my $lazy  = sub { {} };
-  is_deeply [parse_attr(is => 'ro', check => $check, required => 1)], [ECA_REQUIRED, 1, $check, 1];
+  is_deeply [parse_attr(is => 'ro', check => $check, required => 1)],
+    [ECA_REQUIRED, undef, $check, 1, undef];
 
-  is_deeply [parse_attr(is => 'ro', check => $check, lazy => $lazy)], [ECA_LAZY, $lazy, $check, 1];
+  is_deeply [parse_attr(is => 'ro', check => $check, lazy => $lazy)],
+    [ECA_LAZY, $lazy, $check, 1, undef];
 
   # extra default => undef
-  is_deeply [parse_attr(default => undef)], [ECA_DEFAULT, undef, undef, 0];
+  is_deeply [parse_attr(default => undef)], [ECA_DEFAULT, undef, undef, 0, undef];
+
+  # stash
+  is_deeply [parse_attr(stash => {foo => 'bar'})], [ECA_SIMPLE, undef, undef, 0, {foo => 'bar'}];
 }
 
 
@@ -145,7 +152,7 @@ REG_METHOD: {
   eval 'package My::Class; sub own {}';      ## no critic
   eval '*My::Class::external = sub { };';    ## no critic
 
-  $meta->attrs->gen_attr('attr1', ECA_RELAXED, (undef) x 3);
+  $meta->attrs->gen_attr(attr1 => parse );
   like exception { $meta->reg_method('attr1'); },        qr/has attribute.+attr1.+$0/;
   like exception { $meta->reg_method('not_existing'); }, qr/doesn't exist.+$0/;
   like exception { $meta->reg_method('own'); },          qr/already.+own.+$0/;
@@ -163,7 +170,7 @@ PUBLIC_METHODS: {
 
 
   # only own
-  $meta->attrs->gen_attr('bad', ECA_RELAXED, (undef) x 3);
+  $meta->attrs->gen_attr(bad => parse);
   is_deeply { $meta->_public_methods_map }, {own => My::Class->can('own')};
   is_deeply [$meta->public_methods], [qw(own)];
 
@@ -235,7 +242,6 @@ CLASH_ATTR: {
 
 }
 
-sub parse { Evo::Class::Meta->parse_attr(@_) }
 
 REG_ATTR: {
   my $meta = gen_meta;
