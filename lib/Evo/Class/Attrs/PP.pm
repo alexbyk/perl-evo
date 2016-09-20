@@ -28,20 +28,6 @@ sub list_names($self) {
   map { $_->[0] } @$self;
 }
 
-=method gen_attr ($self, $name, $type, $value, $check, $ro)
-
-Register attribute and return an 'attribute' code. C<$type> can be on of
-
-=for :list
-
-* relaxed - simple attr
-* default - attr with default C<$value>
-* default_code - attr with default value - a result of invocation of the C<$value>
-* required - a value that is required
-* lazy - like default_code, but C<$value> will be called on demand
-
-=cut
-
 my sub _find_index ($self, $name) {
   my $index = 0;
   do { last if $_->[0] eq $name; $index++ }

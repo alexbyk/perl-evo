@@ -56,6 +56,11 @@ GSCH: {
   is $sub->($obj), 22;
 
   like exception { $sub->($obj, -22); }, qr/bad value "-22".+"name".+Ooops.+$0/i;
+
+  # empty check
+  like exception {
+    $attrs->gen_attr('name', parse check => sub { })->($obj, -22);
+  }, qr/bad value "-22".+"name".+$0/i;
 }
 
 GSCH_CHANGE: {
