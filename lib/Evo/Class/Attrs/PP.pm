@@ -107,8 +107,6 @@ sub gen_new($self) {
       elsif ($type == ECA_DEFAULT_CODE) {
         $obj->{$name} = $value->($class);
       }
-
-      delete $opts{$name};
     }
 
     croak "Unknown attributes: " . join(',', keys %opts) if (keys %opts);
