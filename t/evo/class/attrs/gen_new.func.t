@@ -17,7 +17,7 @@ SIMPLE: {
   before();
   $attrs->gen_attr(simple => parse is => 'rw');
   my $val = 333;
-  my $obj = $new->(simple => $val);
+  my $obj = $new->(simple => 'BAD', simple => $val);
   $val = 'bad';
   is_deeply $obj, {'simple', 333};
 }
