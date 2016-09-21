@@ -24,7 +24,7 @@ sub exists ($self, $name) {
 sub slots ($self) {
   map {
     my %hash;
-    @hash{qw(name type value check ro stash)} = @$_;
+    @hash{qw(name type value check ro inject)} = @$_;
     \%hash;
   } @$self;
 }
@@ -40,8 +40,8 @@ my sub _find_index ($self, $name) {
   $index;
 }
 
-sub _reg_attr ($self, $name, $type, $value, $check, $ro, $stash) {
-  $self->[_find_index($self, $name)] = my $attr = [$name, $type, $value, $check, $ro, $stash];
+sub _reg_attr ($self, $name, $type, $value, $check, $ro, $inject) {
+  $self->[_find_index($self, $name)] = my $attr = [$name, $type, $value, $check, $ro, $inject];
 }
 
 sub _gen_attr ($self, $name, $lazy, $check, $ro) {
@@ -72,8 +72,8 @@ sub _gen_attr ($self, $name, $lazy, $check, $ro) {
   };
 }
 
-sub gen_attr ($self, $name, $type, $value, $check, $ro, $stash) {
-  $self->_reg_attr($name, $type, $value, $check, $ro, $stash);
+sub gen_attr ($self, $name, $type, $value, $check, $ro, $inject) {
+  $self->_reg_attr($name, $type, $value, $check, $ro, $inject);
   $self->_gen_attr($name, $type == ECA_LAZY ? $value : undef, $check, $ro);
 }
 

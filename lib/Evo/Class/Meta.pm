@@ -139,7 +139,7 @@ sub extend_with ($self, $source_p) {
 
   foreach my $slot ($source->_public_attrs_slots) {
     next if $self->is_overridden($slot->{name});
-    $self->reg_attr(@$slot{qw(name type value check ro stash)});
+    $self->reg_attr(@$slot{qw(name type value check ro inject)});
     push @new_attrs, $slot->{name};
   }
 
@@ -185,7 +185,7 @@ sub check_implementation ($self, $inter_class) {
 # check?
 # is_ro?
 
-my @KNOWN_HAS = qw(default required lazy check is stash);
+my @KNOWN_HAS = qw(default required lazy check is inject);
 
 sub parse_attr ($me, @attr) {
   my %unknown = my %opts = (@attr % 2 ? (default => @attr) : @attr);
@@ -224,7 +224,7 @@ sub parse_attr ($me, @attr) {
   $check = $opts{check} if exists $opts{check};
   $type ||= ECA_SIMPLE;
 
-  return ($type, $value, $check, $ro, $opts{stash});
+  return ($type, $value, $check, $ro, $opts{inject});
 }
 
 sub info($self) {

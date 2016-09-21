@@ -98,8 +98,8 @@ ERRORS: {
   # extra default => undef
   is_deeply [parse_attr(default => undef)], [ECA_DEFAULT, undef, undef, 0, undef];
 
-  # stash
-  is_deeply [parse_attr(stash => {foo => 'bar'})], [ECA_SIMPLE, undef, undef, 0, {foo => 'bar'}];
+  # inject
+  is_deeply [parse_attr(inject => {foo => 'bar'})], [ECA_SIMPLE, undef, undef, 0, {foo => 'bar'}];
 }
 
 
