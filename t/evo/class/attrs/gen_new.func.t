@@ -20,6 +20,7 @@ SIMPLE: {
   my $obj = $new->(simple => 'BAD', simple => $val);
   $val = 'bad';
   is_deeply $obj, {'simple', 333};
+  isa_ok $obj, 'My::Class';
 }
 
 REQUIRED: {
