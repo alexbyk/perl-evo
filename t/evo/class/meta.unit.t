@@ -43,63 +43,63 @@ ERRORS: {
     # required + default doesn't make sense
     # lazy + default doesn't make sense
     my $sub = sub { };
-    like exception { parse_attr(required => 1, default => 'foo') }, qr/default.+required.+$0/;
-    like exception { parse_attr(required => 1, lazy => $sub) }, qr/default.+required.+$0/;
-    like exception { parse_attr(default  => 1, lazy => $sub) }, qr/default.+required.+$0/;
+    like exception { parse(required => 1, default => 'foo') }, qr/default.+required.+$0/;
+    like exception { parse(required => 1, lazy => $sub) }, qr/default.+required.+$0/;
+    like exception { parse(default  => 1, lazy => $sub) }, qr/default.+required.+$0/;
 
     # default or lazy should be either scalar or coderef
-    like exception { parse_attr(default => {}) }, qr/default.+$0/;
-    like exception { parse_attr(lazy    => {}) }, qr/lazy.+$0/;
-    like exception { parse_attr(lazy  => undef) }, qr/lazy.+$0/;
-    like exception { parse_attr(check => undef) }, qr/check.+$0/;
-    like exception { parse_attr(is    => 'foo') }, qr/invalid "is".+$0/;
-    like exception { parse_attr(un1 => 1, un2 => 2) }, qr/unknown.+un1.+un2.+$0/;
+    like exception { parse(default => {}) }, qr/default.+$0/;
+    like exception { parse(lazy    => {}) }, qr/lazy.+$0/;
+    like exception { parse(lazy  => undef) }, qr/lazy.+$0/;
+    like exception { parse(check => undef) }, qr/check.+$0/;
+    like exception { parse(is    => 'foo') }, qr/invalid "is".+$0/;
+    like exception { parse(un1 => 1, un2 => 2) }, qr/unknown.+un1.+un2.+$0/;
 
   }
 
-  is_deeply [parse_attr()], [ECA_SIMPLE, (undef) x 2, 0, undef];
-  is_deeply [parse_attr(is => 'rw')], [ECA_SIMPLE, (undef) x 2, 0, undef];
+  is_deeply [parse()], [ECA_SIMPLE, (undef) x 2, 0, undef];
+  is_deeply [parse(is => 'rw')], [ECA_SIMPLE, (undef) x 2, 0, undef];
 
   my $dc = sub { };
 
   # perl6 && mojo style for default
-  is_deeply [parse_attr('FOO')], [ECA_DEFAULT, 'FOO', undef, 0, undef];
-  is_deeply [parse_attr($dc)], [ECA_DEFAULT_CODE, $dc, undef, 0, undef];
+  is_deeply [parse('FOO')], [ECA_DEFAULT, 'FOO', undef, 0, undef];
+  is_deeply [parse($dc)], [ECA_DEFAULT_CODE, $dc, undef, 0, undef];
 
 
   # perl6 style
-  is_deeply [parse_attr('FOO', is => 'ro')], [ECA_DEFAULT, 'FOO', undef, 1, undef];
-  is_deeply [parse_attr($dc, is => 'ro')], [ECA_DEFAULT_CODE, $dc, undef, 1, undef];
+  is_deeply [parse('FOO', is => 'ro')], [ECA_DEFAULT, 'FOO', undef, 1, undef];
+  is_deeply [parse($dc, is => 'ro')], [ECA_DEFAULT_CODE, $dc, undef, 1, undef];
 
 
   #  moose style
-  is_deeply [parse_attr(is => 'rw', default => 'FOO')], [ECA_DEFAULT, 'FOO', undef, 0, undef];
+  is_deeply [parse(is => 'rw', default => 'FOO')], [ECA_DEFAULT, 'FOO', undef, 0, undef];
 
-  is_deeply [parse_attr(is => 'ro', default => $dc)], [ECA_DEFAULT_CODE, $dc, undef, 1, undef];
+  is_deeply [parse(is => 'ro', default => $dc)], [ECA_DEFAULT_CODE, $dc, undef, 1, undef];
 
   # required
-  is_deeply [parse_attr(required => 1)],     [ECA_REQUIRED, undef, undef, 0, undef];
-  is_deeply [parse_attr(required => 'BOO')], [ECA_REQUIRED, undef, undef, 0, undef];
-  is_deeply [parse_attr(required => 0)],     [ECA_SIMPLE,   undef, undef, 0, undef];
+  is_deeply [parse(required => 1)],     [ECA_REQUIRED, undef, undef, 0, undef];
+  is_deeply [parse(required => 'BOO')], [ECA_REQUIRED, undef, undef, 0, undef];
+  is_deeply [parse(required => 0)],     [ECA_SIMPLE,   undef, undef, 0, undef];
 
 
   # ro
-  is_deeply [parse_attr(is => 'ro')], [ECA_SIMPLE, (undef) x 2, 1, undef];
+  is_deeply [parse(is => 'ro')], [ECA_SIMPLE, (undef) x 2, 1, undef];
 
   # all
   my $check = sub {1};
   my $lazy  = sub { {} };
-  is_deeply [parse_attr(is => 'ro', check => $check, required => 1)],
+  is_deeply [parse(is => 'ro', check => $check, required => 1)],
     [ECA_REQUIRED, undef, $check, 1, undef];
 
-  is_deeply [parse_attr(is => 'ro', check => $check, lazy => $lazy)],
+  is_deeply [parse(is => 'ro', check => $check, lazy => $lazy)],
     [ECA_LAZY, $lazy, $check, 1, undef];
 
   # extra default => undef
-  is_deeply [parse_attr(default => undef)], [ECA_DEFAULT, undef, undef, 0, undef];
+  is_deeply [parse(default => undef)], [ECA_DEFAULT, undef, undef, 0, undef];
 
   # inject
-  is_deeply [parse_attr(inject => {foo => 'bar'})], [ECA_SIMPLE, undef, undef, 0, {foo => 'bar'}];
+  is_deeply [parse(inject => {foo => 'bar'})], [ECA_SIMPLE, undef, undef, 0, {foo => 'bar'}];
 }
 
 
@@ -152,7 +152,7 @@ REG_METHOD: {
   eval 'package My::Class; sub own {}';      ## no critic
   eval '*My::Class::external = sub { };';    ## no critic
 
-  $meta->attrs->gen_attr(attr1 => parse );
+  $meta->attrs->gen_attr(attr1 => parse);
   like exception { $meta->reg_method('attr1'); },        qr/has attribute.+attr1.+$0/;
   like exception { $meta->reg_method('not_existing'); }, qr/doesn't exist.+$0/;
   like exception { $meta->reg_method('own'); },          qr/already.+own.+$0/;
@@ -404,14 +404,12 @@ CHECK_IMPLEMENTATION: {
   is $loaded, 'My::Inter';
 }
 
-sub parse_attr { Evo::Class::Meta->parse_attr(@_) }
-
 DUMPING: {
 
   my $meta = gen_meta();
   $meta->reg_attr('a', parse());
   $meta->reg_requirement('r');
-  eval '*My::Class::mymethod = sub {"FOO"}';    ## no critic
+  eval '*My::Class::mymethod = sub {"FOO"}';       ## no critic
   $meta->reg_method('mymethod');
   $meta->mark_as_overridden('over');
   $meta->mark_as_private('priv');

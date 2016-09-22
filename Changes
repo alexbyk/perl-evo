@@ -2,7 +2,4 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0242    2016-09-18 00:15:18+03:00 Europe/Kiev
-
-0.0241    2016-08-08 12:59:41+03:00 Europe/Kiev
-Refactoring
+A lot of code refactoring happened
