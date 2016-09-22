@@ -105,6 +105,9 @@ It provides rewritten and postmodern features like
 
 =back
 
+=head1 XS
+
+You can get a little bit faster classes by installing C<Evo::XS>. You will need a C compiler. See L<https://github.com/alexbyk/perl-evo-xs>
 
 =head1 VIM
 
