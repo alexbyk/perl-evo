@@ -137,6 +137,8 @@ This module doesn't use perl's @ISA inheritance. This module isn't Moose compati
 
 Documentation will be available soon.
 
+Also there is a L<Evo::XS> module, which contains backend for this one written in C. You can choose either PP implementation, or install L<Evo::XS> and improve a perfomance
+
 =head1 Usage
 
 =head2 creating an object
