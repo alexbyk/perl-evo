@@ -129,12 +129,15 @@ static void xs_attr(pTHX_ SV *cv) {
   XSRETURN(1);
 };
 
-static void _reg_attr(SV *self, SV *slot_sv) {
+/* XS FUNCTIONS */
+static SV *attrs_gen_attr(SV *self, char *name, int type, SV *value, SV *check,
+                          bool is_ro, SV *inject) {
   dTHX;
   AV *av = sv2av(self);
+  SV *slot_sv = eca_new_sv(name, type, value, check, is_ro, inject);
   ECAslot *slot = sv2slot(slot_sv);
 
-  // i will be either last + 1 or matched element
+  // register... i will be either last + 1 or matched element
   int i, last = av_top_index(av);
   for (i = 0; i <= last; i++) {
     SV *tmp_sv = av_fetch_or_croak(av, i);
@@ -142,6 +145,24 @@ static void _reg_attr(SV *self, SV *slot_sv) {
     if (!sv_cmp(cur->key, slot->key)) break;
   }
   if (!av_store(av, i, slot_sv)) croak("Can't store");
+
+  // generate cv
+  CV *xsub = newXS(NULL, (XSUBADDR_t)xs_attr, __FILE__);
+  sv_magicext((SV *)xsub, slot_sv, PERL_MAGIC_ext, &ATTRS_TBL, NULL, 0);
+#ifndef MULTIPLICITY
+  CvXSUBANY(xsub).any_ptr = sv2slot(slot_sv);
+#endif
+  return newRV_noinc((SV *)xsub);
+}
+
+static SV *attrs_gen_new(SV *self) {
+  AV *av = sv2av(self);
+  CV *xsub = newXS(NULL, (XSUBADDR_t)xs_new, __FILE__);
+  sv_magicext((SV *)xsub, (SV *)av, PERL_MAGIC_ext, &ATTRS_TBL, NULL, 0);
+#ifndef MULTIPLICITY
+  CvXSUBANY(xsub).any_ptr = av;
+#endif
+  return newRV_noinc((SV *)xsub);
 }
 
 static bool attrs_exists(SV *self, SV *name) {
@@ -155,5 +176,5 @@ static bool attrs_exists(SV *self, SV *name) {
     ECAslot *slot = sv2slot(tmp_sv);
     if (!sv_cmp(name, slot->key)) return 1;
   }
-  return 0;
+  return false;
 }
