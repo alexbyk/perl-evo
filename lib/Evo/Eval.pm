@@ -3,39 +3,34 @@ use Evo '-Export *; ::Call';
 
 sub eval_want : Export {
   my ($want, $fn) = (shift, pop);
-  my $call;
   if (!defined $want) {
     eval { $fn->(@_); 1 } or return;
-    $call->{wanted} = undef;
+    return sub { };
   }
   elsif (!$want) {
-    eval { $call->{result}->[0] = $fn->(@_); 1 } or return;
-    $call->{wanted} = '';
+    my $res;
+    eval { $res = $fn->(@_); 1 } or return;
+    return sub {$res};
   }
   else {
-    eval { $call->{result} = [$fn->(@_)]; 1 } or return;
-    $call->{wanted} = 1;
+    my @res;
+    eval { @res = $fn->(@_); 1 } or return;
+    return sub {@res};
   }
-
-  return bless $call, 'Evo::Eval::Call';
 }
 
 
-sub eval_try : prototype(&$;$) : Export {
+sub try : prototype(&$;$) : Export {
   my ($try, $catch, $fin) = @_;
   my $call = eval_want wantarray, $try;
   $call = eval_want wantarray, my $e = $@, $catch if !$call && $catch;
   if ($call) {
     $fin->() if $fin;
-    return   if !defined wantarray;
-    return $call->result;
+    return $call->();
   }
-  else {
-    $e = $@;
-    $fin->() if $fin;
-    die $e;
-  }
-
+  $e = $@;
+  $fin->() if $fin;
+  die $e;
 }
 
 1;
@@ -44,13 +39,13 @@ sub eval_try : prototype(&$;$) : Export {
 
   use Evo '-Eval *';
 
-  eval_try { die "Error" } sub($e) { print "Catched: $e" };
+  try { die "Error" } sub($e) { print "Catched: $e" };
 
   # try_fn, catch_fn, finally_fn
   my $res;
-  $res = eval_try sub {...}, sub {...}, sub {...};
-  $res = eval_try sub {...}, sub {...};
-  $res = eval_try sub {...}, undef, sub {...};
+  $res = try sub {...}, sub {...}, sub {...};
+  $res = try sub {...}, sub {...};
+  $res = try sub {...}, undef, sub {...};
 
 
 =head1 Classarison with alternatives
@@ -82,7 +77,7 @@ L<Guard> is written in C and has the same flaw as L<Try::Tiny> - can't deal with
 
 =head1 FUNCTION 
 
-=head2 eval_try 
+=head2 try 
 
 The semantic is similar to JS "try catch finally" block except returned value
 of finally block doesn't matter.
@@ -106,32 +101,32 @@ if exists, will be always executed but the return value of finally_fn will be ig
 =head3 Examples
 
   # fin; result: ok
-  my $res = eval_try sub { return "ok" }, sub {...}, sub { print "fin; " };
+  my $res = try sub { return "ok" }, sub {...}, sub { print "fin; " };
   say "result: ", $res;
 
   # fin; result: catched
-  $res = eval_try sub { die "Error\n" }, sub { return "catched" }, sub { print "fin; " };
+  $res = try sub { die "Error\n" }, sub { return "catched" }, sub { print "fin; " };
   say "result: ", $res;
 
 "Catch" block can be skipped if we're interesting only in "finally"
 
   # print fin than dies with "Error" in $@
-  $res = eval_try sub { die "Error\n" }, undef, sub { print "fin\n" };
+  $res = try sub { die "Error\n" }, undef, sub { print "fin\n" };
 
 If "finally" fn throws an exception, it will be rethrown as expected
 
   # die in finally block with "FinError\n" in $@
-  $res = eval_try sub { 1 }, sub {...}, sub { die "FinError\n" };
+  $res = try sub { 1 }, sub {...}, sub { die "FinError\n" };
 
 
 Deals correctly with C<wantarray>
 
   # 1;2;3
   local $, = ';';
-  say eval_try sub { wantarray ? (1, 2, 3) : 'One-Two-Three' }, sub {...};
+  say try sub { wantarray ? (1, 2, 3) : 'One-Two-Three' }, sub {...};
 
   # One-Two-Three
-  say scalar eval_try sub { wantarray ? (1, 2, 3) : 'One-Two-Three' }, sub {...};
+  say scalar try sub { wantarray ? (1, 2, 3) : 'One-Two-Three' }, sub {...};
 
 =head2 eval_want
 

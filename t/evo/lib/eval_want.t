@@ -1,5 +1,13 @@
-use Evo '-Eval *; -Want *';
+use Evo '-Lib eval_want; Carp croak';
 use Test::More;
+
+my $ERROR = "useless use";
+use constant WANT_LIST   => 1;
+use constant WANT_SCALAR => '';
+use constant WANT_VOID   => undef;
+sub want_is_list { croak $ERROR unless defined wantarray; defined $_[0] && $_[0] && $_[0] == 1; }
+sub want_is_scalar { croak $ERROR unless defined wantarray; defined $_[0] && !$_[0] }
+sub want_is_void { croak $ERROR unless defined wantarray; !defined $_[0] }
 
 my ($wanted);
 my $spy = sub {
@@ -16,22 +24,19 @@ my $inc = sub { $_++ for @_ };
 WANT_VOID: {
   my $call = eval_want(WANT_VOID, $spy);
   ok want_is_void($wanted);
-  ok want_is_void($call->{wanted});
-  is $call->result, undef;
+  is $call->(), undef;
 }
 
 WANT_SCALAR: {
   my $call = eval_want(WANT_SCALAR, $spy);
   ok want_is_scalar($wanted);
-  ok want_is_scalar($call->{wanted});
-  is $call->result, 33;
+  is $call->(), 33;
 }
 
 WANT_SCALAR: {
   my $call = eval_want(WANT_LIST, $spy);
   ok want_is_list($wanted);
-  ok want_is_list($call->{wanted});
-  is_deeply [$call->result], [4, 5, 6];
+  is_deeply [$call->()], [4, 5, 6];
 }
 
 # die
