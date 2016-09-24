@@ -1,6 +1,9 @@
-use Evo 'Test::More; Evo::Internal::Exception; -Fs::Temp';
+use Evo 'Test::More; Evo::Internal::Exception';
 use Evo 'File::Spec; File::Spec::Functions rel2abs abs2rel; File::Temp';
 use File::Basename 'fileparse';
+
+plan skip_all => "Win isn't supported yet" if $^O eq 'MSWin32';
+require Evo::Fs::Temp;
 
 # traverse
 foreach my $fs (Evo::Fs::Temp->new(), Evo::Fs->new(cwd => File::Temp->newdir)) {
@@ -85,7 +88,6 @@ foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
 
 CIRC: {
   foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
-    last CIRC if $^O eq 'MSWin32';
     $fs->write('a/1/f.txt' => 'foo');
     $fs->symlink('a',         'a/1/a.slnk');
     $fs->symlink('a/1/f.txt', 'a/1/f.slnk');
@@ -112,7 +114,6 @@ CIRC: {
 }
 
 SKIP: {
-  last SKIP if $^O eq 'MSWin32';
   foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
     $fs->mkdir('bad1', oct 100);
     $fs->mkdir('bad2', oct 400);
@@ -178,12 +179,12 @@ FILES: {
 
 
 FILES_LINKS: {
-  last FILES_LINKS if $^O eq 'MSWin32';
   foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
     $fs->write_many('f.txt' => 'txt',);
     $fs->make_tree('links');
 
     $fs->symlink('f.txt', 'links/f.slnk');
+    $fs->symlink('404', 'links/bad.slnk');
     $fs->link('f.txt', 'links/f.hlnk');
 
     my (@files, @dirs);

@@ -1,5 +1,6 @@
 package Evo::Fs;
 use Evo '-Export *; -Class; ::Stat; Carp croak';
+die "Win isn't supported yet. Pull requests are welcome!" if $^O eq 'MSWin32';
 
 # ========= MODULE =========
 
@@ -236,7 +237,7 @@ sub find_files ($self, $start, $fhs_fn, $pick = undef) {
     return unless $stat->is_file;
 
     # to avoid messing hardlinks, also works for symlinks
-    return if $seen{($^O eq 'MSWin32' ? $path : $stat->dev, '-', $stat->ino)}++;
+    return if $seen{($stat->dev, '-', $stat->ino)}++;
     $fhs_fn->($path, $stat);
   };
   $self->traverse($start, $fn, $pick);
@@ -251,7 +252,7 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
   my @stack = map {
     my $abs  = $self->to_abs($_);
     my $stat = $self->stat($abs);
-    $seen{($^O eq 'MSWin32' ? $abs : $stat->dev, '-', $stat->ino)}++ ? () : [$abs, $stat];
+    $seen{($stat->dev, '-', $stat->ino)}++ ? () : [$abs, $stat];
   } $start->@*;
 
   while (@stack) {
@@ -261,6 +262,7 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
     foreach my $cur_child (sort $self->ls($cur_dir)) {
 
       my $abs = File::Spec->rel2abs($cur_child, $cur_dir);
+      next unless $self->exists($abs);    # broken link
       my $stat = $self->stat($abs);
 
 
@@ -268,7 +270,7 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
         = $stat->is_dir
         && $stat->can_exec
         && $stat->can_read
-        && ($^O eq 'MSWin32' ? !($seen{$abs}++) : !($seen{$stat->dev, '-', $stat->ino}++))
+        && !($seen{$stat->dev, '-', $stat->ino}++)
         && (!$pick_d || $pick_d->($abs, $stat));
 
       unshift @dirs, [$abs, $stat] if $bool;

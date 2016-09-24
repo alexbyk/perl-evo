@@ -1,12 +1,13 @@
-use Evo 'Test::More; Evo::Internal::Exception; -Fs::Temp';
-use Evo 'Fcntl';
+use Evo 'Test::More; Evo::Internal::Exception';
 
+plan skip_all => "Win isn't supported yet" if $^O eq 'MSWin32';
+require Evo::Fs::Temp;
 
 RWA: {
 
   my $fs = Evo::Fs::Temp->new();
   my $called;
-  no warnings 'redefine';
+  no warnings 'redefine', 'once';
   local *Evo::Fs::Temp::flock = sub { $called++ };
 
   $fs->write('/a/foo', 'bad');
@@ -20,7 +21,7 @@ RWA: {
 }
 
 WRITE_MANY: {
-  my $fs  = Evo::Fs::Temp->new();
+  my $fs = Evo::Fs::Temp->new();
   $fs->write_many('/a/foo' => 'afoo', '/b/foo' => 'bfoo', 'bar' => 'bar');
   is $fs->read('/a/foo'), 'afoo';
   is $fs->read('/b/foo'), 'bfoo';

@@ -1,9 +1,0 @@
-if (`c99 --version` && !$! && !$ENV{PUREPERL_ONLY}) {
-  %WriteMakefileArgs = (
-    %WriteMakefileArgs,
-    CCFLAGS  => '-std=c99 -Wall -Wextra -Werror -W',
-    OPTIMIZE => '-O3',
-    INC      => '-I./',
-    XSMULTI  => 1,
-  );
-}

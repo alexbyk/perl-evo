@@ -1,5 +1,8 @@
-use Evo 'Test::More; -Fs::Temp';
+use Evo 'Test::More';
 use Evo 'File::Spec::Functions catdir splitpath';
+
+plan skip_all => "Win isn't supported yet" if $^O eq 'MSWin32';
+require Evo::Fs::Temp;
 
 my $root;
 FOO: {

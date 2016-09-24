@@ -1,7 +1,9 @@
-use Evo 'Test::More; Evo::Internal::Exception; -Fs::Temp';
+use Evo 'Test::More; Evo::Internal::Exception';
 use File::Spec::Functions 'catdir';
 use File::Temp;
 
+plan skip_all => "Win isn't supported yet" if $^O eq 'MSWin32';
+require Evo::Fs::Temp;
 
 BAD_CD: {
   my $fs = Evo::Fs::Temp->new();

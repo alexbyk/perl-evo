@@ -1,5 +1,8 @@
-use Evo 'Test::More; Evo::Internal::Exception; -Fs::Temp';
+use Evo 'Test::More; Evo::Internal::Exception';
 use Evo 'Fcntl; Time::HiRes time';
+
+plan skip_all => "Win isn't supported yet" if $^O eq 'MSWin32';
+require Evo::Fs::Temp;
 
 my $fs = Evo::Fs::Temp->new();
 
