@@ -15,25 +15,30 @@ CODE2NAMES: {
   {
 
     package My::Foo;
+    use Fcntl 'O_CREAT';
     sub foo { }
   }
 
   *bar = *My::Foo::foo;
-  my ($pkg, $name);
+  my ($pkg, $name, $const);
 
   ($pkg, $name) = Evo::Internal::Util::code2names(\&bar);
   is $pkg,  'My::Foo';
   is $name, 'foo';
 
 
-  ($pkg, $name) = Evo::Internal::Util::code2names(\&My::Foo::foo);
+  ($pkg, $name, $const) = Evo::Internal::Util::code2names(\&My::Foo::foo);
   is $pkg,  'My::Foo';
   is $name, 'foo';
+  ok !$const;
+
+  # CONST
+  ($pkg, $name, $const) = Evo::Internal::Util::code2names(\&My::Foo::O_CREAT);
+  ok $const;
 
   ($pkg, $name) = Evo::Internal::Util::code2names(sub { });
   is $pkg,  'main';
   is $name, '__ANON__';
-
 
   # names2code
   is Evo::Internal::Util::names2code('My::Foo', 'foo'), \&My::Foo::foo;
