@@ -101,7 +101,7 @@ It provides rewritten and postmodern features like
 [almost ready] Fast non recursive "Promise" role, 100% "Promise/Spec A" compatible. + See L<Mojo::Promise>
 
 =item *
-(almost ready) Exception handling in pure perl: L<Evo::Lib/eval>, like "try catch" but perl way.
+(almost ready) Exception handling in pure perl: L<Evo::Lib/try>, like "try catch" but perl way.
 30 lines of code and much faster (L<https://github.com/alexbyk/perl-evo/tree/master/bench#evolibtry>) than other alternatives
 
 =item *
