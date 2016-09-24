@@ -148,9 +148,6 @@ RESOLVE_PACKAGE: {
     qr/Can't resolve.+::3.+My/i;
 }
 
-UNIQ: {
-  is_deeply [Evo::Internal::Util::uniq(1, 2, 2, 3)], [1, 2, 3];
-}
 
 SUPPRESS_CARP: {
   local @My::Dst::CARP_NOT = ('My::Pkg');

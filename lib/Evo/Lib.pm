@@ -1,53 +1,9 @@
 package Evo::Lib;
 use Evo '-Export *; Carp croak';
-use Time::HiRes qw(CLOCK_MONOTONIC);
 
-PATCH: {
-  no warnings 'once';
-  *pkg_stash           = *Evo::Internal::Util::pkg_stash;
-  *code2names          = *Evo::Internal::Util::code2names;
-  *names2code          = *Evo::Internal::Util::names2code;
-  *debug               = *Evo::Internal::Util::debug;
-  *monkey_patch        = *Evo::Internal::Util::monkey_patch;
-  *monkey_patch_silent = *Evo::Internal::Util::monkey_patch_silent;
-}
-
-export qw(debug monkey_patch monkey_patch_silent code2names names2code pkg_stash);
-
-my $HAS_M_TIME = eval { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); 1; };
-
-export_code steady_time => $HAS_M_TIME
-  ? sub { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); }
-  : sub { Time::HiRes::time() };
-
-
-# combine higher order function without any protection and passing arguments
-sub ws_fn : Export {
-  my $cb = pop or croak "Provide a function";
-  return $cb unless @_;
-  $cb = $_->($cb) for reverse @_;
-  $cb;
-}
-
-# call each $next exactly once or die. Bypas args to cb
-sub combine_thunks : Export {
-
-  my $_cb = pop or croak "Provide a function";
-  return $_cb unless my @hooks = @_;
-
-  my @args;
-  my $cb = sub { $_cb->(@args) };
-
-  foreach my $cur (reverse @hooks) {
-    my $last  = $cb;
-    my $count = 0;
-    my $safe  = sub { $last->() unless $count++ };
-
-    $cb = sub { $cur->($safe); die "\$next in hook called $count times" unless $count == 1 };
-
-  }
-
-  sub { @args = @_; $cb->(); return };
+sub uniq : Export {
+  my %seen;
+  return grep { !$seen{$_}++ } @_;
 }
 
 sub strict_opts ($hash, $keys, $level = 1) : Export {
@@ -60,21 +16,55 @@ sub strict_opts ($hash, $keys, $level = 1) : Export {
   @opts;
 }
 
+# marked as deprecated 24.09.2016
+#use Time::HiRes qw(CLOCK_MONOTONIC);
+#my $HAS_M_TIME = eval { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); 1; };
+#export_code steady_time => $HAS_M_TIME
+#  ? sub { Time::HiRes::clock_gettime(CLOCK_MONOTONIC); }
+#  : sub { Time::HiRes::time() };
+#
+
+# marked as not useful at  24.09.2016
+# combine higher order function without any protection and passing arguments
+#sub ws_fn : Export {
+#  my $cb = pop or croak "Provide a function";
+#  return $cb unless @_;
+#  $cb = $_->($cb) for reverse @_;
+#  $cb;
+#}
+
+# marked as not useful at  24.09.2016
+# call each $next exactly once or die. Bypas args to cb
+#sub combine_thunks : Export {
+#
+#  my $_cb = pop or croak "Provide a function";
+#  return $_cb unless my @hooks = @_;
+#
+#  my @args;
+#  my $cb = sub { $_cb->(@args) };
+#
+#  foreach my $cur (reverse @hooks) {
+#    my $last  = $cb;
+#    my $count = 0;
+#    my $safe  = sub { $last->() unless $count++ };
+#
+#    $cb = sub { $cur->($safe); die "\$next in hook called $count times" unless $count == 1 };
+#
+#  }
+#
+#  sub { @args = @_; $cb->(); return };
+#}
+
 
 1;
 
-=head2 code2names
+=head2 steady_time
 
-  {
+Return an array contains only uniq elements
 
-    package My::Foo;
-    sub foo { }
-  }
+=head2 uniq(@args)
 
-  my $code = \&My::Foo::foo;
-  ($pkg, $name) = code2names($code);
-
-Return a package and a name of a code where the subroutine was declared
+Return an array contains only uniq elements
 
 =head2 strict_opts($level, $hash, @keys)
 

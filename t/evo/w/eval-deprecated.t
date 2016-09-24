@@ -1,5 +1,5 @@
-use Evo '-W::Eval *', '-Lib *';
-use Test::More;
+use Evo 'Test::More';
+plan skip_all => "w_eval is under deprecation trial";
 
 my $e;
 my $catch = sub { $e = shift; };

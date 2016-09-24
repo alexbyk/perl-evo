@@ -13,14 +13,6 @@ our $RX_PKG           = qr/^[A-Z_a-z]$RX_PKG_NOT_FIRST*$/;
 use constant SUBRE => qr/^[a-zA-Z_]\w*$/;
 sub check_subname { $_[0] =~ SUBRE }
 
-my $DEBUG;
-sub debug { return unless $DEBUG; carp "[${\(caller)[0]}]: $_[0]"; }
-
-sub enable_debug($on) {
-  $DEBUG = $on;
-}
-enable_debug($ENV{EVO_DEBUG});
-
 # usefull?
 sub find_caller_except ($skip_ns, $i, $caller) {
   while ($caller = (caller($i++))[0]) {
@@ -86,10 +78,10 @@ sub list_symbols($pkg) {
 #}
 
 
-sub uniq {
-  my %seen;
-  return grep { !$seen{$_}++ } @_;
-}
+#sub uniq {
+#  my %seen;
+#  return grep { !$seen{$_}++ } @_;
+#}
 
 # returns a subroutine than can pretend a code in the other package/file/line
 sub inject(%opts) {

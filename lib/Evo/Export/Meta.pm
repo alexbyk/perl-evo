@@ -112,7 +112,6 @@ sub install ($self, $dst, @xlist) {
 
   my $liststr = join '; ', @list;
   my $exporter = $self->package;
-  Evo::Internal::Util::debug("Installing $exporter [$liststr] to $dst");
 
   my %patch;
   foreach my $name_as (@list) {

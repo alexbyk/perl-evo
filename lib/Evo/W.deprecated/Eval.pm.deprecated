@@ -3,6 +3,7 @@ use Carp 'croak';
 use Evo '-Eval *', '-Export *';
 
 
+# marked as deprecated 24.09.2016
 sub w_eval_run($catch) : Export {
   sub($next) {
     sub {
