@@ -142,4 +142,12 @@ Usefull for closing connections etc. The idea described here: L<https://github.c
 
 More info about promise, race, all etc.: L<https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise>
 
+=over
+
+=item * L<Promises> - Last time I checked the implementation wasn't Spec/A+ compatible (despite it says it is). Wasn't goot enough for me. But contains a great documentation
+
+=item * L<Future> - an alternative way to deal non-blocking
+
+=back
+
 =cut
