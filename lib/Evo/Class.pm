@@ -147,7 +147,7 @@ So right now in C<Evo::Class> "multiple inheritance", (which was considered as a
 This module is rich enough to write big applications. If some "Moose" feature is missing (for example, lazy functions exists while lazy value are dropped out), that's because
 I considered it as antipattern. As a result, this whole module is ~300 lines of code and covers all needs.
 
-Also, It saves a lot of typings by providing a "short" syntax.
+Also, this module saves a lot of typings by providing a "short" syntax.
 
 And last, but not least, this module is suprisingly fast. Available both in PP and XS variants. So give it a try
 
