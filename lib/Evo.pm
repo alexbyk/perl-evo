@@ -98,10 +98,11 @@ It provides rewritten and postmodern features like
 [almost ready] Post modern code injection programming L<Evo::Class> instead of traditional OO
 
 =item *
-[almost ready] Fast non recursive L<Evo::Promise>, 100% "Promise/Spec A" compatible. + See L<Mojo::Promise>
+[almost ready] Fast non recursive "Promise" role, 100% "Promise/Spec A" compatible. + See L<Mojo::Promise>
 
 =item *
-(experimental) Exception handling in pure perl: L<Evo::Eval>, "try catch" alternative. Like C<Try::Tiny>, but without its bugs and much faster
+(almost ready) Exception handling in pure perl: L<Evo::Lib/eval>, like "try catch" but perl way.
+30 lines of code and much faster (L<https://github.com/alexbyk/perl-evo/tree/master/bench#evolibtry>) than other alternatives
 
 =item *
 (experimental) L<Evo::Ee> - a role that provides "EventEmitter" abilities

@@ -137,7 +137,19 @@ Fast full featured post-modern Object oriented programming. Available both in PP
 
 This module doesn't use perl's @ISA inheritance. This module isn't Moose compatible by design
 
-Documentation will be available soon.
+I decided to avoid mistakes of common OO practices. All derivered classes are flat. 
+If a parent and a child both have a method with the same name,
+an exception will be thrown untill you specifically mark that's the child's method is overriden (see </Overriding>). You will be glad how many mistakes can save this
+decision.
+
+So right now in C<Evo::Class> "multiple inheritance", (which was considered as an antipatern), is ok and a right way to reuse a code.
+
+This module is rich enough to write big applications. If some "Moose" feature is missing (for example, lazy functions exists while lazy value are dropped out), that's because
+I considered it as antipattern. As a result, this whole module is ~300 lines of code and covers all needs.
+
+Also, It saves a lot of typings by providing a "short" syntax.
+
+And last, but not least, this module is suprisingly fast. Available both in PP and XS variants. So give it a try
 
 =head1 Usage
 
@@ -267,10 +279,12 @@ Evo protects you from method clashing. But if you want to override method or fix
     with 'My::Human';
 
     has_over name => 'peter';
-    sub greet : Over { }
+    sub greet : Over { ... }
 
 
-This differs from traditional OO style. With compoment programming, you should reuse code via L<Evo::Class::Role> or just organize classes with independed pieces of code like "mixing". So, try to override less
+This differs from traditional OO style. With compoment programming. If you want to call parent's method, call it by full name instead of C<SUPER>
+
+    sub greet : Over { Some::Parent::greet() }
 
 =head1 FUNCTIONS
 
@@ -336,6 +350,6 @@ You may want to use C<extends> and C<implements> separately to resolve circular 
 
   sub foo : Over { 'OVERRIDEN'; }
 
-Mark name as overridden. See L<Evo::Role/"Overriding methods">
+Mark name as overridden. Overridden means it will override the "parent's" method with the same name without diying
 
 =cut

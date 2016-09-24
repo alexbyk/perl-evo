@@ -18,7 +18,7 @@ It provides rewritten and postmodern features like
 - [Evo::Fs](https://metacpan.org/pod/Evo::Fs) - abstraction layer between you app and FileSystem for simple testing
 - [Evo::Class](https://metacpan.org/pod/Evo::Class) - Post modern object oriented programming with code injections instead of traditional OO. Has a fast XS backend. See [Benchmarks](https://github.com/alexbyk/perl-evo/tree/master/bench)
 - Fast non recursive [Mojo::Promise](https://metacpan.org/pod/Mojo::Promise), 100% Promises/Spec A compatible.
-- Exception handling in pure perl: [Evo::Eval](https://metacpan.org/pod/Evo::Eval), "try catch" alternative. Like `Try::Tiny`, but without its bugs and much faster
+- Exception handling in pure perl: [Evo::Lib::try](https://metacpan.org/pod/Evo::Lib#try), like "try catch" but the perl way.
 - [Evo::Ee](https://metacpan.org/pod/Evo::Ee) - a class role that gives your component "EventEmitter" abilities
 
 ![GIF Demo](https://raw.github.com/alexbyk/perl-evo/master/demo.gif)
