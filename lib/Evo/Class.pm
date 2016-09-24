@@ -131,13 +131,13 @@ sub with ($me, $dest) : ExportGen {
 
 =head1 DESCRIPTION
 
+Fast full featured post-modern Object oriented programming. Available both in PP and C. See L<https://github.com/alexbyk/perl-evo/tree/master/bench>
+
 =head2 INTRO
 
 This module doesn't use perl's @ISA inheritance. This module isn't Moose compatible by design
 
 Documentation will be available soon.
-
-Also there is a L<Evo::XS> module, which contains backend for this one written in C. You can choose either PP implementation, or install L<Evo::XS> and improve a perfomance
 
 =head1 Usage
 

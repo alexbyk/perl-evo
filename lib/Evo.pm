@@ -72,6 +72,12 @@ sub import {
   # enables strict, warnings, utf8, :5.22, signatures, postderef
   use Evo;
 
+=head1 XS
+
+This module ships with optional C parts for performance. You can avoid installing them by providing PUREPERL_ONLY environmental variable
+
+  PUREPERL_ONLY=1 cpanm Evo
+
 =head1 STATE
 
 This module is under active development. It changes often and a lot! Get involved L<https://github.com/alexbyk/perl-evo>
@@ -105,9 +111,6 @@ It provides rewritten and postmodern features like
 
 =back
 
-=head1 XS
-
-You can get a little bit faster classes by installing C<Evo::XS>. You will need a C compiler. See L<https://github.com/alexbyk/perl-evo-xs>
 
 =head1 VIM
 
