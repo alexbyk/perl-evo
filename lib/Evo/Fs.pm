@@ -512,7 +512,7 @@ Convert a virtual path to the real one.
   $fs->find_files(['/tmp'], sub ($fh) {...});
 
 Find files in given directories. You can skip some directories by providing C<$pick-E<gt>($dir)> function.
-This will work ok on circular links, hard links and so on. Every file and it's stat will be passed to C<$fn-E<gt>($fh)>only once
+This will work ok on circular links, hard links and so on. Every path will be passed to C<$fn-E<gt>($fh)>only once
 even if it has many links.
 
 So, in situations, when a file have several hard and symbolic links, only one of them will be passed to C<$fn>, and potentially
@@ -520,13 +520,13 @@ each time it can be different path for each C<find_files> invocation.
 
 See L</traverse> for examining all nodes. This method just decorate it's arguments
 
-=head2 traverse($self, $dirs, $fn $pick=undef)
+=head2 traverse($self, $dirs, $fn, $pick=undef)
 
-Traverse directories and invokes C<$fn-E<gt>$path> for each child node.
+Traverse directories and invoke C<$fn-E<gt>$path> for each child node.
 
-Each file is processed only once no matter how many links it has. So instead of real filename you can get a link and never get a real filename depending on which one (file or link) found first
+Each file is processed only once no matter how many links it has. So instead of a real filename you may be getting a link and never a real name depending on which one (file or link) was met first
 
-You can provide C<$pick-E<gt>($dir)> to skip directories.
+You can provide C<$pick-E<gt>($dir)> to skip directories, for example, to skip hidden ones. By default all directories are processed
 
   $fs->traverse('/tmp', sub ($path) {...}, sub ($dir) {...});
   $fs->traverse(['/tmp'], sub ($path) {...},);
