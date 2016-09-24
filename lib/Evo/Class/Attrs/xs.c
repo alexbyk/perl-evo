@@ -156,6 +156,7 @@ static SV *attrs_gen_attr(SV *self, char *name, int type, SV *value, SV *check,
 }
 
 static SV *attrs_gen_new(SV *self) {
+  dTHX;
   AV *av = sv2av(self);
   CV *xsub = newXS(NULL, (XSUBADDR_t)xs_new, __FILE__);
   sv_magicext((SV *)xsub, (SV *)av, PERL_MAGIC_ext, &ATTRS_TBL, NULL, 0);

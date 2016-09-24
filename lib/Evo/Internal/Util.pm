@@ -53,12 +53,14 @@ sub monkey_patch_silent ($pkg, %hash) {
 }
 
 # returns a package where code was declared and a name
-# TODO: determine better way constants like from Fcntl (better than XSUB)
+# ->CONST not documented, but exists in B::CV and defined in /CORE/cv.h as 
+# define CvCONST(cv)		(CvFLAGS(cv) & CVf_CONST)
+# this flag is used by Evo::Class to determine that constants should be inherited
 sub code2names($r) {
   my $sv    = svref_2object($r);
   my $gv    = $sv->GV;
   my $stash = $gv->STASH;
-  ($stash->NAME, $gv->NAME, $sv->XSUB);
+  ($stash->NAME, $gv->NAME, $sv->CONST);
 }
 
 sub names2code ($pkg, $name) {
