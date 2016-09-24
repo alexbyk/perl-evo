@@ -8,6 +8,8 @@ use warnings;
 use 5.022000;
 use ExtUtils::MakeMaker;
 
+use ExtUtils::CBuilder;
+
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Evo - the next generation development framework",
   "AUTHOR" => "alexbyk.com",
@@ -23,7 +25,7 @@ my %WriteMakefileArgs = (
     "Test::More" => "0.88",
     "Test::Pod" => 0
   },
-  "VERSION" => "0.0244",
+  "VERSION" => "0.0245",
   "test" => {
     "TESTS" => "t/*.t t/evo/attr/*.t t/evo/class/*.t t/evo/class/attrs/*.t t/evo/ee/*.t t/evo/eval/*.t t/evo/evo_import/*.t t/evo/export/*.t t/evo/fs/*.t t/evo/internal/*.t t/evo/lib/*.t t/evo/promise/*.t t/evo/promise/func/*.t t/evo/promise/promise/*.t t/evo/w/*.t t/evo/want/*.t t/perf/*.t"
   }
@@ -31,7 +33,7 @@ my %WriteMakefileArgs = (
 
 %WriteMakefileArgs = (
     %WriteMakefileArgs,
-    (`c99 --version` && !$! && !$ENV{PUREPERL_ONLY} ? (CCFLAGS  => '-std=c99 -Wall -Wextra -Werror -W', OPTIMIZE => '-O2', INC => '-I./', XSMULTI  => 1,) : ()),
+    (!$ENV{PUREPERL_ONLY} && ExtUtils::CBuilder->new(quiet => 1)->have_compiler ? (CCFLAGS  => '-std=c99 -Wall -Wextra -Werror -W', OPTIMIZE => '-O2', INC => '-I./', XSMULTI  => 1,) : ()),
 );
 
 my %FallbackPrereqs = (
