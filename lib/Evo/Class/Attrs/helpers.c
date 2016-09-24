@@ -141,28 +141,3 @@ static inline SV *invoke_and_store(SV *arg, SV *cv, HV *hash, SV *key) {
 
   return result;
 }
-
-// returns an SV from HeVAL
-static inline SV *invoke_lazy(SV *self, SV *cv) {
-  dTHX;
-  dSP;
-
-  ENTER;
-  SAVETMPS;
-
-  PUSHMARK(SP);
-  PUSHs(sv_mortalcopy(self));
-  PUTBACK;
-
-  int count = call_sv(cv, G_SCALAR);
-  if (count != 1) croak("bad count");
-  SPAGAIN;
-  SV *res = POPs;
-  SV *result = newSVsv(res);
-
-  PUTBACK;
-  FREETMPS;
-  LEAVE;
-
-  return result;
-}
