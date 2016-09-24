@@ -15,6 +15,9 @@ static MGVTBL ECA_TBL = {0, 0, 0, 0, eca_mg_free, 0, eca_mg_dup, 0};
  * slot->key contains a "shared" string.
  *
  * value, check, inject could be NULLs
+ *
+ * Don't try to move magic for CV, because one slot can be bound to both (new
+ * and accessor)
  */
 
 static int eca_mg_dup(pTHX_ MAGIC *mg, CLONE_PARAMS *param) {

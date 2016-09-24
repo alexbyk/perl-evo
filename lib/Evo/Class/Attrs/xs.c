@@ -6,13 +6,13 @@
  * * I use magic mg_dup and mg_free to clear and duplicate(for threads) ECAslot
  * instance (MGVTBL ECA_TBL)
  *
- * * For performance reason, CvXSUBANY(cv).any_ptr is used unless to fetch bound
- * data unless perl was build without usemultiplicity.
- * MAGIC is still used to store data to use GC. This will improve performance by
- * 2-4%. This technique was borrowed from Mouse.
+ * * For performance reason, CvXSUBANY(cv).any_ptr is used to fetch bound data
+ * unless perl was build without usemultiplicity. This will improve performance
+ * by 2-4%. This technique was borrowed from Mouse. MAGIC is still used to mark
+ * variable for GC.
  *
- * * The code looks complex, but compare it with other alternatives. I don't
- * write in C, so PULL requests are welcome
+ * * I use a perl's array as an object for this instance because using pure C
+ * structure will make code more complex without real benefits
  *
  */
 
