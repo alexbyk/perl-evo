@@ -19,23 +19,21 @@ foreach my $fs (Evo::Fs::Temp->new(), Evo::Fs->new(cwd => File::Temp->newdir)) {
   my (@children, @dirs);
   $fs->traverse(
     './',
-    sub ($path, $stat) {
+    sub ($path) {
       push @children, $path;
     },
-    sub ($path, $stat) {
+    sub ($path) {
       push @dirs, $path;
       scalar fileparse($path) ne 'skip_further';
     },
   );
 
-
-  my @rel_children = sort map { File::Spec->abs2rel($_, $fs->cwd) } @children;
-  my @rel_dirs     = sort map { File::Spec->abs2rel($_, $fs->cwd) } @dirs;
+  @dirs     = map { File::Spec->canonpath($_) } sort @dirs;
+  @children = map { File::Spec->canonpath($_) } sort @children;
 
   # see skip once only
-  is_deeply \@rel_dirs, [map { abs2rel rel2abs($_) } sort qw(a a/1 a/2 b b/1 skip_further)];
-
-  is_deeply \@rel_children, [
+  is_deeply \@dirs, [map { abs2rel rel2abs($_) } sort qw(a a/1 a/2 b b/1 skip_further)];
+  is_deeply \@children, [
     map { abs2rel rel2abs($_) }
       sort qw(
       f.txt
@@ -54,13 +52,13 @@ foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
   my @children;
   $fs->traverse(
     './',
-    sub ($f, $stat) {
+    sub ($f) {
       push @children, $f;
     },
   );
 
-  my @rel_children = sort map { File::Spec->abs2rel($_, $fs->cwd) } @children;
-  is_deeply \@rel_children, [
+  @children = map { File::Spec->canonpath($_) } sort @children;
+  is_deeply \@children, [
     map { abs2rel rel2abs($_) }
       sort qw(
       a a/1 a/1/f.txt
@@ -75,41 +73,26 @@ foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
   $fs->write_many('a/1/f.txt' => 'bar', 'b/1/f.txt' => 'bar');
 
   my @children;
-  $fs->traverse(
-    ['a', 'b'],
-    sub ($f, $stat) {
-      push @children, $f;
-    },
-  );
+  $fs->traverse(['a', 'b'], sub ($f) { push @children, $f; },);
 
-  my @rel_children = sort map { File::Spec->abs2rel($_, $fs->cwd) } @children;
-  is_deeply \@rel_children, [sort map { abs2rel rel2abs($_) } qw( a/1 a/1/f.txt b/1 b/1/f.txt)];
+  @children = map { File::Spec->canonpath($_) } sort @children;
+  is_deeply \@children, [sort map { abs2rel rel2abs($_) } qw( a/1 a/1/f.txt b/1 b/1/f.txt)];
 }
 
 CIRC: {
   foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
     $fs->write('a/1/f.txt' => 'foo');
+
     $fs->symlink('a',         'a/1/a.slnk');
-    $fs->symlink('a/1/f.txt', 'a/1/f.slnk');
-    $fs->link('a/1/f.txt', 'a/1/f.hlnk');
+    $fs->symlink('a/1/f.txt', 'a/1/f.txt.slnk');
+    $fs->link('a/1/f.txt', 'a/1/f.txt.hlnk');
 
     my (@children, @dirs);
-    $fs->traverse(
-      ['./', './', 'a/'],
-      sub ($f, $stat) {
-        push @children, $f;
-      },
-      sub ($d, $stat) {
-        push @dirs, $d;
-      },
-    );
+    $fs->traverse(['./', './', 'a/'], sub ($f) { push @children, $f; });
 
 
-    my @rel_children = sort map { File::Spec->abs2rel($_, $fs->cwd) } @children;
-    my @rel_dirs     = sort map { File::Spec->abs2rel($_, $fs->cwd) } @dirs;
-
-    is_deeply \@rel_children,
-      [map { abs2rel rel2abs($_) } sort qw(a a/1 a/1/a.slnk a/1/f.slnk a/1/f.hlnk a/1/f.txt)],;
+    @children = map { File::Spec->canonpath($_) } sort @children;
+    is_deeply \@children, [sort qw(a a/1 a/1/f.txt)],;
   }
 }
 
@@ -123,22 +106,22 @@ SKIP: {
     my (@children, @dirs);
     $fs->traverse(
       './',
-      sub ($path, $stat) {
+      sub ($path) {
         push @children, $path;
       },
-      sub ($d, $stat) {
+      sub ($d) {
         push @dirs, $d;
         1;
       },
     );
 
 
-    my @rel_children = sort map { File::Spec->abs2rel($_, $fs->cwd) } @children;
-    my @rel_dirs     = sort map { File::Spec->abs2rel($_, $fs->cwd) } @dirs;
+    @dirs     = map { File::Spec->canonpath($_) } sort @dirs;
+    @children = map { File::Spec->canonpath($_) } sort @children;
 
     # see skip once only
-    is_deeply \@rel_dirs,     [sort qw(good)];
-    is_deeply \@rel_children, [sort qw(bad1 bad2 bad3 good good/f)];
+    is_deeply \@dirs,     [sort qw(good)];
+    is_deeply \@children, [sort qw(bad1 bad2 bad3 good good/f)];
 
   }
 }
@@ -158,21 +141,20 @@ FILES: {
     my (@files, @dirs);
     $fs->find_files(
       '.',
-      sub ($path, $stat) {
+      sub ($path) {
         push @files, $path;
       },
-      sub ($path, @) {
+      sub ($path) {
         push @dirs, $path;
         scalar fileparse($path) ne 'skip_further';
       },
     );
 
-    my @rel_files = sort map { File::Spec->abs2rel($_, $fs->cwd) } @files;
-    my @rel_dirs  = sort map { File::Spec->abs2rel($_, $fs->cwd) } @dirs;
+    @dirs  = map { File::Spec->canonpath($_) } sort @dirs;
+    @files = map { File::Spec->canonpath($_) } sort @files;
 
-
-    is_deeply \@rel_dirs,  [map { abs2rel rel2abs($_) } sort qw(a a/1 b b/1 skip_further)];
-    is_deeply \@rel_files, [map { abs2rel rel2abs($_) } sort qw( f.txt a/1/f.txt b/1/f.txt)];
+    is_deeply \@dirs,  [sort qw(a a/1 b b/1 skip_further)];
+    is_deeply \@files, [sort qw( f.txt a/1/f.txt b/1/f.txt)];
   }
 
 }
@@ -184,21 +166,14 @@ FILES_LINKS: {
     $fs->make_tree('links');
 
     $fs->symlink('f.txt', 'links/f.slnk');
-    $fs->symlink('404', 'links/bad.slnk');
+    $fs->symlink('404',   'links/bad.slnk');
     $fs->link('f.txt', 'links/f.hlnk');
 
     my (@files, @dirs);
-    $fs->find_files(
-      '.',
-      sub ($path, $stat) {
-        push @files, $path;
-      }
-    );
+    $fs->find_files('.', sub ($path) { push @files, $path; });
+    @files = map { File::Spec->canonpath($_) } sort @files;
 
-    my @rel_files = sort map { File::Spec->abs2rel($_, $fs->cwd) } @files;
-
-    $, = '; ';
-    is_deeply \@rel_files, ['f.txt'];
+    is_deeply \@files, ['f.txt'];
 
   }
 }

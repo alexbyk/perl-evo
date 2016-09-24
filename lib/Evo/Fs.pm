@@ -233,12 +233,10 @@ sub write_many ($self, %map) {
 
 sub find_files ($self, $start, $fhs_fn, $pick = undef) {
   my %seen;
-  my $fn = sub ($path, $stat) {
+  my $fn = sub ($path) {
+    my $stat = $self->stat($path);
     return unless $stat->is_file;
-
-    # to avoid messing hardlinks, also works for symlinks
-    return if $seen{($stat->dev, '-', $stat->ino)}++;
-    $fhs_fn->($path, $stat);
+    $fhs_fn->($path);
   };
   $self->traverse($start, $fn, $pick);
 }
@@ -247,37 +245,38 @@ sub find_files ($self, $start, $fhs_fn, $pick = undef) {
 sub traverse ($self, $start, $fn, $pick_d = undef) {
 
   $start = [$start] unless ref $start eq 'ARRAY';
-  my %seen;    # don't go into the same dir twice
+  my %seen_dirs;        # don't go into the same dir twice
+  my %seen_children;    # don't fire the same file twice
 
   my @stack = map {
-    my $abs  = $self->to_abs($_);
-    my $stat = $self->stat($abs);
-    $seen{($stat->dev, '-', $stat->ino)}++ ? () : [$abs, $stat];
-  } $start->@*;
+    my $path = $_;
+    my $stat = $self->stat($path);
+    $seen_dirs{($stat->dev, '-', $stat->ino)}++ ? () : ($path);
+  } reverse $start->@*;
 
   while (@stack) {
-    my ($cur_dir, $cur_dir_stat) = (pop @stack)->@*;
+    my $cur_dir = pop @stack;
 
     my (@dirs, @children);
     foreach my $cur_child (sort $self->ls($cur_dir)) {
 
-      my $abs = File::Spec->rel2abs($cur_child, $cur_dir);
-      next unless $self->exists($abs);    # broken link
-      my $stat = $self->stat($abs);
+      my $path = File::Spec->canonpath(File::Spec->join($cur_dir, $cur_child));
+      next unless $self->exists($path);    # broken link
+      my $stat = $self->stat($path);
 
 
       my $bool
         = $stat->is_dir
         && $stat->can_exec
         && $stat->can_read
-        && !($seen{$stat->dev, '-', $stat->ino}++)
-        && (!$pick_d || $pick_d->($abs, $stat));
+        && !$seen_dirs{$stat->dev, '-', $stat->ino}++
+        && (!$pick_d || $pick_d->($path));
 
-      unshift @dirs, [$abs, $stat] if $bool;
-      push @children, [$abs, $stat];
+      unshift @dirs, $path if $bool;
+      push @children, $path if !$seen_children{$stat->dev, '-', $stat->ino}++;
 
     }
-    $fn->($_->@*) for @children;
+    $fn->($_) for @children;
     push @stack, @dirs;
   }
 }
@@ -319,12 +318,12 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
     './',
 
     # do something with file
-    sub ($path, $stat) {
+    sub ($path) {
       say $path;
     },
 
     # skip dirs like .git
-    sub ($path, $stat) {
+    sub ($path) {
       scalar fileparse($path) !~ /^\./;
     }
   );
@@ -509,11 +508,11 @@ Convert a virtual path to the real one.
 
 =head2 find_files($self, $dirs, $fn, $pick=undef)
 
-  $fs->find_files('./tmp', sub ($fh, $stat) {...}, sub ($dir, $stat) {...});
-  $fs->find_files(['/tmp'], sub ($fh, $stat) {...});
+  $fs->find_files('./tmp', sub ($fh) {...}, sub ($dir) {...});
+  $fs->find_files(['/tmp'], sub ($fh) {...});
 
-Find files in given directories. You can skip some directories by providing C<$pick-E<gt>($dir, $stat)> function.
-This will work ok on circular links, hard links and so on. Every file and it's stat will be passed to C<$fn-E<gt>($fh, $stat)>only once
+Find files in given directories. You can skip some directories by providing C<$pick-E<gt>($dir)> function.
+This will work ok on circular links, hard links and so on. Every file and it's stat will be passed to C<$fn-E<gt>($fh)>only once
 even if it has many links.
 
 So, in situations, when a file have several hard and symbolic links, only one of them will be passed to C<$fn>, and potentially
@@ -523,13 +522,14 @@ See L</traverse> for examining all nodes. This method just decorate it's argumen
 
 =head2 traverse($self, $dirs, $fn $pick=undef)
 
-Traverse directories and invokes C<$fn-E<gt>$path, $stat> for each child node.
-Pay attention, unlike L</find_files>, C<$fn> accepts C<$path>, not C<Evo::Fs::File>
-You can provide C<$pick-E<gt>($dir, $stat)> to skip directories.
+Traverse directories and invokes C<$fn-E<gt>$path> for each child node.
 
+Each file is processed only once no matter how many links it has. So instead of real filename you can get a link and never get a real filename depending on which one (file or link) found first
 
-  $fs->traverse('/tmp', sub ($path, $stat) {...}, sub ($dir, $stat) {...});
-  $fs->traverse(['/tmp'], sub ($path, $stat) {...},);
+You can provide C<$pick-E<gt>($dir)> to skip directories.
+
+  $fs->traverse('/tmp', sub ($path) {...}, sub ($dir) {...});
+  $fs->traverse(['/tmp'], sub ($path) {...},);
 
 Also this method doesn't try to access directories without X and R permissions or pass them to C<$pick> (but such directories will be passed to C<fn> because are regular nodes)
 
