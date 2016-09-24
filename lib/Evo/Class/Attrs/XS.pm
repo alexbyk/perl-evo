@@ -17,12 +17,6 @@ $version ? XSLoader::load("Evo::Class::Attrs::XS", $version) : XSLoader::load("E
 
 sub new { bless [], shift }
 
-sub gen_attr ($self, $name, $type, $value, $check, $ro, $inject) {
-  my $slot_ref = $self->_reg_attr($name, $type, $value, $check, $ro, $inject);
-  $self->_gen_attr($slot_ref);
-}
-
-
 1;
 
 # ABSTRACT: XS implementation of attributes and "new" method generator
