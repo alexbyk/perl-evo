@@ -110,6 +110,10 @@ C<$level> determines how many frames to skip. In most cases it's C<1>
 
 =head2 try 
 
+The behaviour is just like JS's try catch finally with one exception: return
+statement in finally block doesn't matter, because in perl every subroutine
+returns something (and because it's more "as expected") and it't impossible to distinguish return/no return
+
   use Evo '-Lib try';
 
   # try + catch
@@ -118,17 +122,6 @@ C<$level> determines how many frames to skip. In most cases it's C<1>
   # try + catch + finally
   try sub { die "MyError" }, sub($e) { say "Catched: $e" }, sub { say "Finally" };
 
-The behaviour is just like JS's try catch finally with one exception: return
-statement in finally block doesn't matter, because in perl every subroitine
-returns something (and because it's more "as expected") 
-
-There is a similar and popular Try::Tiny, but it has a flaw: it can't catch errors in finally block.
-This module deal with this case the right way: If "finally" block throws an
-error, the exception will be thrown.
-
-Also this module is much faster and more tiny(~30 lines of code).
-
-=head3 Brief description
 
 Firstly "try_fn" will be executed. If it throws an error, "catch_fn" will be
 executed with that exception as an argument and perl won't die. "finally_fn",
@@ -164,6 +157,28 @@ Deals correctly with C<wantarray>
   # One-Two-Three
   say scalar try sub { wantarray ? (1, 2, 3) : 'One-Two-Three' }, sub {...};
 
+
+=head3 Motivation
+
+There is a similar and popular Try::Tiny, but it has a flaw: it can't catch errors in finally block.
+Which isn't unacceptable for module written for exception handling
+
+  use Evo 'Try::Tiny; -Lib try:evo_try; Test::More';
+
+  # try tiny can't catches errors here because of flaw in module design
+  eval {
+    try {} catch { } finally { die "foo\n" };
+  };
+  is $@, "foo\n", "Try::Tiny";
+
+  # Evo's try catches an error correctly
+  eval {
+    evo_try sub { }, sub { }, sub { die "foo\n" };
+  };
+  is $@, "foo\n", "Evo";
+
+Also this module is much faster (both PP and XS) and more tiny(~30 lines of code in PP). The only disadvantage is
+(is it?) it doesn't simulate "catch, finally" keyword. But for me it's not a problem
 
 =head2 eval_want
 
