@@ -58,6 +58,30 @@ static SV *psv_to_slotsv(SV *sv) {
 // it's the fastest way to hanlde arguments as perls (my %hash = @_)
 // point uniq to the element of args from which it will be uniq, return
 // length of uniq array. Complex, need code review
+//
+//
+// the idea is to refill a stack from the end, picking up only uniq values and
+// decreasing the offset (if current value is uniq)
+//
+// In the simple form(without KV, keys only): A B B. OFFSET is *
+//
+// 1. [A B *], current is B
+//   B is uniq, so decrease OFFSET. and write it (don't touch in our case
+//   because it's already here)
+// 2) [A * B]. current is B.
+//  B is found. Don't decrease offset
+// 3) [A * B]. current is A
+//  A is uniq. Write it and decrease offset
+// 4) [* A B], no current - end of loop. OFFSET++ (0++) to point to A
+//
+// So here is results: OFFSET from the beginning is 1 (skip one element):
+//
+// STACK now is:
+// A [A B]
+// return addres to the second element
+//
+// The function below works the same way, except it operates K,V elements
+//
 int args_to_uniq(SV *args[], int len_args, SV ***uniq) {
   dTHX;
   if (len_args % 2) croak("Not even list");
