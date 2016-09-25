@@ -2,7 +2,7 @@ use Evo 'Test::More; Evo::Internal::Exception';
 use File::Spec::Functions qw(abs2rel catdir rel2abs);
 use File::Temp;
 
-plan skip_all => "Win isn't supported yet" if $^O ne 'MSWin32';
+plan skip_all => "Win isn't supported yet" if $^O eq 'MSWin32';
 require Evo::Fs;
 
 PATH2REAL: {

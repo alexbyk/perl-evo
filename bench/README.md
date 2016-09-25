@@ -46,8 +46,33 @@ Also in perl build with MULTIPLICITY enabled this module is a little bit slower 
     cpanm Evo Try::Tiny
     perl bench/bench-try.pl
 
-### Results:
+We evaluate simple function `inc_c` that increases some counter and may die
 
-                      Rate     Try::Tiny Evo::Lib::try
-    Try::Tiny     111348/s            --          -88%
-    Evo::Lib::try 919803/s          726%            --
+    # Try::Tiny
+    try {inc_c} catch {dec_c} finally {dec_c};
+
+    # Evo
+    evo_try {inc_c} sub {dec_c}, sub {dec_c};
+
+    # eval
+    eval {inc_c};
+    my $err;
+    if (ref($@) || $@) { $err = $@; dec_c; }
+    dec_c;
+    die $err if $err;
+
+### Results(XS):
+
+    Try::Tiny      105218/s            --          -95%          -97%
+    Evo::Lib::try 1989486/s         1791%            --          -38%
+    eval          3185777/s         2928%           60%            --
+
+### Results(PP):
+
+    Try::Tiny      108742/s            --          -86%          -96%
+    Evo::Lib::try  771011/s          609%            --          -75%
+    eval          3099675/s         2750%          302%            --
+
+### Conclusions
+
+Evo's `try` is about 20 times faster than `Try::Tiny::try` and almost as fast as bare `eval` code, so XS can be used without performance penalty in production

@@ -1,51 +1,12 @@
 package Evo::Lib;
-use Evo '-Export *; Carp croak';
+use Evo '-Export *; Carp croak; Evo::Lib::PP * -try';    # only have try in XS
 
-sub uniq : Export {
-  my %seen;
-  return grep { !$seen{$_}++ } @_;
-}
+export_proxy 'Evo::Lib::PP', '*', '-try';
 
-sub strict_opts ($hash, $keys, $level = 1) : Export {
-  my %opts = %$hash;
-  my @opts = map { delete $opts{$_} } @$keys;
-  if (my @remaining = keys %opts) {
-    local $Carp::CarpLevel = $level;
-    croak "Unknown options: ", join ',', @remaining;
-  }
-  @opts;
-}
+our $IMPL = eval { require Evo::Lib::XS; 1 } ? 'Evo::Lib::XS' : 'Evo::Lib::PP';
+$IMPL->import('try');
+export('try');
 
-sub eval_want : Export {
-  my ($want, $fn) = (shift, pop);
-  if (!defined $want) {
-    eval { $fn->(@_); 1 } or return;
-    return sub { };
-  }
-  elsif (!$want) {
-    my $res;
-    eval { $res = $fn->(@_); 1 } or return;
-    return sub {$res};
-  }
-  else {
-    my @res;
-    eval { @res = $fn->(@_); 1 } or return;
-    return sub {@res};
-  }
-}
-
-sub try : prototype(&$;$) : Export {
-  my ($try, $catch, $fin) = @_;
-  my $call = eval_want wantarray, $try;
-  $call = eval_want wantarray, my $e = $@, $catch if !$call && $catch;
-  if ($call) {
-    $fin->() if $fin;
-    return $call->();
-  }
-  $e = $@;
-  $fin->() if $fin;
-  die $e;
-}
 
 # marked as deprecated 24.09.2016
 #use Time::HiRes qw(CLOCK_MONOTONIC);
@@ -157,6 +118,7 @@ Deals correctly with C<wantarray>
   # One-Two-Three
   say scalar try sub { wantarray ? (1, 2, 3) : 'One-Two-Three' }, sub {...};
 
+Also you should pay attention that it doesn't localize C<$@>. That's intentionally
 
 =head3 Motivation
 
