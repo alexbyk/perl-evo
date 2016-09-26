@@ -14,7 +14,6 @@ my sub _croak_bad_value ($val, $name, $msg) {
 
 sub new { bless [], shift }
 
-
 sub exists ($self, $name) {
   do { return 1 if $_->[0] eq $name }
     for @$self;
@@ -27,10 +26,6 @@ sub slots ($self) {
     @hash{qw(name type value check ro inject)} = @$_;
     \%hash;
   } @$self;
-}
-
-sub list_names($self) {
-  map { $_->[0] } @$self;
 }
 
 my sub _find_index ($self, $name) {
