@@ -23,8 +23,15 @@ has 'state' => PENDING;
 #  $self->d_v;
 #}
 
-
 ## CLASS METHODS
+sub promise ($me, $fn) {
+  my $d = Evo::Promise::Deferred->new(promise => my $p = $me->new());
+  $fn->(sub { $d->resolve(@_) }, sub { $d->reject(@_) });
+  $p;
+}
+
+sub deferred($me) { Evo::Promise::Deferred->new(promise => $me->new()); }
+
 sub resolve ($me, $v) : Export {
   my $d = Evo::Promise::Deferred->new(promise => $me->new());
   $d->resolve($v);
@@ -37,7 +44,7 @@ sub reject ($me, $v) : Export {
   $d->promise;
 }
 
-sub race($me, @prms) {
+sub race ($me, @prms) {
   my $d = Evo::Promise::Deferred->new(promise => $me->new());
   my $onF = sub { $d->resolve(@_) };
   my $onR = sub { $d->reject(@_) };
@@ -87,9 +94,9 @@ sub all ($me, @prms) : Export {
 ### OBJECT METHODS
 
 sub finally ($self, $fn) {
-  my $d     = Evo::Promise::Deferred->new(promise => ref($self)->new);
-  my $me = ref($self);
-  my $onF   = sub($v) {
+  my $d   = Evo::Promise::Deferred->new(promise => ref($self)->new);
+  my $me  = ref($self);
+  my $onF = sub($v) {
     $d->resolve($fn->());    # need pass result because it can be a promise
     $d->promise->then(sub {$v});
   };
@@ -232,4 +239,3 @@ This is a sexy and fast non-recursive implementation of Promise/A+
 See L<Mojo::Promise> for end-user library
 
 =cut
-

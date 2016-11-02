@@ -1,5 +1,5 @@
 package Mojo::Promise;
-use Evo '-Class; -Export *; -Promise::Deferred';
+use Evo '-Class; -Export *';
 use Mojo::IOLoop;
 
 with '-Promise::Role';
@@ -8,17 +8,7 @@ sub postpone ($me, $sub) {
   Mojo::IOLoop->next_tick($sub);
 }
 
-sub _promise($fn) : Export(promise) {
-  my $d = Evo::Promise::Deferred->new(promise => my $p = __PACKAGE__->new());
-  $fn->(sub { $d->resolve(@_) }, sub { $d->reject(@_) });
-  $p;
-}
-
-sub _deferred : Export(deferred) :
-  prototype() { Evo::Promise::Deferred->new(promise => __PACKAGE__->new()); }
-
-
-foreach my $fn (qw(resolve reject race all)) {
+foreach my $fn (qw(promise deferred resolve reject race all)) {
   export_code $fn , sub {
     __PACKAGE__->$fn(@_);
   };
