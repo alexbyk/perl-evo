@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0248    2016-11-02 17:19:34+02:00 Europe/Kiev
+
 Improve Evo::Class for working with alien Classes
 Made promise easy to use and integrate
 A lot of code refactoring happened
