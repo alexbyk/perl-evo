@@ -239,6 +239,38 @@ CLASH_ATTR: {
     is(My::Child->own, 'ATTR-OWN');
   }
 
+CLASH_WITH_ALIEN_SUB: {
+    my $parent = gen_meta;
+    my $child  = gen_meta('My::Child');
+    ## no critic
+    eval '
+    package My::Class; sub foo {"OVER"};
+    package My::Lib; sub foo {"LIB"};
+    package My::Child; *foo = *My::Lib::foo;
+    ';
+    like exception { $child->extend_with('My::Class') }, qr/My::Child.+subroutine.+foo.+$0/;
+    is(My::Child->foo, 'LIB');
+    $child->mark_as_overridden('foo');
+    $child->extend_with('My::Class');
+    is(My::Child->foo, 'LIB');
+  }
+
+CLASH_WITH_ALIEN_ISA: {
+    my $parent = gen_meta;
+    my $child  = gen_meta('My::Child');
+    ## no critic
+    eval '
+    package My::Alien; sub foo {"ISA"};
+    package My::Class; sub foo {"BAD"};
+    package My::Child; our @ISA = ("My::Alien");
+    ';
+    like exception { $child->extend_with('My::Class') }, qr/My::Child.+inherited.+foo.+$0/;
+    is(My::Child->foo, 'ISA');
+    $child->mark_as_overridden('foo');
+    $child->extend_with('My::Class');
+    is(My::Child->foo, 'ISA');
+  }
+
 
 }
 

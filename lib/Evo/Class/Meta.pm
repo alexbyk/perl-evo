@@ -147,6 +147,9 @@ sub extend_with ($self, $source_p) {
     next if $self->is_overridden($name);
     croak qq/$dest_p already has a subroutine with name "$name"/
       if Evo::Internal::Util::names2code($dest_p, $name);
+    croak
+      qq/$dest_p already has a (probably inherited by \@ISA) method "$name", define implementation with :Over tag/
+      if $dest_p->can($name);
     _check_exists($self, $name);    # prevent patching before check
     Evo::Internal::Util::monkey_patch $dest_p, $name, $methods{$name};
     $self->reg_method($name);
