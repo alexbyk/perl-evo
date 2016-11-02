@@ -83,6 +83,10 @@ sub reg_attr ($self, $name, @opts) {
   _check_exists_valid_name($self, $name);
   my $pkg = $self->package;
   croak qq{$pkg already has subroutine "$name"} if Evo::Internal::Util::names2code($pkg, $name);
+
+  croak
+    qq/$pkg already has a (probably inherited by \@ISA) method "$name", define implementation with "has_over" or :Over/
+    if $pkg->can($name);
   my $sub = $self->attrs->gen_attr($name, @opts);    # register
   Evo::Internal::Util::monkey_patch $pkg, $name, $sub;
 }

@@ -242,12 +242,8 @@ CLASH_ATTR: {
 CLASH_WITH_ALIEN_SUB: {
     my $parent = gen_meta;
     my $child  = gen_meta('My::Child');
-    ## no critic
-    eval '
-    package My::Class; sub foo {"OVER"};
-    package My::Lib; sub foo {"LIB"};
-    package My::Child; *foo = *My::Lib::foo;
-    ';
+    eval 'package My::Class; sub foo {"OVER"};';          ## no critic
+    eval '*My::Child::foo = sub {"LIB"};';                ## no critic
     like exception { $child->extend_with('My::Class') }, qr/My::Child.+subroutine.+foo.+$0/;
     is(My::Child->foo, 'LIB');
     $child->mark_as_overridden('foo');
@@ -271,7 +267,6 @@ CLASH_WITH_ALIEN_ISA: {
     is(My::Child->foo, 'ISA');
   }
 
-
 }
 
 
@@ -282,17 +277,19 @@ REG_ATTR: {
   ok $meta->is_attr('pub1');
   is(My::Class->pub1, 'ATTR-PUB1');
 
-  eval '*My::Class::mysub = sub { }';       ## no critic
-  eval 'package My::Class; sub own { }';    ## no critic
-
+  eval 'package My::Class; sub own { }';       ## no critic
+  eval '*My::Class::external = sub {}';        ## no critic
+  eval 'package My::Isa; sub isa { "ISA"}';    ## no critic
+  eval '@My::Class::ISA = ("My::Isa")';        ## no critic
 
   # errors
   like exception { $meta->reg_attr('pub1', parse()) }, qr/My::Class.+already.+attribute.+pub1.+$0/;
-  like exception { $meta->reg_attr('mysub', parse()) },
-    qr/My::Class.+already.+subroutine.+mysub.+$0/;
+  like exception { $meta->reg_attr('external', parse()) },
+    qr/My::Class.+already.+subroutine.+external.+$0/;
   like exception { $meta->reg_attr('own', parse()) }, qr/My::Class.+already.+method.+own.+$0/;
+  like exception { $meta->reg_attr('isa', parse()) }, qr/My::Class.+already.+inherited.+isa.+$0/;
   like exception { $meta->reg_attr('4bad', parse()); }, qr/4bad.+invalid.+$0/i;
-  ok !$meta->is_attr($_) for qw(mysub own 4bad);
+  ok !$meta->is_attr($_) for qw(external own 4bad isa);
 }
 
 REG_ATTR_OVER: {
@@ -302,17 +299,23 @@ REG_ATTR_OVER: {
   ok $meta->is_attr('pub1');
   is(My::Class->pub1, 'ATTR-PUB1');
 
-  eval '*My::Class::external = sub { }';    ## no critic
-  eval 'package My::Class; sub own { }';    ## no critic
+  eval '*My::Class::external = sub { }';       ## no critic
+  eval 'package My::Class; sub own { }';       ## no critic
+  eval 'package My::Isa; sub isa { "ISA"}';    ## no critic
+  eval '@My::Class::ISA = ("My::Isa")';        ## no critic
 
   $meta->reg_attr_over('external', parse lazy => sub {'ATTR-EXTERNAL'});
   $meta->reg_attr_over('pub1',     parse());
   $meta->reg_attr_over('own',      parse lazy => sub {'ATTR-OWN'});
+  $meta->reg_attr_over('isa',      parse lazy => sub {'ATTR-ISA'});
   ok $meta->is_overridden('pub1');
+  ok $meta->is_overridden('isa');
   ok $meta->is_overridden('own');
   ok $meta->is_overridden('external');
-  is(My::Class->own,      'ATTR-OWN');
-  is(My::Class->external, 'ATTR-EXTERNAL');
+  my $obj = bless {}, 'My::Class';
+  is($obj->own,      'ATTR-OWN');
+  is($obj->isa,      'ATTR-ISA');
+  is($obj->external, 'ATTR-EXTERNAL');
 }
 
 PUBLIC_ATTRS: {
@@ -376,6 +379,35 @@ CLASH_ATTR: {
     $child->reg_attr('pub1', parse());
     like exception { $child->extend_with('My::Class') }, qr/My::Child.+pub1.+$0/;
   }
+
+CLASH_WITH_ALIEN_SUB: {
+    my $parent = gen_meta;
+    my $child  = gen_meta('My::Child');
+    $parent->reg_attr('foo', parse());
+    eval '*My::Child::foo = sub {"LIB"};';    ## no critic
+    like exception { $child->extend_with('My::Class') }, qr/My::Child.+subroutine.+foo.+$0/;
+    is(My::Child->foo, 'LIB');
+    $child->mark_as_overridden('foo');
+    $child->extend_with('My::Class');
+    is(My::Child->foo, 'LIB');
+  }
+
+CLASH_WITH_ALIEN_ISA: {
+    my $parent = gen_meta;
+    my $child  = gen_meta('My::Child');
+    $parent->reg_attr('foo', parse());
+    ## no critic
+    eval '
+    package My::Alien; sub foo {"ISA"};
+    package My::Child; our @ISA = ("My::Alien");
+    ';
+    like exception { $child->extend_with('My::Class') }, qr/My::Child.+inherited.+foo.+$0/;
+    is(My::Child->foo, 'ISA');
+    $child->mark_as_overridden('foo');
+    $child->extend_with('My::Class');
+    is(My::Child->foo, 'ISA');
+  }
+
 
 }
 
