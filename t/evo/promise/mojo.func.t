@@ -8,14 +8,14 @@ BEGIN {
 use Mojo::Promise '*';
 
 
-my ($v, $r);
+my ($v, $r, $f);
 
 # promise
 my $p = promise(
   sub ($resolve, $reject) {
     $resolve->('hello');
   }
-)->then(sub { $v = shift; die "Foo\n" })->catch(sub { $r = shift });
+)->then(sub { $v = shift; die "Foo\n" })->catch(sub { $r = shift })->finally(sub { $f++ });
 
 ok !$v;
 ok !$r;
@@ -24,6 +24,7 @@ Mojo::IOLoop->start;
 
 is $v, 'hello';
 is $r, "Foo\n";
+is $f, 1;
 
 
 # deferred

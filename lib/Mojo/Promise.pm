@@ -118,13 +118,13 @@ all(first => $d1->promise, second => $d2->promise)
   ->spread(sub(%res) { say $_ , ': ', $res{$_} for keys %res });
 
 
-=head2 fin
+=head2 finnally
 
 Chain promise with a handler, that gets called with no argument when the parent promise is settled(fulfilled or rejected). When that handler returns a result, the next promise gets postponed. Value are ignored. If that handler causes an exception or returns rejected promise (or promise that will eventually gets rejected), the chain would be rejected.
 
 A shorter. Causes no effect on the chain unless rejection happens
 
-  resolve('VAL')->fin(sub() {'IGNORED'})->then(sub($v) { say $v});
+  resolve('VAL')->finally(sub() {'IGNORED'})->then(sub($v) { say $v});
 
 Usefull for closing connections etc. The idea described here: L<https://github.com/kriskowal/q#propagation>
 
