@@ -128,7 +128,7 @@ Firstly you need to load L<Evo::Export> with C<import> (or C<*>). This will impo
 By default, C<use Your::Module;>, without arguments will import nothing. You can change this behaviour to export all without arguments
 
   use Evo '-Export import_all:import';
-  use Evo '-Export *, -import, import_all:import';
+  use Evo '-Export * -import import_all:import';
 
 Using attribute C<Export>
 
