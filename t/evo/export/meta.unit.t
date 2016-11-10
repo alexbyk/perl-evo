@@ -114,7 +114,7 @@ REEXPORT_ALL: {
 
 INFO: {
   local $My::Foo::EVO_EXPORT_META;
-  my $obj  = Evo::Export::Meta->new('My::Foo');
+  my $obj = Evo::Export::Meta->new('My::Foo');
   ok $obj->info();
 }
 

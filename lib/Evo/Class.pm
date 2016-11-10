@@ -31,15 +31,13 @@ sub Over ($dest, $code, $name) : Attr {
 
 sub has ($me, $dest) : ExportGen {
   sub ($name, @opts) {
-    my @parsed = Evo::Class::Meta->parse_attr(@opts);
-    Evo::Class::Meta->find_or_croak($dest)->reg_attr($name, @parsed);
+    Evo::Class::Meta->find_or_croak($dest)->reg_attr($name, @opts);
   };
 }
 
 sub has_over ($me, $dest) : ExportGen {
   sub ($name, @opts) {
-    my @parsed = Evo::Class::Meta->parse_attr(@opts);
-    Evo::Class::Meta->find_or_croak($dest)->reg_attr_over($name, @parsed);
+    Evo::Class::Meta->find_or_croak($dest)->reg_attr_over($name, @opts);
   };
 }
 
@@ -351,7 +349,9 @@ You may want to use C<extends> and C<implements> separately to resolve circular 
 
 Mark name as overridden. Overridden means it will override the "parent's" method with the same name without diying
 
-=head2 WORKING WITH NON-EVO PARENT CLASSES
+=head1 WORKING WITH NON-EVO PARENT CLASSES
+
+TODO: this behaviour is subject to change, and maybe in the future I'll make this module to populate C<@ISA>
 
 In some case you may wish to inherite from non-evo classes using C<@ISA>. Evo class won't prevent that, but it will check method clashing and you wouldn't be able to pass that inheritance to children because Evo don't use C<@ISA> (but you can reinherit alien classes directly in the child)
 
@@ -384,5 +384,9 @@ You can also reimplement clashing methods with C<:Over> attribute, if both of Ev
   say My::Child->foo();    # EVO
 
 This is actually a good thing, because it prevents you from most of the "multiple inheritance" errors.
+
+=head1 INTERNAL
+
+Every class gets C<$EVO_CLASS_META> variable which holds an C<Evo::Class::Meta> instance. See L<Evo::Class::Meta/register>
 
 =cut

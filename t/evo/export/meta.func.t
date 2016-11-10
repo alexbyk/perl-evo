@@ -27,7 +27,9 @@ My::Foo->import('*') for 1 .. 2;
 is foo(),      'sub';
 is foo_anon(), 'anon';
 is foo_gen(),  'gen-My::Foo-main';
-ok !Evo::Internal::Util::pkg_stash('main', 'Evo::Export::Meta');
-ok Evo::Internal::Util::pkg_stash('My::Foo', 'Evo::Export::Meta');
+
+our $EVO_EXPORT_META;
+ok !$EVO_EXPORT_META;
+ok $My::Foo::EVO_EXPORT_META;
 
 done_testing;

@@ -53,8 +53,9 @@ use Evo '-Internal::Util';
 My::Foo->import('*', '-mybad') for 1 .. 2;
 My::Foo->import('mysub:mysubalias2') for 1 .. 2;
 
-ok !Evo::Internal::Util::pkg_stash('main', 'Evo::Export::Meta');
-ok Evo::Internal::Util::pkg_stash('My::Foo', 'Evo::Export::Meta');
+our $EVO_EXPORT_META;
+ok !$EVO_EXPORT_META;
+ok $My::Foo::EVO_EXPORT_META;
 is [Evo::Internal::Util::code2names(\&mysuba)]->[0], 'My::Foo';
 
 ok !main::->can('mybad');

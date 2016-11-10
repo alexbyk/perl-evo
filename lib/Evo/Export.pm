@@ -235,9 +235,19 @@ Better using with C<ExportGen> attribute
 
 =head4 EXPORT
 
-This method returns a bound instance of L<Evo::Export::Meta>.
+This method returns a bound instance of L<Evo::Export::Meta>, which is stored in package's C<$EVO_EXPORT_META> variable
 
-  say Dumper __PACKAGE__->EXPORT->info;
+  use Evo;
+  {
+
+    package My::Lib;
+    use Evo '-Export *', -Loaded;
+    sub foo : Export { }
+  }
+
+  use Data::Dumper;
+  say Dumper (My::Lib->EXPORT->info);
+  say Dumper ($My::Lib::EVO_EXPORT_META->info);
 
 =head4 import
 

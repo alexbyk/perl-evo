@@ -6,9 +6,8 @@ use Evo '/::Attrs *';
 our @CARP_NOT = qw(Evo::Class);
 
 sub register ($me, $package) {
-  my $self = Evo::Internal::Util::pkg_stash($package, $me);
-  return $self if $self;
-  $self = bless {
+  no strict 'refs';    ## no critic
+  ${"${package}::EVO_CLASS_META"} ||= bless {
     package    => $package,
     private    => {},
     attrs      => Evo::Class::Attrs->new,
@@ -16,12 +15,11 @@ sub register ($me, $package) {
     reqs       => {},
     overridden => {}
   }, $me;
-  Evo::Internal::Util::pkg_stash($package, $me, $self);
-  $self;
 }
 
 sub find_or_croak ($self, $package) {
-  Evo::Internal::Util::pkg_stash($package, $self) or croak "$package isn't Evo::Class";
+  no strict 'refs';    ## no critic
+  ${"${package}::EVO_CLASS_META"} or croak "$package isn't Evo::Class";
 }
 
 sub package($self) { $self->{package} }
@@ -79,7 +77,7 @@ sub _check_exists_valid_name ($self, $name) {
   _check_exists($self, $name);
 }
 
-sub reg_attr ($self, $name, @opts) {
+sub _reg_parsed_attr ($self, $name, @opts) {
   _check_exists_valid_name($self, $name);
   my $pkg = $self->package;
   croak qq{$pkg already has subroutine "$name"} if Evo::Internal::Util::names2code($pkg, $name);
@@ -91,12 +89,22 @@ sub reg_attr ($self, $name, @opts) {
   Evo::Internal::Util::monkey_patch $pkg, $name, $sub;
 }
 
-sub reg_attr_over ($self, $name, @opts) {
+sub _reg_parsed_attr_over ($self, $name, @opts) {
   _check_valid_name($self, $name);
   $self->mark_as_overridden($name);
   my $sub = $self->attrs->gen_attr($name, @opts);    # register
   my $pkg = $self->package;
   Evo::Internal::Util::monkey_patch_silent $pkg, $name, $sub;
+}
+
+sub reg_attr ($self, $name, @attr) {
+  my @opts = $self->parse_attr(@attr);
+  $self->_reg_parsed_attr($name, @opts);
+}
+
+sub reg_attr_over ($self, $name, @attr) {
+  my @opts = $self->parse_attr(@attr);
+  $self->_reg_parsed_attr_over($name, @opts);
 }
 
 # means register external sub as method. Because every sub in the current package
@@ -143,7 +151,7 @@ sub extend_with ($self, $source_p) {
 
   foreach my $slot ($source->_public_attrs_slots) {
     next if $self->is_overridden($slot->{name});
-    $self->reg_attr(@$slot{qw(name type value check ro inject)});
+    $self->_reg_parsed_attr(@$slot{qw(name type value check ro inject)});
     push @new_attrs, $slot->{name};
   }
 
@@ -250,6 +258,26 @@ sub info($self) {
 
 1;
 
+=head1 SYNOPSYS
+
+  use Evo;
+  {
+
+    package Foo::Bar;
+    use Evo::Class;
+  }
+
+  say Foo::Bar->META;
+  say Foo::Bar->META->attrs;
+  say $Foo::Bar::EVO_CLASS_META;
+  say $Foo::Bar::EVO_CLASS_META->attrs;
+  say $Foo::Bar::EVO_CLASS_META->{attrs};
+
+  Foo::Bar->META->reg_attr('foo');
+  use Data::Dumper;
+  say Dumper (Foo::Bar->META->attrs->slots);
+
+
 =head1 METHODS
 
 =head2 register
@@ -257,7 +285,11 @@ sub info($self) {
 Register a meta instance only once. The second invocation will return the same instance.
 But if it will be called from another subclass, die. This is a protection from the fool
 
-Meta is stored in C<$Some::Class::META_CLASS> global variable and lives as long as a package.
+Meta is stored in C<$Some::Class::EVO_CLASS_META> global variable and lives as long as a package.
+
+=head2 attrs
+
+Returns an inctance of attributes generator L<Evo::Class::Attrs>
 
 =head1 IMPLEMENTATION NOTES
 
@@ -266,7 +298,7 @@ Meta is stored in C<$Some::Class::META_CLASS> global variable and lives as long 
 "overridden" means this symbol will be skept during L</extend_with> so if you marked something as overridden, you should define method or sub yourself too.  This is not a problem with C<sub foo : Over {}> or L</reg_attr_over> because it marks symbol as overridden and also registers a symbol.
 
 BUT!!!
-Calling L</reg_attr_over> should be called
+L</reg_attr_over> should be called
 
 
 =head2 private

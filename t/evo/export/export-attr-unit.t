@@ -7,7 +7,8 @@ my $gen  = sub {$code};
 
 
 my @bad = HANDLER('My::Foo', $code, 'Bad', 'Export', 'Export(name2222)', 'Bad2()');
-ok my $meta = Evo::Internal::Util::pkg_stash('My::Foo', 'Evo::Export::Meta');
+no warnings 'once';
+ok my $meta = $My::Foo::EVO_EXPORT_META;
 is_deeply \@bad, ['Bad', 'Bad2()'];
 
 @bad = HANDLER('My::Bar', $code, 'Bad', 'ExportGen', 'ExportGen(name)', 'Bad2()');

@@ -6,22 +6,15 @@ our @CARP_NOT = qw(Evo Evo::Export Evo::Internal::Util);
 sub package($self) { $self->{package} }
 sub symbols($self) { $self->{symbols} //= {} }
 
-# build once per package or die
-sub bind_to ($me, $pkg, %opts) {
-  croak "$pkg already has $me instance" if Evo::Internal::Util::pkg_stash($pkg, $me);
-  my $obj = $me->new($pkg, %opts);
-  Evo::Internal::Util::pkg_stash($pkg, $me, $obj);
-}
-
 sub new ($me, $pkg, %opts) {
   $me = ref($me) if ref $me;
   bless {%opts, package => $pkg}, $me;
 }
 
-sub find_or_bind_to ($class, $package, %opts) {
-  my $obj = Evo::Internal::Util::pkg_stash($package, $class);
-  $obj = $class->bind_to($package, %opts) if !$obj;
-  $obj;
+sub find_or_bind_to ($me, $pkg, %opts) {
+  no strict 'refs'; ## no critic
+  no warnings 'once';
+  ${"${pkg}::EVO_EXPORT_META"} ||= $me->new($pkg, %opts);
 }
 
 # it's important to return same function for the same module

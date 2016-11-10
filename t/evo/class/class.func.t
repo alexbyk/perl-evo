@@ -29,6 +29,8 @@ use Evo::Internal::Exception;
 
 };
 
+ok $My::Foo::EVO_CLASS_META;
+ok $My::Foo::EVO_CLASS_META->{attrs};
 
 ok(My::Empty->new());
 

@@ -25,20 +25,6 @@ sub monkey_patch ($pkg, %hash) {
   *{"${pkg}::$_"} = $hash{$_} for keys %hash;
 }
 
-# store
-sub pkg_stash ($pkg, $key, $val = undef) {
-  no strict 'refs';    ## no critic
-  $pkg =~ /$RX_PKG/ or croak "$pkg isn't a valid package";
-  $key = ref($key) if ref($key);
-  $key =~ s/\:\:/_/g;
-  $key = uc $key;
-  if (@_ == 2) {
-    return ${"${pkg}::$key"};
-  }
-  ${"${pkg}::$key"} = $val;
-}
-
-
 #todo: decide what to do with empty subroutins
 sub monkey_patch_silent ($pkg, %hash) {
   no strict 'refs';    ## no critic

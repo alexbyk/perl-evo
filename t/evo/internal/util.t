@@ -103,25 +103,6 @@ MONKEY_PATCH: {
   is Bar::foo(), 'foo';
 }
 
-
-PKG_STASH: {
-  is Evo::Internal::Util::pkg_stash('My::Pkg', 'My::Meta'), undef;
-  Evo::Internal::Util::pkg_stash('My::Pkg', 'My::Meta', 'VAL');
-  is Evo::Internal::Util::pkg_stash('My::Pkg', 'My::Meta'), 'VAL';
-
-  is $My::Pkg::MY_META, 'VAL';
-
-  # second could represent a key too
-  my $obj = bless {}, 'My::Meta';
-  Evo::Internal::Util::pkg_stash('My::Pkg', $obj, 'VAL2');
-  is Evo::Internal::Util::pkg_stash('My::Pkg', $obj), 'VAL2';
-  is $My::Pkg::MY_META, 'VAL2';
-
-  # first should be a package
-  like exception { Evo::Internal::Util::pkg_stash($obj, 'My::Class') },
-    qr/My::Meta=HASH.+package.+$0/;
-}
-
 RESOLVE_PACKAGE: {
   sub resolve { Evo::Internal::Util::resolve_package('My::Caller', @_) }
 

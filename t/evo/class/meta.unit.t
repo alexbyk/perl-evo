@@ -7,7 +7,6 @@ no warnings 'redefine';    ## no critic
 my $loaded;
 local *Module::Load::load = sub { $loaded = shift };
 
-sub parse { Evo::Class::Meta->parse_attr(@_) }
 
 my $prev = Evo::Class::Attrs->can('gen_attr');
 local *Evo::Class::Attrs::gen_attr = sub ($self, $name, @opts) {
@@ -17,14 +16,14 @@ local *Evo::Class::Attrs::gen_attr = sub ($self, $name, @opts) {
 
 sub gen_meta($class = 'My::Class') {
   delete_package $class;
-  Evo::Internal::Util::pkg_stash($class, 'EVO_CLASS_META', undef);
   Evo::Class::Meta->register($class);
 }
 
 REGISTER: {
   my ($meta) = Evo::Class::Meta->register('My::Class');
   is $My::Class::EVO_CLASS_META, $meta;
-  is $meta,                      Evo::Class::Meta->register('My::Class');
+  ok $meta->{attrs};
+  is $meta, Evo::Class::Meta->register('My::Class');
 }
 
 BUILD_DEF: {
@@ -38,6 +37,8 @@ FIND_OR_CROAK: {
   like exception { Evo::Class::Meta->find_or_croak('My::Bad'); }, qr/My::Bad.+$0/;
 }
 
+
+sub parse { Evo::Class::Meta->parse_attr(@_) }
 PARSE_ATTR: {
 ERRORS: {
     # required + default doesn't make sense
@@ -139,20 +140,21 @@ IS_METHOD__REG_METHOD: {
   ok(My::Class->can('SEEK_CUR'));
   ok !$meta->is_method('SEEK_CUR');
 
-  $meta->reg_attr('attr1', parse());
+  $meta->reg_attr('attr1');
   like exception { $meta->reg_method('not_existing'); }, qr/doesn't exist.+$0/;
   like exception { $meta->reg_method('attr1'); },        qr/already.+attribute.+attr1.+$0/;
   like exception { $meta->reg_method('own'); },          qr/already.+own".+$0/;
-  like exception { $meta->reg_attr('4bad', parse()); }, qr/4bad.+invalid.+$0/i;
+  like exception { $meta->reg_attr('4bad'); },           qr/4bad.+invalid.+$0/i;
 
 }
+
 
 REG_METHOD: {
   my $meta = gen_meta;
   eval 'package My::Class; sub own {}';      ## no critic
   eval '*My::Class::external = sub { };';    ## no critic
 
-  $meta->attrs->gen_attr(attr1 => parse);
+  $meta->attrs->gen_attr('attr1', parse());
   like exception { $meta->reg_method('attr1'); },        qr/has attribute.+attr1.+$0/;
   like exception { $meta->reg_method('not_existing'); }, qr/doesn't exist.+$0/;
   like exception { $meta->reg_method('own'); },          qr/already.+own.+$0/;
@@ -162,6 +164,7 @@ REG_METHOD: {
   ok $meta->is_method('external');
 }
 
+
 PUBLIC_METHODS: {
 
   my $meta = gen_meta;
@@ -170,7 +173,7 @@ PUBLIC_METHODS: {
 
 
   # only own
-  $meta->attrs->gen_attr(bad => parse);
+  $meta->attrs->gen_attr('bad', parse);
   is_deeply { $meta->_public_methods_map }, {own => My::Class->can('own')};
   is_deeply [$meta->public_methods], [qw(own)];
 
@@ -234,7 +237,7 @@ CLASH_ATTR: {
     my $parent = gen_meta;
     eval 'package My::Class; sub own {"OWN"}';            ## no critic
     my $child = gen_meta('My::Child');
-    $child->reg_attr('own', parse(lazy => sub {'ATTR-OWN'}));
+    $child->reg_attr('own', lazy => sub {'ATTR-OWN'});
     like exception { $child->extend_with('My::Class') }, qr/My::Child.+own.+$0/;
     is(My::Child->own, 'ATTR-OWN');
   }
@@ -272,7 +275,7 @@ CLASH_WITH_ALIEN_ISA: {
 
 REG_ATTR: {
   my $meta = gen_meta;
-  $meta->reg_attr('pub1', parse lazy => sub {'ATTR-PUB1'});
+  $meta->reg_attr('pub1', lazy => sub {'ATTR-PUB1'});
 
   ok $meta->is_attr('pub1');
   is(My::Class->pub1, 'ATTR-PUB1');
@@ -283,18 +286,17 @@ REG_ATTR: {
   eval '@My::Class::ISA = ("My::Isa")';        ## no critic
 
   # errors
-  like exception { $meta->reg_attr('pub1', parse()) }, qr/My::Class.+already.+attribute.+pub1.+$0/;
-  like exception { $meta->reg_attr('external', parse()) },
-    qr/My::Class.+already.+subroutine.+external.+$0/;
-  like exception { $meta->reg_attr('own', parse()) }, qr/My::Class.+already.+method.+own.+$0/;
-  like exception { $meta->reg_attr('isa', parse()) }, qr/My::Class.+already.+inherited.+isa.+$0/;
-  like exception { $meta->reg_attr('4bad', parse()); }, qr/4bad.+invalid.+$0/i;
+  like exception { $meta->reg_attr('pub1') },     qr/My::Class.+already.+attribute.+pub1.+$0/;
+  like exception { $meta->reg_attr('external') }, qr/My::Class.+already.+subroutine.+external.+$0/;
+  like exception { $meta->reg_attr('own') },      qr/My::Class.+already.+method.+own.+$0/;
+  like exception { $meta->reg_attr('isa') },      qr/My::Class.+already.+inherited.+isa.+$0/;
+  like exception { $meta->reg_attr('4bad'); }, qr/4bad.+invalid.+$0/i;
   ok !$meta->is_attr($_) for qw(external own 4bad isa);
 }
 
 REG_ATTR_OVER: {
   my $meta = gen_meta;
-  $meta->reg_attr('pub1', parse lazy => sub {'ATTR-PUB1'});
+  $meta->reg_attr('pub1', lazy => sub {'ATTR-PUB1'});
 
   ok $meta->is_attr('pub1');
   is(My::Class->pub1, 'ATTR-PUB1');
@@ -304,10 +306,10 @@ REG_ATTR_OVER: {
   eval 'package My::Isa; sub isa { "ISA"}';    ## no critic
   eval '@My::Class::ISA = ("My::Isa")';        ## no critic
 
-  $meta->reg_attr_over('external', parse lazy => sub {'ATTR-EXTERNAL'});
-  $meta->reg_attr_over('pub1',     parse());
-  $meta->reg_attr_over('own',      parse lazy => sub {'ATTR-OWN'});
-  $meta->reg_attr_over('isa',      parse lazy => sub {'ATTR-ISA'});
+  $meta->reg_attr_over('external', lazy => sub {'ATTR-EXTERNAL'});
+  $meta->reg_attr_over('pub1');
+  $meta->reg_attr_over('own', lazy => sub {'ATTR-OWN'});
+  $meta->reg_attr_over('isa', lazy => sub {'ATTR-ISA'});
   ok $meta->is_overridden('pub1');
   ok $meta->is_overridden('isa');
   ok $meta->is_overridden('own');
@@ -320,8 +322,8 @@ REG_ATTR_OVER: {
 
 PUBLIC_ATTRS: {
   my $meta = gen_meta;
-  $meta->reg_attr('attr1', parse is => 'rw');
-  $meta->reg_attr('attr2', parse is => 'rw');
+  $meta->reg_attr('attr1', is => 'rw');
+  $meta->reg_attr('attr2', is => 'rw');
   is(My::Class->attr1, 'ATTR-ATTR1');
   is(My::Class->attr2, 'ATTR-ATTR2');
   my @attrs = $meta->public_attrs;
@@ -338,7 +340,7 @@ EXTEND_ATTRS: {
 
 NORMAL: {
     my $parent = gen_meta('My::Class');
-    $parent->reg_attr('pub1', parse());
+    $parent->reg_attr('pub1');
     my $child = gen_meta('My::Child');
     $child->extend_with('My::Class');
     ok $child->is_attr('pub1');
@@ -347,7 +349,7 @@ NORMAL: {
 
 PRIVATE: {
     my $parent = gen_meta('My::Class');
-    $parent->reg_attr('priv', parse());
+    $parent->reg_attr('priv');
     $parent->mark_as_private('priv');
     my $child = gen_meta('My::Child');
     $child->extend_with('My::Class');
@@ -356,7 +358,7 @@ PRIVATE: {
 
 OVERRIDEN: {
     my $parent = gen_meta('My::Class');
-    $parent->reg_attr('pub1', parse());
+    $parent->reg_attr('pub1');
     my $child = gen_meta('My::Child');
     eval '*My::Child::pub1 = sub {"OVER"}';    ## no critic
     $child->mark_as_overridden('pub1');
@@ -366,7 +368,7 @@ OVERRIDEN: {
 
 CLASH_SUB: {
     my $parent = gen_meta('My::Class');
-    $parent->reg_attr('pub1', parse());
+    $parent->reg_attr('pub1');
     my $child = gen_meta('My::Child');
     eval '*My::Child::pub1 = sub {"OVER"}';    ## no critic
     like exception { $child->extend_with('My::Class') }, qr/My::Child.+pub1.+$0/;
@@ -374,16 +376,16 @@ CLASH_SUB: {
 
 CLASH_ATTR: {
     my $parent = gen_meta('My::Class');
-    $parent->reg_attr('pub1', parse());
+    $parent->reg_attr('pub1');
     my $child = gen_meta('My::Child');
-    $child->reg_attr('pub1', parse());
+    $child->reg_attr('pub1');
     like exception { $child->extend_with('My::Class') }, qr/My::Child.+pub1.+$0/;
   }
 
 CLASH_WITH_ALIEN_SUB: {
     my $parent = gen_meta;
     my $child  = gen_meta('My::Child');
-    $parent->reg_attr('foo', parse());
+    $parent->reg_attr('foo');
     eval '*My::Child::foo = sub {"LIB"};';    ## no critic
     like exception { $child->extend_with('My::Class') }, qr/My::Child.+subroutine.+foo.+$0/;
     is(My::Child->foo, 'LIB');
@@ -395,7 +397,7 @@ CLASH_WITH_ALIEN_SUB: {
 CLASH_WITH_ALIEN_ISA: {
     my $parent = gen_meta;
     my $child  = gen_meta('My::Child');
-    $parent->reg_attr('foo', parse());
+    $parent->reg_attr('foo');
     ## no critic
     eval '
     package My::Alien; sub foo {"ISA"};
@@ -418,7 +420,7 @@ REQUIREMENTS: {
   eval '*My::Class::bad = sub {"FOO"}';      ## no critic
   eval '*My::Class::meth1 = sub {"FOO"}';    ## no critic
   eval 'package My::Class; sub own {}';      ## no critic
-  $meta->reg_attr('attr1', parse());
+  $meta->reg_attr('attr1');
   $meta->reg_method('meth1');
   $meta->reg_requirement('req1');
 
@@ -438,7 +440,7 @@ EXTEND_REQUIREMENTS: {
   eval 'package My::Class; sub own {}';         ## no critic
   $meta->reg_requirement('req1');
   $meta->reg_method('meth1');
-  $meta->reg_attr('attr1', parse());
+  $meta->reg_attr('attr1');
   $child->extend_with('My::Class');
 
   is_deeply [sort $child->requirements], [sort qw(req1 meth1 own attr1)];
@@ -460,7 +462,7 @@ CHECK_IMPLEMENTATION: {
   like exception { $meta->check_implementation('My::Inter'); }, qr/myattr;mymeth.+$0/;
 
   # method, attr, sub
-  $meta->reg_attr('myattr', parse());
+  $meta->reg_attr('myattr');
   eval 'package My::Class; sub mymeth {"FOO"}';    ## no critic
   eval '*My::Class::mysub = sub {"FOO"}';          ## no critic
 
@@ -471,7 +473,7 @@ CHECK_IMPLEMENTATION: {
 DUMPING: {
 
   my $meta = gen_meta();
-  $meta->reg_attr('a', parse());
+  $meta->reg_attr('a');
   $meta->reg_requirement('r');
   eval '*My::Class::mymethod = sub {"FOO"}';       ## no critic
   $meta->reg_method('mymethod');
