@@ -20,6 +20,7 @@ It provides rewritten and postmodern features like
 - Fast non recursive [Mojo::Promise](https://metacpan.org/pod/Mojo::Promise), 100% Promises/Spec A compatible.
 - Exception handling in pure perl: [Evo::Lib::try](https://metacpan.org/pod/Evo::Lib#try), like "try catch" but the perl way.
 - [Evo::Ee](https://metacpan.org/pod/Evo::Ee) - a class role that gives your component "EventEmitter" abilities
+- [Evo::Di](https://metacpan.org/pod/Evo::Di) - dependencies injection
 
 ![GIF Demo](https://raw.github.com/alexbyk/perl-evo/master/demo.gif)
 

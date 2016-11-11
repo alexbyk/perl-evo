@@ -1,5 +1,6 @@
 package main;
 use Evo 'Test::More; Evo::Di; Evo::Class::Meta; Evo::Internal::Exception';
+use Evo '-Class::Syntax *';
 use Module::Loaded qw(mark_as_loaded is_loaded);
 use Symbol 'delete_package';
 
@@ -28,8 +29,8 @@ OK: {
   local *Evo::Di::load      = sub { push @load_args,      @_; return };
   local *Evo::Di::is_loaded = sub { push @is_loaded_args, @_; return };
 
-  $meta->reg_attr('d1', inject => 'My::Dep1');
-  $meta->reg_attr('d2', inject => 'My::Dep2');
+  $meta->reg_attr('d1', inject 'My::Dep1');
+  $meta->reg_attr('d2', inject 'My::Dep2');
   my @unresolved = $di->_di_list_pending('My::Class');
 
   is_deeply \@unresolved,     ['My::Dep1', 'My::Dep2'];
@@ -41,7 +42,7 @@ ALREADY_IN_STASH: {
   my $di = Evo::Di->new();
   $di->{di_stash}{'Foo/bar'} = 1;
   my $meta = reset_class();
-  $meta->reg_attr('d1', inject => 'Foo/bar', required => 1);
+  $meta->reg_attr('d1', inject 'Foo/bar',);
   ok !$di->_di_list_pending('My::Class');
 }
 
@@ -53,8 +54,8 @@ DONT_LOAD_UNLESS_NEEDED: {
   local *Evo::Di::load      = sub { fail "shouldn't be called" };
   local *Evo::Di::is_loaded = sub {1};
 
-  $meta->reg_attr('d1', inject => 'My::Dep1');
-  $meta->reg_attr('d2', inject => 'My::Dep2');
+  $meta->reg_attr('d1', inject 'My::Dep1');
+  $meta->reg_attr('d2', inject 'My::Dep2');
   my @unresolved = $di->_di_list_pending('My::Class');
 
   is_deeply \@unresolved, ['My::Dep1', 'My::Dep2'];
@@ -64,21 +65,21 @@ MISSING_REQUIRED_DIE: {
   my $di   = Evo::Di->new();
   my $meta = reset_class();
 
-  $meta->reg_attr('d1', inject => 'My::Dep1', required => 1);
+  $meta->reg_attr('d1', inject 'My::Dep1',);
   like exception { $di->_di_list_pending('My::Class') }, qr/"My::Dep1" for class "My::Class".+$0/;
 }
 
 MISSING_BUT_NOT_REQUIRED: {
   my $di   = Evo::Di->new();
   my $meta = reset_class();
-  $meta->reg_attr('d1', inject => 'My::Dep1');
+  $meta->reg_attr('d1', inject 'My::Dep1', optional);
   ok !$di->_di_list_pending('My::Class');
 }
 
 MISSING_REQUIRED: {
   my $di   = Evo::Di->new();
   my $meta = reset_class();
-  $meta->reg_attr('opt1', inject => '.opt1', required => 1);
+  $meta->reg_attr('opt1', inject '.opt1',);
   like exception { $di->_di_list_pending('My::Class') }, qr/".opt1".+"My::Class"/;
   ok !exists $di->di_stash->{"My::Class."};
 
@@ -92,7 +93,7 @@ MISSING_REQUIRED: {
 MISSING_NOT_REQUIRED: {
   my $di   = Evo::Di->new();
   my $meta = reset_class();
-  $meta->reg_attr('opt1', inject => '.opt1');
+  $meta->reg_attr('opt1', inject '.opt1', optional);
   ok !$di->_di_list_pending('My::Class');
   ok !exists $di->di_stash->{"My::Class."};
 

@@ -4,6 +4,8 @@ use Evo 'Module::Load load; Module::Loaded is_loaded; Carp croak';
 
 has di_stash => sub { {} };
 
+our @CARP_NOT = ('Evo::Class::Attrs');
+
 sub single ($self, $key) {
   return $self->{di_stash}{$key} if exists $self->{di_stash}{$key};
   load $key;
@@ -103,19 +105,19 @@ sub _di_build ($self, $key) {
 
     package My::C1;
     use Evo -Class, -Loaded;
-    has c2 => required => 1, inject => 'My::C2';
+    has c2 => inject 'My::C2';
 
     # dot notation
-    has host => required => 1, inject => '.ip';
-    has port => required => 1, inject => '.port';
+    has host => inject '.ip';
+    has port => inject '.port';
 
     package My::C2;
     use Evo -Class, -Loaded;
-    has c3 => required => 1, inject => 'My::C3';
+    has c3 => inject 'My::C3';
 
     package My::C3;
     use Evo -Class, -Loaded;
-    has foo => required => 1, inject => 'FOO';
+    has foo => inject 'FOO';
 
   }
 
@@ -142,13 +144,13 @@ Injection is a value of C<inject> option in L<Evo::Class>. Use it this way
 
 If you need to describe a dependency of some class, write this class
   
-  has dep => inject => 'My::Class';
+  has dep => inject 'My::Class';
 
 This class will be build, resolved and injected
 
 If you need to provide a global value, for example, processor cores, you can use UPPER_CASE constants. You need to provide a value for this dependency
 
-  has cores => inject => 'CORES';
+  has cores => inject 'CORES';
   $di->provide(CORES => 8);
 
 If you need to provide some constant for class, use it this way
@@ -158,7 +160,7 @@ If you need to provide some constant for class, use it this way
 
 For convineince, there is a special "dot notation". C<inject> field should start with dot and dependency in format "Class::Name."(dot at the and) should be a hash reference, containing keys
 
-  has ip => required => 1, inject => '.ip';
+  has ip => inject '.ip';
   $di->provide('My::C1.' => {ip => '127.0.0.1', port => '3000'});
 
 Usefull for configuration
@@ -198,10 +200,10 @@ If dependency is dot notation, module will check if it's provided and die, if it
 
 =head4 optional dependency
 
-If an attribute isn't C<required>, such attribute will be ignored.
+If an attribute is L<Evo::Class/optional>, such attribute will be ignored.
 
 =head4 required dependency
 
-If an attribute is C<required>, die.
+If an attribute isrequired, die.
 
 =cut

@@ -11,21 +11,21 @@ use Evo::Internal::Exception;
   package My::Foo;
   use Evo -Class, -Loaded;
 
-  has 'foo', is => 'ro';
-  has 'gt10', check => sub { $_[0] > 10 }, is => 'ro';
-  has 'gt10rw', check => sub { $_[0] > 10 };
-  has 'req', required => 1;
+  has 'foo',    optional;
+  has 'gt10',   optional, check sub { $_[0] > 10 };
+  has 'gt10rw', optional, rw, check sub { $_[0] > 10 };
+  has 'req';
 
-  has lazyfn => lazy => sub { 'LFN' . rand() };
-  has lazyfnch => lazy => sub { 'LFNCH' . rand() }, check => sub {1};
+  has lazyfn => lazy, sub { 'LFN' . rand() };
+  has lazyfnch => lazy, check sub {1}, sub { 'LFNCH' . rand() };
   has with_dv => 'DV';
   has with_dfn => sub {'DFN'};
 
   package My::Bar;
   use Evo -Class, -Loaded;
   has adef => 1;
-  has 'alazy', lazy => sub {'L'};
-  has 'asimple';
+  has 'alazy', lazy, sub {'L'};
+  has 'asimple', optional, rw;
 
 };
 

@@ -1,8 +1,8 @@
 package Evo::Promise::Deferred;
 use Evo '-Class *';
 
-has 'promise', required => 1, is => 'ro';
-has 'called';
+has 'promise';
+has 'called', optional, rw;
 
 sub reject ($self, $r) {
   return if $self->called;

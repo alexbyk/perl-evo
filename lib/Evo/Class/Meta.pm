@@ -1,7 +1,6 @@
 package Evo::Class::Meta;
-use Evo 'Carp croak; Scalar::Util reftype; -Lib strict_opts; -Internal::Util; Module::Load ()';
-use Evo '/::Attrs *';
-
+use Evo 'Carp croak; Scalar::Util reftype; -Internal::Util; Module::Load ()';
+use Evo '/::Attrs *; /::Syntax *';
 
 our @CARP_NOT = qw(Evo::Class);
 
@@ -200,46 +199,25 @@ sub check_implementation ($self, $inter_class) {
 # check?
 # is_ro?
 
-my @KNOWN_HAS = qw(default required lazy check is inject);
-
 sub parse_attr ($me, @attr) {
-  my %unknown = my %opts = (@attr % 2 ? (default => @attr) : @attr);
-  delete $unknown{$_} for @KNOWN_HAS;
-  croak "unknown options: " . join(',', sort keys %unknown) if keys %unknown;
+  my @scalars = grep { $_ ne SYNTAX_STATE } @attr;
+  croak "expected 1 scalar, got: " . join ',', @scalars if @scalars > 1;
+  my %state = syntax_reset;
 
-  #use constant {I_NAME => 0, I_TYPE => 1, I_RO => 2, I_CHECK => 3, I_VALUE => 4};
-  my ($type, $ro, $check, $value);
+  croak qq#"optional" flag makes no sense with default("$scalars[0]")#
+    if $state{optional} && @scalars;
+  croak qq#"lazy" requires code reference#
+    if $state{lazy} && (reftype($scalars[0]) // '') ne 'CODE';
+  croak qq#default("$scalars[0]") should be either a scalar or a code reference#
+    if @scalars && ref($scalars[0]) && reftype($scalars[0]) ne 'CODE';
 
-  # detect rtype
-  my $seen = 0;
-  if (exists $opts{default}) {
-    croak qq#"default" should be either a code reference or a scalar value#
-      if ref($opts{default}) && (reftype($opts{default}) // '') ne 'CODE';
-    ++$seen;
-    $type = ref($opts{default}) ? ECA_DEFAULT_CODE : ECA_DEFAULT;
-    $value = $opts{default};
-  }
-  do { ++$seen; $type = ECA_REQUIRED; } if $opts{required};
-  if (exists $opts{lazy}) {
-    croak qq#"lazy" should be a code reference# if (reftype($opts{lazy}) // '') ne 'CODE';
-    ++$seen;
-    $type  = ECA_LAZY;
-    $value = $opts{lazy};
-  }
-  croak qq{providing more than one of "default", "lazy", "required" doesn't make sense}
-    if $seen > 1;
 
-  croak qq#"check" should be a code reference#
-    if exists($opts{check}) && (reftype($opts{check}) // '') ne 'CODE';
-
-  my $is = $opts{is} // 'rw';
-  croak qq#invalid "is": "$is"# unless $is eq 'ro' || $is eq 'rw';
-
-  $ro = $is eq 'ro' ? 1 : 0;
-  $check = $opts{check} if exists $opts{check};
-  $type ||= ECA_SIMPLE;
-
-  return ($type, $value, $check, $ro, $opts{inject});
+  my $type;
+  if    ($state{optional}) { $type = ECA_OPTIONAL if $state{optional}; }
+  elsif ($state{lazy})     { $type = ECA_LAZY     if $state{lazy}; }
+  elsif (@scalars) { $type = ref($scalars[0]) ? ECA_DEFAULT_CODE : ECA_DEFAULT; }
+  else             { $type = ECA_REQUIRED; }
+  return ($type, $scalars[0], $state{check}, $state{rw} ? 0 : 1, $state{inject});
 }
 
 sub info($self) {

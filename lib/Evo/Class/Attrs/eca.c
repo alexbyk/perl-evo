@@ -44,7 +44,7 @@ static ECAslot *eca_init(char *name, ECAtype type, SV *value, SV *check,
 
   switch (type) {
 
-  case ECA_RELAXED:
+  case ECA_OPTIONAL:
     break;
   case ECA_LAZY: // no need to store undef
     if (SvTRUE(value)) slot->value = newSVsv(value);

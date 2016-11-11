@@ -35,7 +35,7 @@ ONCE: {
 THENABLE_RES_NB: {
   my $d = gen;
   my ($res, $rej);
-  my $thenable = My::Thenable->new->then_fn(sub { shift; ($res, $rej) = @_ });
+  my $thenable = My::Thenable->new(then_fn => sub { shift; ($res, $rej) = @_ });
   is $d->try_thenable($thenable), $d;
   ok !$d->should_resolve;
   ok !$d->called;
@@ -49,8 +49,8 @@ THENABLE_RES_NB: {
 THENABLE_RES_BL: {
   my $d = gen;
 
-  my $thenable = My::Thenable->new->then_fn(
-    sub {
+  my $thenable = My::Thenable->new(
+    then_fn => sub {
       shift;
       my ($res, $rej) = @_;
       $res->(0);
@@ -70,7 +70,7 @@ THENABLE_RES_BL: {
 THENABLE_REJ_NB: {
   my $d = gen;
   my ($res, $rej);
-  my $thenable = My::Thenable->new->then_fn(sub { shift; ($res, $rej) = @_ });
+  my $thenable = My::Thenable->new(then_fn => sub { shift; ($res, $rej) = @_ });
   $d->try_thenable($thenable);
   ok !$d->should_resolve;
   ok !$d->called;
@@ -83,8 +83,8 @@ THENABLE_REJ_NB: {
 
 THENABLE_RES_BL: {
   my $d        = gen;
-  my $thenable = My::Thenable->new->then_fn(
-    sub {
+  my $thenable = My::Thenable->new(
+    then_fn => sub {
       shift;
       my ($res, $rej) = @_;
       $rej->(0);
@@ -100,7 +100,7 @@ THENABLE_RES_BL: {
 }
 
 CATCH: {
-  my $thenable = My::Thenable->new->then_fn(sub { die "Foo\n" });
+  my $thenable = My::Thenable->new(then_fn => sub { die "Foo\n" });
   my $d = gen;
   $d->try_thenable($thenable);
   ok $d->called;

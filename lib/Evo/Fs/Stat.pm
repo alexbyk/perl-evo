@@ -2,20 +2,20 @@ package Evo::Fs::Stat;
 use Evo -Class, 'Fcntl :mode';
 use File::stat();
 
-has 'dev',     required => 1, is => 'ro';
-has 'ino',     required => 1, is => 'ro';
-has 'mode',    required => 1, is => 'ro';
-has 'nlink',   required => 1, is => 'ro';
-has 'uid',     required => 1, is => 'ro';
-has 'gid',     required => 1, is => 'ro';
-has 'rdev',    required => 1, is => 'ro';
-has 'size',    required => 1, is => 'ro';
-has 'atime',   required => 1, is => 'ro';
-has 'mtime',   required => 1, is => 'ro';
-has 'ctime',   required => 1, is => 'ro';
-has 'blksize', required => 1, is => 'ro';
-has 'blocks',  required => 1, is => 'ro';
-has '_data',   required => 1, is => 'ro';
+has 'dev';
+has 'ino';
+has 'mode';
+has 'nlink';
+has 'uid';
+has 'gid';
+has 'rdev';
+has 'size';
+has 'atime';
+has 'mtime';
+has 'ctime';
+has 'blksize';
+has 'blocks';
+has '_data';
 
 sub is_file($self) { S_ISREG($self->mode) }
 sub is_dir($self)  { S_ISDIR($self->mode) }

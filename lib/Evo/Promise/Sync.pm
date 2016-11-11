@@ -1,8 +1,8 @@
 package Evo::Promise::Sync;
 use Evo '-Class *';
 
-has 'promise', required => 1, is => 'ro';
-has $_ for qw(called v blocking should_resolve);
+has 'promise';
+has $_, optional, rw for qw(called v blocking should_resolve);
 
 sub reject ($self, $r) {
   return if $self->called;

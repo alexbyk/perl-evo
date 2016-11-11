@@ -15,23 +15,23 @@ We're benchmarking Moo + Class::XSAccessor, Mouse(which is XS by itself) and Evo
 
     New(strict)
             Rate   Moo Mouse   Evo
-    Moo    453/s    --  -30%  -73%
-    Mouse  645/s   43%    --  -61%
-    Evo   1675/s  270%  160%    --
+    Moo    440/s    --  -26%  -74%
+    Mouse  599/s   36%    --  -64%
+    Evo   1674/s  280%  179%    --
 
 
     Simple get+set
                Rate   Moo Mouse   Evo
-    Moo   3920956/s    --  -16%  -26%
-    Mouse 4647098/s   19%    --  -13%
-    Evo   5316295/s   36%   14%    --
+    Moo   4647097/s    --  -10%  -11%
+    Mouse 5144881/s   11%    --   -1%
+    Evo   5193418/s   12%    1%    --
 
 
     Lazy + default + simple
                Rate   Moo Mouse   Evo
-    Moo   1592888/s    --  -27%  -31%
-    Mouse 2182991/s   37%    --   -5%
-    Evo   2293759/s   44%    5%    --
+    Moo   1522406/s    --  -26%  -32%
+    Mouse 2047999/s   35%    --   -8%
+    Evo   2226950/s   46%    9%    --
 
 ### Conclusions
 

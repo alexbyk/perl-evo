@@ -33,10 +33,7 @@ our @CARP_NOT = qw(Evo::Fs::Temp);
 #}
 
 my $CWD = Cwd::getcwd();
-has
-  'cwd' => $CWD,                                                # on module load
-  check => sub($v) { File::Spec->file_name_is_absolute($v) },
-  is    => 'ro';
+has 'cwd' => $CWD, check sub($v) { File::Spec->file_name_is_absolute($v) };    # on module load
 
 
 sub cd ($self, $path) {

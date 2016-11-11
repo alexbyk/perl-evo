@@ -1,6 +1,8 @@
 package Evo::Class;
 use Evo '-Export export_proxy; Evo::Class::Meta';
 
+export_proxy '::Syntax', qw(lazy rw optional check inject);
+
 sub new ($me, $dest) : ExportGen {
   Evo::Class::Meta->find_or_croak($dest)->attrs->gen_new;
 }
@@ -79,9 +81,9 @@ sub with ($me, $dest) : ExportGen {
     package My::Human;
     use Evo -Class, -Loaded;
 
-    has 'name' => 'unnamed';
-    has 'gender', is => 'ro', required => 1;
-    has age => check => sub($v) { $v >= 18 };
+    has 'name' => 'unnamed', rw;
+    has 'gender';
+    has age => optional, rw, check sub($v) { $v >= 18 };
     sub greet($self) { say "I'm " . $self->name }
   }
 
@@ -110,7 +112,7 @@ sub with ($me, $dest) : ExportGen {
 
     package My::Developer;
     use Evo -Class;
-    with 'My::Human'; # extends 'My::Human'; implements 'My::Human';
+    with 'My::Human';    # extends 'My::Human'; implements 'My::Human';
 
     has lang => 'Perl';
 
@@ -125,28 +127,31 @@ sub with ($me, $dest) : ExportGen {
   my $dev = My::Developer->new(gender => 'male');
   $dev->show;
 
-
 =head1 DESCRIPTION
 
 Fast full featured post-modern Object oriented programming. Available both in PP and C. See L<https://github.com/alexbyk/perl-evo/tree/master/bench>
 
-=head2 INTRO
 
-This module doesn't use perl's @ISA inheritance. This module isn't Moose compatible by design
+=head1 SYNTAX
 
-I decided to avoid mistakes of common OO practices. All derivered classes are flat. 
-If a parent and a child both have a method with the same name,
-an exception will be thrown untill you specifically mark that's the child's method is overriden (see </Overriding>). You will be glad how many mistakes can save this
-decision.
+=head2 DIFFERENCES WITH SIMILAR MODULES
 
-So right now in C<Evo::Class> "multiple inheritance", (which was considered as an antipatern), is ok and a right way to reuse a code.
+You will find thet syntax differs from other modules, such C<Moose>, C<Moo>. That's because I decided not to copy and made it to be as short/safe/obvious/common as possible. Give it a try
 
-This module is rich enough to write big applications. If some "Moose" feature is missing (for example, lazy functions exists while lazy value are dropped out), that's because
-I considered it as antipattern. As a result, this whole module is ~300 lines of code and covers all needs.
+=head2 EXPORTING SYNTAX
 
-Also, this module saves a lot of typings by providing a "short" syntax.
+By default this module exports some keywords, like C<has>, C<check>, C<rw> and so on. If your code conflicts with them, don't worry, perl will notify you and you can either rename conflicting methods, or exclude them from exporting/rename them this way:
 
-And last, but not least, this module is suprisingly fast. Available both in PP and XS variants. So give it a try
+  use Evo '-Class * -check -has has:attr';
+  attr foo => 'FOO';
+
+  sub check { }
+  sub has   { }
+
+  say __PACKAGE__->new->foo;
+
+We skipped C<check> and C<has>, because they conflict with our methods, and export C<has> under C<attr> name, because we need it.
+
 
 =head1 Usage
 
@@ -161,75 +166,55 @@ And last, but not least, this module is suprisingly fast. Available both in PP a
   my $foo = My::Class->new(simple => 1);
   my $foo2 = My::Class->new();
 
-We're protected from common mistakes, because constructor won't accept unknown attributes.
+We're protected from common mistakes, because constructor won't accept unknown attributes. Also, if attributes aren't optional and have additional flags, they will be checked too.
 
-=head2 Declaring attribute
+=head2 Attributes
 
-  package My::Foo;
-  use Evo '-Class *';
+  has 'foo';
+  has 'bar' => 'BAR', rw, check sub {1};
+  has 'baz' => rw, 'BAZ';
 
-  has 'simple';
-  has 'short' => 'value';
-  has 'foo' => default => 'value', is => 'rw', check => sub {1};
+Without options attributes are required and read-only. You can pass extra flags/options + a default value in any order. If you make a mistake, smart syntax parser will notify you. In the example above default values are C<BAR> and C<BAZ>. Pay attention, C<rw> and C<check> are not strings, so C<'rw'> or C<check =E<gt>> is a mistake.
 
-=head2 Syntax
+=head3 Flags and Options
 
-Simple rw attribute
+=head4 rw
 
-  has 'simple';
-  # has 'simple', is => 'rw';
+Make attribute read-write
 
-Attribute with default value: short form
+=head4 default value
 
-  has 'short' => 'value';
-  # has 'short', default => 'value';
+Default value can be a scalar or a code reference, which will be called with a class as the first argument, unless C<lazy> flag is passed
 
-Full form
+  has 'def_code' => sub($class) { uc "$class" };
+  say __PACKAGE__->new->def_code;
 
-  has 'foo' => default => 'value', is => 'rw', check => sub {1};
+You can't use a reference, except a code reference, as a default value. To return, for example, a hashref, use this:
 
-=head3 Options
-
-=head4 is
-
-Can be 'rw' or 'ro'; Unlike Perl6 is 'rw' by default
-
-=head4 default
-
-Attribute will be filled with this value if isn't provided to the C<new> constructor You can't use references, but you can provide a coderef instead of value, in this case return value of an invocation of this function will be used.
-
-  has ref => sub($class) { {} };
-  has foo => default => sub($class) { [] };
-
-This is a good way to init some attribute that should always exists. Arguments, passed to C<new> or C<init>  will be passed to the function without object itself (because there are no object yet). If you're expecting another behaviour, check L</lazy>
+  has foo => sub($class) { { class => $class } };
+  say __PACKAGE__->new->foo->{class};
 
 =head4 lazy
 
-Like default, but will be filled at the first invocation, not in constructor, and an instance will be passed as the argument
+This flag changes a behaviour of default value. It should be a code that will be called at the first invocation, not in constructor, and an instance will be passed as the argument. The result of this invocation will be stored in attribute
 
-  # pay attention, an instance is passed
-  has foo => lazy => sub($self) { [] };
+  has foo => lazy, sub($self) { [] };
+  say __PACKAGE__->new->foo;
 
-You should know that using this feature is an antipattern in the most of the cases. L</default> is preferable if you're not sure
+You should know that using this feature is an antipattern in the most of the cases.
 
-=head4 required
+=head4 optional
 
-  has 'foo', required => 1;
+  has 'foo', optional;
 
-Attributes with this options are required and will be checked in C<new> and C<init>, an exception will be thrown if required attributes don't exist in arguments hash.
-
-  has 'db', required => 'My::DB';
-
-You can also pass any C<TRUE> value for storing in the L</META> of the class.
-
-TODO: describe how to use it with dependency injection
+By default, attributes are required. You can pass this flag to mark attribute as optional (but in most cases this is antipattern)
 
 =head4 check
 
 You can provide function that will check passed value (via constuctor and changing), and if that function doesn't return true, an exception will be thrown.
 
 
-  has big => check => sub { shift > 10 };
+  has big => check sub { shift > 10 };
 
 You can also return C<(0, "CustomError")> to provide more expressive explanation
 
@@ -241,7 +226,7 @@ You can also return C<(0, "CustomError")> to provide more expressive explanation
     package My::Foo;
     use Evo '-Class *';
 
-    has big => check => sub($val) { $val > 10 ? 1 : (0, "not > 10"); };
+    has big => rw, check sub($val) { $val > 10 ? 1 : (0, "not > 10"); };
   };
 
   my $foo = My::Foo->new(big => 11);
@@ -249,6 +234,28 @@ You can also return C<(0, "CustomError")> to provide more expressive explanation
   $foo->big(9);    # will die
   my $bar = My::Foo->new(big => 9);    # will die
 
+=head4 inject
+
+Used to describe dependencies of a class. We can build C<Foo> that depends on C<Bar> and we don't care how C<Bar> is implemented. L<Evo::Di> will resolve all dependencies
+
+  package Foo;
+  use Evo -Class, -Loaded;
+
+  has bar => inject 'Bar';
+
+  package Bar;
+  use Evo -Class, -Loaded;
+  has host => inject 'HOST';
+
+  package main;
+  use Evo '-Di';
+  my $di = Evo::Di->new();
+  $di->provide(HOST => '127.0.0.1');
+
+  my $foo = $di->single('Foo');
+  say $foo->bar->host;
+
+See L<Evo::Di> for more information.
 
 =head1 CODE REUSE
 

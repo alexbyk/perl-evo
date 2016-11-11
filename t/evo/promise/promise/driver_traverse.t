@@ -7,7 +7,7 @@ use Test::More;
   package My::P;
   use Evo '-Class *';
   with '-Promise::Role';
-  has $_ for qw(n x_res x_rej);
+  has $_, optional, rw, for qw(n x_res x_rej);
 
   sub postpone ($me, $sub) {
     $sub->();
@@ -42,13 +42,17 @@ ORDER: {
 
 FULFILL: {
 
-  p->d_fulfill('V')->d_children([my $p1 = p(), my $p2 = p()])->d_traverse;
+  my $p = p->d_fulfill('V');
+  $p->{d_children} = [my $p1 = p(), my $p2 = p()];
+  $p->d_traverse;
   ok is_fulfilled_with('V', $p1);
   ok is_fulfilled_with('V', $p2);
 }
 
 REJECT: {
-  p->d_reject('R')->d_children([my $p1 = p(), my $p2 = p()])->d_traverse;
+  my $p = p->d_reject('R');
+  $p->{d_children} = [my $p1 = p(), my $p2 = p()];
+  $p->d_traverse;
   ok is_rejected_with('R', $p1);
   ok is_rejected_with('R', $p2);
 }
@@ -65,7 +69,7 @@ local *My::P::d_reject_continue = sub ($self, $x) {
 
 CLEAR_FHS: {
   my $root = p->d_fulfill('V');
-  $root->d_children([my $ch = p(d_fh => sub { }, d_rh => sub { })]);
+  $root->{d_children} = [my $ch = p(d_fh => sub { }, d_rh => sub { })];
   $root->d_traverse();
   ok !$ch->d_fh;
   ok !$ch->d_rh;
@@ -74,7 +78,7 @@ CLEAR_FHS: {
 CALL_FH: {
   my $root = p->d_fulfill('V');
   my $called;
-  $root->d_children([my $ch = p(d_fh => sub { $called++; 'X' })]);
+  $root->{d_children} = [my $ch = p(d_fh => sub { $called++; 'X' })];
   $root->d_traverse();
   is $called, 1;
   is $ch->x_res, 'X';
@@ -83,7 +87,7 @@ CALL_FH: {
 CALL_RH: {
   my $root = p->d_reject('R');
   my $called;
-  $root->d_children([my $ch = p(d_rh => sub { $called++; 'X' })]);
+  $root->{d_children} = [my $ch = p(d_rh => sub { $called++; 'X' })];
   $root->d_traverse();
   is $called, 1;
   is $ch->x_res, 'X';
@@ -91,14 +95,14 @@ CALL_RH: {
 
 CALL_FH_AND_DIE: {
   my $root = p->d_fulfill('V');
-  $root->d_children([my $ch = p(d_fh => sub { die "Foo\n" })]);
+  $root->{d_children} = [my $ch = p(d_fh => sub { die "Foo\n" })];
   $root->d_traverse;
   is $ch->x_rej, "Foo\n";
 }
 
 CALL_RH_AND_DIE: {
   my $root = p->d_reject('R');
-  $root->d_children([my $ch = p(d_rh => sub { die "Foo\n" })]);
+  $root->{d_children} = [my $ch = p(d_rh => sub { die "Foo\n" })];
   $root->d_traverse;
   is $ch->x_rej, "Foo\n";
 }

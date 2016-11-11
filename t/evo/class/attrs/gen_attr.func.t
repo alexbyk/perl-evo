@@ -1,4 +1,4 @@
-use Evo 'Test::More; -Class::Meta; -Class::Attrs *';
+use Evo 'Test::More; -Class::Meta; -Class::Attrs *; -Class::Syntax *';
 use Evo '-Internal::Exception';
 
 sub parse { Evo::Class::Meta->parse_attr(@_) }
@@ -17,12 +17,14 @@ sub before() {
 SKIP: {
   skip "no threads support", 1 unless eval "use threads; 1";    ## no critic
   before();
-  my $sub = $attrs->gen_attr('name', parse is => 'rw');
+  my $sub = $attrs->gen_attr('name', parse rw);
   $sub->($obj, 'foo');
 
-  threads->create(sub {
+  threads->create(
+    sub {
       do { fail "thr"; die } unless $sub->($obj) eq 'foo';
-  })->join();
+    }
+  )->join();
   die unless $sub->($obj) eq 'foo';
 }
 
@@ -30,7 +32,7 @@ sub run_tests {
 
 GS: {
     before();
-    my $sub = $attrs->gen_attr('name', parse is => 'rw');
+    my $sub = $attrs->gen_attr('name', parse rw);
     my $val = 'foo';
     is $sub->($obj), undef;
     ok !exists $obj->{name};
@@ -41,7 +43,7 @@ GS: {
 
 RO: {
     before();
-    my $sub = $attrs->gen_attr('name', parse is => 'ro');
+    my $sub = $attrs->gen_attr('name', parse);
     is $sub->($obj), undef;
     like exception { $sub->($obj, 22) }, qr/name.+readonly.+$0/;
     is $sub->($obj), undef;
@@ -49,7 +51,7 @@ RO: {
 
 GS_LAZY: {
     before();
-    my $sub = $attrs->gen_attr('name', parse is => 'rw', lazy => $lazy);
+    my $sub = $attrs->gen_attr('name', parse rw, lazy, $lazy);
 
     is $sub->($obj), 'LAZY' for 1 .. 2;
     is $lcalled, 1;
@@ -62,7 +64,7 @@ GS_LAZY: {
 
 GSCH: {
     before();
-    my $sub = $attrs->gen_attr('name', parse check => $check);
+    my $sub = $attrs->gen_attr('name', parse check $check, rw);
 
     is $sub->($obj), undef;
     $sub->($obj, 22);
@@ -73,12 +75,12 @@ GSCH: {
 
     # empty check
     like exception {
-      $attrs->gen_attr('name', parse check => sub { })->($obj, -22);
+      $attrs->gen_attr('name', parse rw, check sub { })->($obj, -22);
     }, qr/bad value "-22".+"name".+$0/i;
   }
 
 GCH_CHANGE: {
-    my $subinc = $attrs->gen_attr('nameinc', parse check => sub { $_[0] .= "BAD"; 1 });
+    my $subinc = $attrs->gen_attr('nameinc', parse rw, check sub { $_[0] .= "BAD"; 1 });
     my $val = "VAL";
     $subinc->($obj, $val);
     is $subinc->($obj), "VAL";
@@ -87,7 +89,7 @@ GCH_CHANGE: {
 
 GSCH_LAZY: {
     before();
-    my $sub = $attrs->gen_attr('name', parse check => $check, lazy => $lazy);
+    my $sub = $attrs->gen_attr('name', parse rw, check $check, lazy, $lazy);
 
     is $sub->($obj), 'LAZY';
     is $lcalled, 1;

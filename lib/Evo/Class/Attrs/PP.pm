@@ -1,10 +1,10 @@
 package Evo::Class::Attrs::PP;
 use Evo '-Export; Carp croak confess';
-use constant {ECA_SIMPLE => 0, ECA_DEFAULT => 1, ECA_DEFAULT_CODE => 2, ECA_REQUIRED => 3,
+use constant {ECA_OPTIONAL => 0, ECA_DEFAULT => 1, ECA_DEFAULT_CODE => 2, ECA_REQUIRED => 3,
   ECA_LAZY => 4,};
 
 export qw(
-  ECA_SIMPLE ECA_DEFAULT ECA_DEFAULT_CODE ECA_REQUIRED ECA_LAZY
+  ECA_OPTIONAL ECA_DEFAULT ECA_DEFAULT_CODE ECA_REQUIRED ECA_LAZY
 );
 
 my sub _croak_bad_value ($val, $name, $msg) {

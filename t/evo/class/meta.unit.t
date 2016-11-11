@@ -1,6 +1,6 @@
 package main;
-use Evo 'Test::More', '-Class::Attrs *', -Class::Meta, -Internal::Exception;
-use Symbol 'delete_package';
+use Evo 'Test::More; Symbol delete_package';
+use Evo '-Class::Attrs *; -Class::Meta; -Internal::Exception; -Class::Syntax *';
 
 no warnings 'once';        ## no critic
 no warnings 'redefine';    ## no critic
@@ -39,70 +39,6 @@ FIND_OR_CROAK: {
 
 
 sub parse { Evo::Class::Meta->parse_attr(@_) }
-PARSE_ATTR: {
-ERRORS: {
-    # required + default doesn't make sense
-    # lazy + default doesn't make sense
-    my $sub = sub { };
-    like exception { parse(required => 1, default => 'foo') }, qr/default.+required.+$0/;
-    like exception { parse(required => 1, lazy => $sub) }, qr/default.+required.+$0/;
-    like exception { parse(default  => 1, lazy => $sub) }, qr/default.+required.+$0/;
-
-    # default or lazy should be either scalar or coderef
-    like exception { parse(default => {}) }, qr/default.+$0/;
-    like exception { parse(lazy    => {}) }, qr/lazy.+$0/;
-    like exception { parse(lazy  => undef) }, qr/lazy.+$0/;
-    like exception { parse(check => undef) }, qr/check.+$0/;
-    like exception { parse(is    => 'foo') }, qr/invalid "is".+$0/;
-    like exception { parse(un1 => 1, un2 => 2) }, qr/unknown.+un1.+un2.+$0/;
-
-  }
-
-  is_deeply [parse()], [ECA_SIMPLE, (undef) x 2, 0, undef];
-  is_deeply [parse(is => 'rw')], [ECA_SIMPLE, (undef) x 2, 0, undef];
-
-  my $dc = sub { };
-
-  # perl6 && mojo style for default
-  is_deeply [parse('FOO')], [ECA_DEFAULT, 'FOO', undef, 0, undef];
-  is_deeply [parse($dc)], [ECA_DEFAULT_CODE, $dc, undef, 0, undef];
-
-
-  # perl6 style
-  is_deeply [parse('FOO', is => 'ro')], [ECA_DEFAULT, 'FOO', undef, 1, undef];
-  is_deeply [parse($dc, is => 'ro')], [ECA_DEFAULT_CODE, $dc, undef, 1, undef];
-
-
-  #  moose style
-  is_deeply [parse(is => 'rw', default => 'FOO')], [ECA_DEFAULT, 'FOO', undef, 0, undef];
-
-  is_deeply [parse(is => 'ro', default => $dc)], [ECA_DEFAULT_CODE, $dc, undef, 1, undef];
-
-  # required
-  is_deeply [parse(required => 1)],     [ECA_REQUIRED, undef, undef, 0, undef];
-  is_deeply [parse(required => 'BOO')], [ECA_REQUIRED, undef, undef, 0, undef];
-  is_deeply [parse(required => 0)],     [ECA_SIMPLE,   undef, undef, 0, undef];
-
-
-  # ro
-  is_deeply [parse(is => 'ro')], [ECA_SIMPLE, (undef) x 2, 1, undef];
-
-  # all
-  my $check = sub {1};
-  my $lazy  = sub { {} };
-  is_deeply [parse(is => 'ro', check => $check, required => 1)],
-    [ECA_REQUIRED, undef, $check, 1, undef];
-
-  is_deeply [parse(is => 'ro', check => $check, lazy => $lazy)],
-    [ECA_LAZY, $lazy, $check, 1, undef];
-
-  # extra default => undef
-  is_deeply [parse(default => undef)], [ECA_DEFAULT, undef, undef, 0, undef];
-
-  # inject
-  is_deeply [parse(inject => {foo => 'bar'})], [ECA_SIMPLE, undef, undef, 0, {foo => 'bar'}];
-}
-
 
 MARK_OVERRIDEN: {
   my $meta = gen_meta;
@@ -237,7 +173,7 @@ CLASH_ATTR: {
     my $parent = gen_meta;
     eval 'package My::Class; sub own {"OWN"}';            ## no critic
     my $child = gen_meta('My::Child');
-    $child->reg_attr('own', lazy => sub {'ATTR-OWN'});
+    $child->reg_attr('own');
     like exception { $child->extend_with('My::Class') }, qr/My::Child.+own.+$0/;
     is(My::Child->own, 'ATTR-OWN');
   }
@@ -275,7 +211,7 @@ CLASH_WITH_ALIEN_ISA: {
 
 REG_ATTR: {
   my $meta = gen_meta;
-  $meta->reg_attr('pub1', lazy => sub {'ATTR-PUB1'});
+  $meta->reg_attr('pub1', lazy, sub {'ATTR-PUB1'});
 
   ok $meta->is_attr('pub1');
   is(My::Class->pub1, 'ATTR-PUB1');
@@ -296,7 +232,7 @@ REG_ATTR: {
 
 REG_ATTR_OVER: {
   my $meta = gen_meta;
-  $meta->reg_attr('pub1', lazy => sub {'ATTR-PUB1'});
+  $meta->reg_attr('pub1', lazy, sub {'ATTR-PUB1'});
 
   ok $meta->is_attr('pub1');
   is(My::Class->pub1, 'ATTR-PUB1');
@@ -306,10 +242,10 @@ REG_ATTR_OVER: {
   eval 'package My::Isa; sub isa { "ISA"}';    ## no critic
   eval '@My::Class::ISA = ("My::Isa")';        ## no critic
 
-  $meta->reg_attr_over('external', lazy => sub {'ATTR-EXTERNAL'});
+  $meta->reg_attr_over('external', lazy, sub {'ATTR-EXTERNAL'});
   $meta->reg_attr_over('pub1');
-  $meta->reg_attr_over('own', lazy => sub {'ATTR-OWN'});
-  $meta->reg_attr_over('isa', lazy => sub {'ATTR-ISA'});
+  $meta->reg_attr_over('own', lazy, sub {'ATTR-OWN'});
+  $meta->reg_attr_over('isa', lazy, sub {'ATTR-ISA'});
   ok $meta->is_overridden('pub1');
   ok $meta->is_overridden('isa');
   ok $meta->is_overridden('own');
@@ -322,8 +258,8 @@ REG_ATTR_OVER: {
 
 PUBLIC_ATTRS: {
   my $meta = gen_meta;
-  $meta->reg_attr('attr1', is => 'rw');
-  $meta->reg_attr('attr2', is => 'rw');
+  $meta->reg_attr('attr1');
+  $meta->reg_attr('attr2');
   is(My::Class->attr1, 'ATTR-ATTR1');
   is(My::Class->attr2, 'ATTR-ATTR2');
   my @attrs = $meta->public_attrs;

@@ -7,9 +7,9 @@ requires 'postpone';
 
 # https://promiseaplus.com/
 
-has $_ for qw(d_v d_locked d_fh d_rh d_settled);
+has $_, optional, rw for qw(d_v d_locked d_fh d_rh d_settled);
 has 'd_children' => sub { [] };
-has 'state' => PENDING;
+has 'state' => PENDING, rw;
 
 #sub assert { shift or croak join '; ', caller() }
 
@@ -205,7 +205,7 @@ sub d_traverse($self) {
 
     #assert($parent->d_settled);
     my @children = $parent->d_children->@* or next;
-    $parent->d_children([]);
+    $parent->{d_children} = [];
 
     # 2.2.2 - 2.2.7
     my ($pstate, $v) = ($parent->state, $parent->d_v);

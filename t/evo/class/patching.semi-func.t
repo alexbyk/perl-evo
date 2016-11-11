@@ -5,8 +5,8 @@ use Evo 'Test::More; -Internal::Exception';
 
   package My::Class;
   use Evo -Class;
-  has 'attr1';
-  has_over 'attr2', is => 'rw';
+  has 'attr1',      rw;
+  has_over 'attr2', rw;
 
 
   package My::Class2;

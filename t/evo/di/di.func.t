@@ -9,33 +9,33 @@ use Evo 'Test::More; Evo::Di; Evo::Internal::Exception';
 
   package My::C1;
   use Evo -Class, -Loaded;
-  has 'c2' => required => 1, inject => 'My::C2';
-  has 'not_required', inject => 'My::Missing';
+  has c2 => inject 'My::C2';
+  has not_required => optional, inject 'My::Missing';
 
   package My::C2;
   use Evo -Class, -Loaded;
-  has 'c3' => required => 1, inject => 'My::C3';
-  has alien => inject => 'My::Alien';
+  has 'c3'  => inject 'My::C3';
+  has alien => inject 'My::Alien';
 
   package My::C3;
   use Evo -Class, -Loaded;
-  has val => required => 1, inject => 'My::C3/val';
+  has val => inject 'My::C3/val';
 
   package My::Fail;
   use Evo -Class, -Loaded;
-  has missing => inject => 'My::Missing', required => 1;
+  has missing => inject 'My::Missing',;
 
   package My::Circ1;
   use Evo -Class, -Loaded;
-  has circ2 => inject => 'My::Circ2', required => 1;
+  has circ2 => inject 'My::Circ2',;
 
   package My::Circ2;
   use Evo -Class, -Loaded;
-  has circ3 => inject => 'My::Circ3', required => 1;
+  has circ3 => inject 'My::Circ3',;
 
   package My::Circ3;
   use Evo -Class, -Loaded;
-  has circ1 => inject => 'My::Circ1', required => 1;
+  has circ1 => inject 'My::Circ1',;
 }
 
 EXISTING: {

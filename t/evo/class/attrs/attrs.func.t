@@ -1,19 +1,19 @@
-use Evo 'Test::More; -Internal::Exception; -Class::Meta; -Class::Attrs *';
+use Evo 'Test::More; -Internal::Exception; -Class::Meta; -Class::Attrs *; -Class::Syntax *';
 
 sub parse { Evo::Class::Meta->parse_attr(@_) }
 
 sub run_tests {
 
-diag "TESTING $Evo::Class::Attrs::IMPL";
+  diag "TESTING $Evo::Class::Attrs::IMPL";
 
 SLOTS: {
     my $noop   = sub {1};
     my $attrs  = Evo::Class::Attrs->new();
     my $inject = {foo => 2};
 
-    $attrs->gen_attr(foo => parse 'DEF', inject => $inject, check => $noop, is => 'ro');
-    $attrs->gen_attr(bar => parse);
-    $attrs->gen_attr(baz => parse lazy => $noop);
+    $attrs->gen_attr(foo => parse 'DEF', inject $inject, check $noop);
+    $attrs->gen_attr(bar => parse rw,    optional);
+    $attrs->gen_attr(baz => parse lazy,  $noop);
 
     is_deeply [$attrs->slots],
       [
@@ -25,8 +25,15 @@ SLOTS: {
         ro     => 1,
         type   => ECA_DEFAULT
       },
-      {name => 'bar', inject => undef, value => undef, check => undef, ro => 0, type => ECA_SIMPLE},
-      {name => 'baz', inject => undef, value => $noop, check => undef, ro => 0, type => ECA_LAZY}
+      {
+        name   => 'bar',
+        inject => undef,
+        value  => undef,
+        check  => undef,
+        ro     => 0,
+        type   => ECA_OPTIONAL
+      },
+      {name => 'baz', inject => undef, value => $noop, check => undef, ro => 1, type => ECA_LAZY}
       ];
 
     ok $attrs->exists('foo');

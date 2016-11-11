@@ -11,10 +11,7 @@ sub new : Over {
   $fs;
 }
 
-has 'root',
-  default => sub     { File::Temp->newdir },
-  check   => sub($v) { file_name_is_absolute($v) },
-  is      => 'ro';
+has 'root', check sub($v) { file_name_is_absolute($v) }, sub { File::Temp->newdir };
 
 sub path2real ($self, $path) : Over {
   my (undef, $dir,  $last)  = File::Spec->splitpath($self->to_abs($path));

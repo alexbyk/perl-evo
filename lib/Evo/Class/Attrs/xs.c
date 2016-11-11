@@ -68,12 +68,19 @@ static void xs_new(pTHX_ SV *cv) {
     }
 
     // slot not found in passed args, decide what to do
-    if (slot->type == ECA_REQUIRED) {
+    switch (slot->type) {
+    case ECA_REQUIRED:
       croak("Attribute \"%s\" is required", SvPV_nolen(slot->key));
-    } else if (slot->type == ECA_DEFAULT) {
+      break;
+    case ECA_DEFAULT:
       hv_he_store_or_croak(hash, slot->key, slot->value);
-    } else if (slot->type == ECA_DEFAULT_CODE) {
+      break;
+    case ECA_DEFAULT_CODE:
       invoke_and_store(class, slot->value, hash, slot->key);
+      break;
+    case ECA_LAZY:
+    case ECA_OPTIONAL:
+      break;
     }
 
   NEXT_SLOT:; // simulate continue label
