@@ -24,6 +24,10 @@ sub single ($self, $key) {
   $self->{di_stash}{$key};
 }
 
+sub provide ($self, $key, $v) {
+  $self->{di_stash}{$key} = $v;
+}
+
 # list only missing keys, that can be loaded, if required
 # skip keys that can't be loaded and not required
 sub _di_list_pending ($self, $key) {
@@ -54,6 +58,7 @@ sub _di_build ($self, $key) {
 
 
 1;
+
 # ABSTRACT: Dependency injection
 
 =head1 SYNOPSYS
@@ -79,14 +84,13 @@ sub _di_build ($self, $key) {
   my $di = Evo::Di->new();
 
   # provide some value in stash wich will be available as dependency 'FOO'
-  $di->di_stash->{FOO} = 'FOO';
+  $di->provide(FOO => 'FOO value');
 
-  # all dependencies will be resolved by Evo::Di
   my $c1 = $di->single('My::C1');
   say $c1 == $di->single('My::C1');
   say $c1 == $di->single('My::C1');
   say $c1->c2->c3 == $di->single('My::C3');
-  say $c1->c2->c3->foo;    # FOO
+  say $c1->c2->c3->foo;    # FOO value
 
 =head1 ATTRIBUTES
 
@@ -95,6 +99,13 @@ sub _di_build ($self, $key) {
 A hash reference containing our dependencies (single instances)
 
 =head1 METHODS
+
+=head2 provide($self, $key, $v)
+
+You can put in stash any value as a dependency
+
+  $di->provide('SOME_CONSTANT' => 33);
+  say $di->single('SOME_CONSTANT'), 33;
 
 =head2 single($self, $key)
 
@@ -119,5 +130,3 @@ If an attribute isn't C<required>, such attribute will be ignored.
 If an attribute is C<required>, die.
 
 =cut
-
-

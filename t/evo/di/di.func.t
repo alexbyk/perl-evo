@@ -40,13 +40,13 @@ use Evo 'Test::More; Evo::Di; Evo::Internal::Exception';
 
 EXISTING: {
   my $di = Evo::Di->new();
-  $di->{di_stash}{Foo} = 33;
-  is $di->single('Foo'), 33;
+  $di->provide('SOME_CONSTANT' => 33);
+  is $di->single('SOME_CONSTANT'), 33;
 }
 
 OK: {
   my $di = Evo::Di->new;
-  $di->{di_stash}{'My::C3/val'} = 'V';
+  $di->provide('My::C3/val', 'V');
   my $c1 = $di->single('My::C1');
   is $c1, $di->single('My::C1');
   ok !exists $c1->{not_required};
