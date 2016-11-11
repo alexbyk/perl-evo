@@ -110,6 +110,9 @@ It provides rewritten and postmodern features like
 =item *
 (experimental) L<Evo::Fs> - abstraction layer between you app and FileSystem for simple testing
 
+=item *
+(experimental) L<Evo::Di> - dependency injection
+
 =back
 
 
