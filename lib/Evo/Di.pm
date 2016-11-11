@@ -26,8 +26,11 @@ sub single ($self, $key) {
   $self->{di_stash}{$key};
 }
 
-sub provide ($self, $key, $v) {
-  $self->{di_stash}{$key} = $v;
+sub provide ($self, %args) {
+  foreach my $k (keys %args) {
+    croak qq#Already has key "$k"# if exists $self->{di_stash}{$k};
+    $self->{di_stash}{$k} = $args{$k};
+  }
 }
 
 sub _croak_cirk (@path) { croak "Circular dependencies detected: " . join(' -> ', @path); }

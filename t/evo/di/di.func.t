@@ -44,6 +44,14 @@ EXISTING: {
   is $di->single('SOME_CONSTANT'), 33;
 }
 
+PROVIDE: {
+  my $di = Evo::Di->new;
+  $di->provide(foo => 'FOO', bar => 'BAR');
+  is $di->single('foo'), 'FOO';
+  is $di->single('bar'), 'BAR';
+  like exception { $di->provide('foo', 33) }, qr/"foo".+$0/;
+}
+
 OK: {
   my $di = Evo::Di->new;
   $di->provide('My::C3/val', 'V');
