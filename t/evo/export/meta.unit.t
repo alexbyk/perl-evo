@@ -63,9 +63,11 @@ GEN: {
   # once for each dest
   is $obj->request('name', 'My::Dest')->(), 'My::Foo-My::Dest' for 1 .. 2;
   is $obj->request('name', 'My::Dest'), $obj->request('name', 'My::Dest');    # same fn
-
   is $obj->request('name', 'My::Other')->(), 'My::Foo-My::Other' for 1 .. 2;
   is_deeply \@got, [qw(My::Dest My::Other)];                                  # only 2 invocations
+
+  no warnings 'once';
+  is $My::Dest::EVO_EXPORT_CACHE->{'My::Foo'}{'name'}, $obj->request('name', 'My::Dest');
 }
 
 EXPAND_WILDCARDS: {

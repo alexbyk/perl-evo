@@ -12,12 +12,13 @@ sub new ($me, $pkg, %opts) {
 }
 
 sub find_or_bind_to ($me, $pkg, %opts) {
-  no strict 'refs'; ## no critic
+  no strict 'refs';    ## no critic
   no warnings 'once';
   ${"${pkg}::EVO_EXPORT_META"} ||= $me->new($pkg, %opts);
 }
 
 # it's important to return same function for the same module
+# we're storing it in the module, not in slot, to be able to easy destroy a module
 sub request ($self, $name, $dpkg) {
   my $slot = $self->find_slot($name);
   my $fn;
@@ -26,8 +27,12 @@ sub request ($self, $name, $dpkg) {
     $fn = $slot->{code};
   }
   elsif ($type eq 'gen') {
-    return $slot->{cache}{$dpkg} if $slot->{cache}{$dpkg};
-    return $slot->{cache}{$dpkg} = $slot->{gen}->($self->package, $dpkg);
+    no warnings 'once';
+    no strict 'refs';    ## no critic
+    my $pkg = $self->package;
+    my $cache = ${"${dpkg}::EVO_EXPORT_CACHE"} ||= {};
+    return $cache->{$pkg}{$name} if $cache->{$pkg}{$name};
+    return $cache->{$pkg}{$name} = $slot->{gen}->($self->package, $dpkg);
   }
 
   croak "Something wrong" unless $fn;

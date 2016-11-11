@@ -71,10 +71,36 @@ MISSING_REQUIRED_DIE: {
 MISSING_BUT_NOT_REQUIRED: {
   my $di   = Evo::Di->new();
   my $meta = reset_class();
-
   $meta->reg_attr('d1', inject => 'My::Dep1');
   ok !$di->_di_list_pending('My::Class');
+}
 
+MISSING_REQUIRED: {
+  my $di   = Evo::Di->new();
+  my $meta = reset_class();
+  $meta->reg_attr('opt1', inject => '.opt1', required => 1);
+  like exception { $di->_di_list_pending('My::Class') }, qr/".opt1".+"My::Class"/;
+  ok !exists $di->di_stash->{"My::Class."};
+
+  $di->di_stash->{"My::Class."} = {other => 1};
+  like exception { $di->_di_list_pending('My::Class') }, qr/".opt1".+"My::Class"/;
+
+  $di->di_stash->{"My::Class."} = "BAD";
+  like exception { $di->_di_list_pending('My::Class') }, qr/"My::Class.".+hash.+$0/;
+}
+
+MISSING_NOT_REQUIRED: {
+  my $di   = Evo::Di->new();
+  my $meta = reset_class();
+  $meta->reg_attr('opt1', inject => '.opt1');
+  ok !$di->_di_list_pending('My::Class');
+  ok !exists $di->di_stash->{"My::Class."};
+
+  $di->di_stash->{"My::Class."} = {other => 1};
+  ok !$di->_di_list_pending('My::Class');
+
+  $di->di_stash->{"My::Class."} = "BAD";
+  like exception { $di->_di_list_pending('My::Class') }, qr/"My::Class.".+hash.+$0/;
 }
 
 done_testing;

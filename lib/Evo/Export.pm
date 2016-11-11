@@ -235,7 +235,8 @@ Better using with C<ExportGen> attribute
 
 =head4 EXPORT
 
-This method returns a bound instance of L<Evo::Export::Meta>, which is stored in package's C<$EVO_EXPORT_META> variable
+This method returns a bound instance of L<Evo::Export::Meta>, which is stored in package's C<$EVO_EXPORT_META> variable.
+Also a cache for generated export is stored in class'es C<$EVO_EXPORT_CACHE> variable
 
   use Evo;
   {
@@ -243,11 +244,19 @@ This method returns a bound instance of L<Evo::Export::Meta>, which is stored in
     package My::Lib;
     use Evo '-Export *', -Loaded;
     sub foo : Export { }
+
+    sub bar : ExportGen {
+      sub { }
+    }
+
+    package My::Dest;
+    use My::Lib '*';
   }
 
   use Data::Dumper;
   say Dumper (My::Lib->EXPORT->info);
   say Dumper ($My::Lib::EVO_EXPORT_META->info);
+  say "cache of My::Dest: ", Dumper($My::Dest::EVO_EXPORT_CACHE);
 
 =head4 import
 

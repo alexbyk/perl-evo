@@ -11,6 +11,7 @@ sub reset_class($class = 'My::Class') {
   $class->META;
 }
 
+
 BUILD: {
   my $di   = Evo::Di->new();
   my $meta = reset_class();
@@ -19,11 +20,35 @@ BUILD: {
   $meta->reg_attr('bar', inject => 'My::Existing');
   $meta->reg_attr('baz', inject => 'My::Existing/Required', required => 1);
   my $obj = $di->_di_build('My::Class');
-  is $obj->bar, 'BAR';
-  is $obj->baz, 'BAZ';
-  ok !exists $obj->{foo};
-
+  is_deeply $obj, {bar => 'BAR', baz => 'BAZ'};
   isnt $di->_di_build('My::Class'), $obj;
+}
+
+BUILD_DOTS: {
+  my $di   = Evo::Di->new();
+  my $meta = reset_class();
+  $meta = reset_class();
+
+  My::Class->new();
+  $di->{di_stash} = {'My::Class.' => {foo => 'FOO'}};
+
+  $meta->reg_attr('foo',     inject => '.foo');
+  $meta->reg_attr('missing', inject => '.missing');
+  my $obj = $di->_di_build('My::Class');
+  is_deeply $obj,                          {foo => 'FOO'};
+  is_deeply $di->{di_stash}{'My::Class.'}, {foo => 'FOO'};
+}
+
+ALL_MISSING: {
+  my $di   = Evo::Di->new();
+  my $meta = reset_class();
+  $meta = reset_class();
+
+  My::Class->new();
+  $meta->reg_attr('foo',     inject => '.foo');
+  $meta->reg_attr('missing', inject => '.missing');
+  ok my $obj = $di->_di_build('My::Class');
+  is_deeply $di->{di_stash}, {};    # not spoiled
 }
 
 done_testing;
