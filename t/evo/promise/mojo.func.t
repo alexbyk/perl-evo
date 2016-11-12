@@ -1,11 +1,10 @@
-use Evo;
-use Test::More;
+use Evo '-Promise::Mojo *; Test::More';
 
 BEGIN {
   eval { require Mojo::IOLoop; 1 } or plan skip_all => 'Install Mojolicious to run this test';
 }
 
-use Mojo::Promise '*';
+use Evo::Promise::Mojo '*';
 
 
 my ($v, $r, $f);

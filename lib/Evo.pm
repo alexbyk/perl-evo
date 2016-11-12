@@ -97,7 +97,7 @@ It provides rewritten and postmodern features like
 [almost ready] Post modern code injection programming L<Evo::Class> instead of traditional OO
 
 =item *
-[almost ready] Fast non recursive "Promise" role, 100% "Promise/Spec A" compatible. + See L<Mojo::Promise>
+[almost ready] Fast non recursive "Promise" role, 100% "Promise/Spec A" compatible. + See L<Evo::Promise::Mojo>
 
 =item *
 (almost ready) Exception handling in pure perl: L<Evo::Lib/try>, like "try catch" but perl way.

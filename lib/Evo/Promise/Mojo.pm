@@ -1,4 +1,4 @@
-package Mojo::Promise;
+package Evo::Promise::Mojo;
 use Evo '-Class; -Export *';
 use Mojo::IOLoop;
 
@@ -22,7 +22,7 @@ Promises for L<Mojo::IOLoop>
 
 =head1 SYNOSIS
 
-  use Evo 'Mojo::Promise *';
+  use Evo '-Promise::Mojo *';
 
   sub load_later($url) {
     my $d = deferred();
