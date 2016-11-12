@@ -22,11 +22,9 @@ my %WriteMakefileArgs = (
   "NAME" => "Evo",
   "PREREQ_PM" => {},
   "TEST_REQUIRES" => {
-    "Mojolicious" => 0,
-    "Test::More" => "0.88",
-    "Test::Pod" => 0
+    "Test::More" => "0.88"
   },
-  "VERSION" => "0.0253",
+  "VERSION" => "0.0254",
   "test" => {
     "TESTS" => "t/*.t t/evo/attr/*.t t/evo/class/*.t t/evo/class/attrs/*.t t/evo/di/*.t t/evo/ee/*.t t/evo/evo_import/*.t t/evo/export/*.t t/evo/fs/*.t t/evo/internal/*.t t/evo/lib/*.t t/evo/promise/*.t t/evo/promise/func/*.t t/evo/promise/promise/*.t t/evo/w/*.t t/evo/want/*.t t/perf/*.t"
   }
@@ -38,9 +36,7 @@ my %WriteMakefileArgs = (
 );
 
 my %FallbackPrereqs = (
-  "Mojolicious" => 0,
-  "Test::More" => "0.88",
-  "Test::Pod" => 0
+  "Test::More" => "0.88"
 );
 
 unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {

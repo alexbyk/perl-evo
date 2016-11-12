@@ -2,10 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0253    2016-11-12 22:21:52+02:00 Europe/Kiev
-
-0.0252    2016-11-12 19:17:09+02:00 Europe/Kiev
-
+Added Evo::Promise::AE
 Switch from Mojo::Promise to Evo::Promise::Mojo
 Improve documantation, make Evo::Class to be able to work with external classes by populating @ISA
 Breaking changes: the syntax of Evo::Class attributes changed (now it's very sexy)

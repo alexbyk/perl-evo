@@ -235,7 +235,8 @@ sub d_traverse($self) {
 
 =head1 IMPLEMENTATION
 
-This is a sexy and fast non-recursive implementation of Promise/A+
-See L<Evo::Promise::Mojo> for end-user library
+This is a sexy and fast non-recursive implementation of Promises/A+
+
+See L<Evo::Promise::Mojo> or L<Evo::Promise::AE> for end-user library
 
 =cut

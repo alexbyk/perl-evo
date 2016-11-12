@@ -33,9 +33,7 @@
       },
       "test" : {
          "requires" : {
-            "Mojolicious" : "0",
-            "Test::More" : "0.88",
-            "Test::Pod" : "0"
+            "Test::More" : "0.88"
          }
       }
    },
@@ -48,7 +46,7 @@
          "web" : "http://github.com/alexbyk/perl-evo"
       }
    },
-   "version" : "0.0253",
+   "version" : "0.0254",
    "x_serialization_backend" : "Cpanel::JSON::XS version 3.0217"
 }
 

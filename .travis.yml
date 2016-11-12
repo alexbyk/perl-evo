@@ -3,7 +3,6 @@ language: perl
 env:
   - PUREPERL_ONLY=1 TEST_MEMORY=1
   - PUREPERL_ONLY=0 TEST_MEMORY=1
-
 perl:
   - '5.22'
   - '5.24'
@@ -24,6 +23,6 @@ before_install:
   - build-perl
   - perl -V
 install:
-  - cpanm --quiet --notest Memory::Stats
+  - cpanm --quiet --notest Memory::Stats Mojolicious AnyEvent
 script:
   - script/test.sh t/

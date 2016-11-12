@@ -1,6 +1,9 @@
 package Evo::Promise::Mojo;
 use Evo '-Class; -Export *';
-use Mojo::IOLoop;
+
+BEGIN {
+  eval { require Mojo::IOLoop; 1 } or die "Install Mojolicious to use this module";
+}
 
 with '-Promise::Role';
 
@@ -16,9 +19,6 @@ foreach my $fn (qw(promise deferred resolve reject race all)) {
 
 1;
 
-=head1 PROMISE
-
-Promises for L<Mojo::IOLoop>
 
 =head1 SYNOSIS
 
@@ -33,6 +33,12 @@ Promises for L<Mojo::IOLoop>
   load_later('http://alexbyk.com')->then(sub($v) { say $v });
 
   Mojo::IOLoop->start;
+
+=head1 DESCRIPTION
+
+Promises/A+ for L<Mojo::IOLoop> - install L<Mojolicious> to use this module
+
+See L<Mojo::Pua> for more real-world examples.
 
 =head1 FUNCTIONS
 
@@ -130,14 +136,15 @@ Usefull for closing connections etc or making any internal stuff without affecti
 
 =head1 SEE ALSO
 
-
 =over
 
 =item * More info about promise, race, all etc.: L<https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise>
 
 =item * L<Mojo::Pua> promises based http user agent
 
-=item * L<Evo::Promise::Role> a base role to bring Promises Spec/A+ to any event loop
+=item * L<Evo::Promise::Role> a base role to bring Promises/A+ to any event loop
+
+=item * L<Evo::Promise::AE> the similar module for L<AE>
 
 =back
 
