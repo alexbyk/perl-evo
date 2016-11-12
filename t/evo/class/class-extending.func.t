@@ -4,44 +4,47 @@ use Evo 'Test::More; Evo::Internal::Exception; Symbol delete_package; Module::Lo
 
 {
   no warnings 'once';
-  *My::Role::external = sub {'external'};
-
-
-  package My::Interface;
-  use Evo -Class, -Loaded;
-  requires 'r1';
+  *My::Role::external_marked  = sub {'external_marked'};
+  *My::Role::external_private = sub {'external_private'};
 
   package My::Role;
-  use Evo -Class, -Loaded;
+  use Evo -Class, -Loaded, -Export;
+
+  # exported functions are skipped
+  sub func : Export {'FUNC'}
+
+  # constants are skipped
   use Fcntl 'SEEK_CUR';
-  has 'a1'  => 'ok';
-  has 'ao1' => 'bad';
-  has 'ao2' => 'bad';
+  use constant CONST => 3;
+
+  has 'a1' => 'ok1';
+  has 'a2' => 'bad';
 
   my sub priv1 {'HIDDEN'}
   sub priv2    {'HIDDEN'}
   META->mark_as_private('priv2');
-  META->reg_method('external');
+  META->reg_method('external_marked');
 
-  sub pmeth  {44}
+  sub pmeth  {'ok'}
   sub ometh1 {'bad'}
   sub ometh2 {'bad'}
 
   package My::Class;
   use Evo -Class, -Loaded;
-  has_over ao1 => 'o1';
+  has_over 'a2' => 'ok2';
+  has_over 'a3' => 'ok3';    # parent doesn't has it, same as has
+  has 'a4'      => 'ok4';    # parent doesn't has it, same as has
   META->mark_as_overridden('ometh2');
   with 'My::Role';
-  has_over ao2 => 'o2';
-  sub ometh2        {'over'}
-  sub ometh1 : Over {'over'}
+  sub ometh2        {'ok2'}
+  sub ometh1 : Over {'ok1'}
 
   package My::ClassCheckImpl;
   use Evo -Class, -Loaded;
 
   package My::ClassExtend;
   use Evo -Class;
-  extends 'My::Role';
+  extends 'My::Class';
 }
 
 GENERAL: {
@@ -49,23 +52,49 @@ GENERAL: {
   $meta = $My::Class::EVO_CLASS_META;
   isa_ok $meta, 'Evo::Class::Meta';
   ok $meta->is_attr('a1');
-  is_deeply [sort $meta->requirements()], [sort qw(a1 ao1 ao2 pmeth ometh1 ometh2 external)];
-  is(My::Class->pmeth,    44);
-  is(My::Class->ometh1,   'over');
-  is(My::Class->external, 'external');
+  is_deeply [sort $meta->requirements()],
+    [sort qw(a1 a2 a3 a4 pmeth ometh1 ometh2 external_marked)];
+  is(My::Class->pmeth,           'ok');
+  is(My::Class->ometh1,          'ok1');
+  is(My::Class->ometh2,          'ok2');
+  is(My::Class->external_marked, 'external_marked');
 
-  ok(!My::Class->can('priv1'));
+  ok(My::Role->can('priv2'));
   ok(!My::Class->can('priv2'));
-  ok(!My::Class->can('not_public'));
-  ok(!My::Class->can('SEEK_CUR'));
 
 
   my $obj = My::Class->new;
-  is $obj->ao1, 'o1';
-  is $obj->ao2, 'o2';
-  is $obj->a1,  'ok';
+  is $obj->a1, 'ok1';
+  is $obj->a2, 'ok2';
+  is $obj->a3, 'ok3';
+  is $obj->a4, 'ok4';
 
   like exception { My::Class->can('has')->('a1') }, qr/already.+a1.+$0/i;
+}
+
+SKIP_EXTERNAL: {
+  ok(My::Role->can('external_private'));
+  ok(!My::Class->can('external_private'));
+}
+
+SKIP_EXPORTED_SUBS: {
+  ok(My::Role->can('export'));
+  ok(My::Role->can('func'));
+  ok(!My::Class->can('func'));
+}
+
+SKIP_CONSTANTS: {
+  ok(My::Role::->can('SEEK_CUR'));
+  ok(!My::Class->can('SEEK_CUR'));
+  ok(My::Role->can('CONST'));
+  ok(!My::Class->can('CONST'));
+}
+
+{
+
+  package My::Interface;
+  use Evo -Class, -Loaded;
+  requires 'r1';
 }
 
 # implementation
@@ -76,8 +105,9 @@ no warnings 'once';
 Evo::Internal::Util::monkey_patch 'My::ClassCheckImpl', r1 => sub {'ok'};
 My::ClassCheckImpl->can('implements')->('My::Interface');
 
-# extends
-is(My::ClassExtend->pmeth, 44);
+# extends 3 module
+is(My::ClassExtend->pmeth,           'ok');
+is(My::ClassExtend->external_marked, 'external_marked');
 
 
 done_testing;

@@ -18,7 +18,8 @@ sub register ($me, $package) {
 
 sub find_or_croak ($self, $package) {
   no strict 'refs';    ## no critic
-  ${"${package}::EVO_CLASS_META"} or croak "$package isn't Evo::Class";
+  ${"${package}::EVO_CLASS_META"}
+    or croak qq#$package isn't Evo::Class; use inherit to inherit external classes#;
 }
 
 sub package($self) { $self->{package} }
@@ -46,12 +47,16 @@ sub is_private ($self, $name) {
   $self->private->{$name};
 }
 
-# first check methods, if doesn't exists, try to determine if there is a sub in package
-# if a sub is compiled in the same package, it's a public, if not(imported or xsub), it's private
+# first check methods (marked as method or inherited), if doesn't exists, try to determine if there is a sub in package
+# if a sub is compiled in the same package, it's a public, if not(imported or xsub), and not exported function - it's private
 
 sub is_method ($self, $name) {
   return 1 if $self->methods->{$name};
   my $pkg = $self->package;
+
+  no strict 'refs';    ## no critic
+  return if ${"${pkg}::EVO_EXPORT_META"} && ${"${pkg}::EVO_EXPORT_META"}->symbols->{$name};
+
   my $code = Evo::Internal::Util::names2code($pkg, $name) or return;
   my ($realpkg, $realname, $xsub) = Evo::Internal::Util::code2names($code);
   return !$xsub && $realpkg eq $pkg;
@@ -119,6 +124,8 @@ sub _public_attrs_slots($self) {
   grep { !$self->is_private($_->{name}) } $self->attrs->slots;
 }
 
+# not marked as private
+# was compiled in the same package, not constant, not exported lib
 sub _public_methods_map($self) {
   my $pkg = $self->package;
   map { ($_, Evo::Internal::Util::names2code($pkg, $_)) }
