@@ -22,8 +22,8 @@ use Evo '-Class::Attrs::XS; Benchmark cmpthese';
   package My::Evo;
   use Evo -Class;
   has 'sm', optional, rw;
-  has df => 'DEFAULT';
-  has lz => sub {'LAZY'}, lazy;
+  has df => 'DEFAULT', rw;
+  has lz => sub {'LAZY'}, lazy, rw;
 }
 
 
