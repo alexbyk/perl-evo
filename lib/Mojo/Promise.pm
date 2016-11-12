@@ -118,7 +118,7 @@ If you expect promise gets fulfilled with the array reference, you can dereferen
     ->spread(sub(%res) { say $_ , ': ', $res{$_} for keys %res });
 
 
-=head2 finnally
+=head2 finally
 
 Chain promise with a handler, that gets called with no argument when the parent promise is settled(fulfilled or rejected). When that handler returns a promise as result, the next promise gets postponed untill that promise will be settled. Returned value is ignored. If that handler causes an exception or returns rejected promise (or promise that will eventually gets rejected), the chain would be rejected.
 
