@@ -22,6 +22,7 @@ my %WriteMakefileArgs = (
   "NAME" => "Evo",
   "PREREQ_PM" => {},
   "TEST_REQUIRES" => {
+    "Mojolicious" => 0,
     "Test::More" => "0.88",
     "Test::Pod" => 0
   },
@@ -37,6 +38,7 @@ my %WriteMakefileArgs = (
 );
 
 my %FallbackPrereqs = (
+  "Mojolicious" => 0,
   "Test::More" => "0.88",
   "Test::Pod" => 0
 );

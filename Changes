@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0253    2016-11-12 22:21:52+02:00 Europe/Kiev
+
 0.0252    2016-11-12 19:17:09+02:00 Europe/Kiev
 
 Switch from Mojo::Promise to Evo::Promise::Mojo

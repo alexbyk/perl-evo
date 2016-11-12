@@ -33,6 +33,7 @@
       },
       "test" : {
          "requires" : {
+            "Mojolicious" : "0",
             "Test::More" : "0.88",
             "Test::Pod" : "0"
          }
