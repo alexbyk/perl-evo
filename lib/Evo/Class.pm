@@ -30,6 +30,9 @@ sub Over ($dest, $code, $name) : Attr {
   Evo::Class::Meta->find_or_croak($dest)->mark_as_overridden($name);
 }
 
+sub Private ($dest, $code, $name) : Attr {
+  Evo::Class::Meta->find_or_croak($dest)->mark_as_private($name);
+}
 
 sub has ($me, $dest) : ExportGen {
   sub ($name, @opts) {
@@ -259,7 +262,16 @@ See L<Evo::Di> for more information.
 
 =head1 CODE REUSE
 
-All methods, defined in a class (not imported) are public. Functions, imported from other modules, don't become public and don't make a mess.
+Only public functions will be inherited.
+
+Subroutine will be considered is a private if:
+It's imported from other modules
+It's monkey patched from other module by C<*Foo::foo = sub {}>
+It's exported by L<Evo::Export> functions, (when a package is both a library and a class)
+
+Subroutine will be considered as a public if:
+It is defined in a class.
+It is inherited by C<extends> or C<with>
 
 All attributes are public.
 
@@ -270,9 +282,32 @@ Methods, generated somehow else, for example by C<*foo = sub {}>, can be marked 
 
 If you want to mark a method as private, use new C<lexical_subs> feature
 
-  my sub private {'private'}
+  my sub _private {'private'}
 
-You can also use L<Evo::Class::Meta/mark_as_private>
+This if preferred way to garantee that no one will be able to use this subroutine.
+
+In some cases you may want to access private method for testing in the parent, but make unaccessible from a child. In this case use the folowing example:
+
+  package Foo;
+  use Evo -Class, -Loaded;
+  sub _hello($self) : Private { 'hello from ' . $self }
+  sub greet($self)            { say _hello($self) }
+
+  package Bar;
+  use Evo -Class;
+  with 'Foo';
+
+
+  package main;
+  Bar->new->greet;
+  say 'Foo can _hello?: ', !!Foo->can('_hello');
+  say 'Bar can _hello?: ', !!Bar->can('_hello');
+
+Pay attention. C<_hello> method should be called in this way: C<_hello($self)>, NOT C<$self-E<gt>_hello> - this will break your code.
+
+C<:Private> attribute marks a method as private making an invocation of L<Evo::Class::Meta/mark_as_private> to skip this method from inheritance process
+
+And of course, many developers just name methods like C<_private> (this method is actually private) to show that it can be changed, call them as they want and don't bother about clashing problems at all. Choose your own way.
 
 =head2 Overriding
 
@@ -306,7 +341,7 @@ See what's going on with the help of L<Evo::Class::Meta/info>
 
 =head2 extends
 
-Extends classes or roles
+Extends classes or roles. See also L</EXTENDING ALIEN CLASSES>
 
 =head2 implements
 
@@ -356,44 +391,105 @@ You may want to use C<extends> and C<implements> separately to resolve circular 
 
 Mark name as overridden. Overridden means it will override the "parent's" method with the same name without diying
 
-=head1 WORKING WITH NON-EVO PARENT CLASSES
+=head1 EXTENDING ALIEN CLASSES
 
-TODO: this behaviour is subject to change, and maybe in the future I'll make this module to populate C<@ISA>
+In some case you may wish to inherite from non-evo classes using C<@ISA>. C<Evo::Class> will croak an error, if you try to use L</extend> or L</with> in this case.
+But you can do it old fashiot way C<use parent 'Some::Alien::Class';>
 
-In some case you may wish to inherite from non-evo classes using C<@ISA>. Evo class won't prevent that, but it will check method clashing and you wouldn't be able to pass that inheritance to children because Evo don't use C<@ISA> (but you can reinherit alien classes directly in the child)
+While C<Evo::Class> doesn't use C<@ISA>, it popolates C<@Child::ISA> with C<@Parent::ISA> to work with old classes. But in this case it won't help you to avoid classical problems:
 
-You can also reimplement clashing methods with C<:Over> attribute, if both of Evo parent and @ISA parent have the same method.
+  package My::Alien;
+  use Evo -Loaded;
+  sub foo {'ALIEN'}
 
+  package My::Parent;
+  use Evo -Loaded, -Class;
 
+  # with 'My::Alien'; # will die, use instead:
+  use parent 'My::Alien';
+  sub bar {'EVO'}
+
+  package My::Child;
+  use Evo -Class;
+  with 'My::Parent';
+
+  package main;
   use Evo;
+  say My::Child->new->foo;    # ALIEN
+  say My::Child->new->bar;    # EVO
+  say @My::Child::ISA;        # My::Alien
 
-  {
+In this example C<My::Alien> isn't Evo class. So we inherit it like C<use parent 'My::Alien';>. C<My::Child> gets C<bar> from  C<My::Parent>, and C<foo> works too by classical inheritance mechanism C<@ISA>.
 
-    package My::Evo::Parent;
-    use Evo -Loaded, -Class;
-    sub foo {'EVO'}
+But if you then write a second child and acccidentally rewrite C<foo>, C<Evo::Class> won't be able to find a bug, because C<foo> is an alien method.
 
-    package My::Isa::Parent;
-    use Evo -Loaded, -Class;
-    sub foo {'ISA'}
+  package My::Child2;
+  use Evo -Class;
+  with 'My::Parent';
+  sub foo {};
 
-    package My::Child;
-    use Evo -Class;
-    use parent 'My::Isa::Parent';
-    with 'My::Evo::Parent';
+But it will find a bug in this case, because C<My::Parent> provides C<bar> method and C<My::Child3::bar> is written without C<:Over> attribute
 
-    # without this, an error will be thrown because Evo doesn't know
-    # wich foo do you need here
-    sub foo : Over { My::Evo::Parent::foo(@_) }
-
-  }
-
-  say My::Child->foo();    # EVO
-
-This is actually a good thing, because it prevents you from most of the "multiple inheritance" errors.
+  package My::Child3;
+  use Evo -Class;
+  with 'My::Parent';
+  sub bar {};
 
 =head1 INTERNAL
 
 Every class gets C<$EVO_CLASS_META> variable which holds an C<Evo::Class::Meta> instance. See L<Evo::Class::Meta/register>
+
+=head1 FAQ 
+
+Q.: Why another OO module?
+
+A.: Why not?
+
+Q.: Why not traditional attributes syntax.
+
+A.: See it yourself:
+
+Moose:
+
+  use Moose;
+  has foo => is => 'ro', default => 'FOO';
+  has bar => is => 'rw', default => 'BAR';
+
+Evo::Class
+
+  use Evo -Class;
+  has foo => 'FOO';
+  has bar => rw, 'BAR';
+
+Q.: Why not perl's inheritance mechanism
+
+A.: Read the docs, you will understand why
+
+A. long: The simmilar functionality can be implemented with ISA by switching C<mro> to C<c3>, then traversing a dependency tree and comparing a lot of method, caching them. This is too many lines of code. OO Inheritance is an abstraction only. Perl's default implementation works somehow and somewhere, this module tries to make a code safer.
+
+
+Consider an example:
+
+  package My::Foo;
+  use Evo -Loaded;
+  use Fcntl 'SEEK_CUR';
+
+  package My::Bar;
+  use parent 'My::Foo';
+  say __PACKAGE__->can('SEEK_CUR');
+
+You don't expect C<My::Bar> having a method C<SEEK_CUR>, but that's perl classical inheritance problem. Other module like L<Moose> provide C<autocleaners>, Evo do all the job for you
+
+  package My::Foo;
+  use Evo -Loaded, -Class;
+  use Fcntl 'SEEK_CUR';
+  sub foo { }
+
+  package My::Bar;
+  use Evo -Class;
+  with 'My::Foo';
+  say __PACKAGE__->can('SEEK_CUR');
+
+It's smart enough to understand that C<SEEK_CUR> is a constant and not a method.
 
 =cut

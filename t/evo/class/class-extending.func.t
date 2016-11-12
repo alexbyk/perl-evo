@@ -4,14 +4,16 @@ use Evo 'Test::More; Evo::Internal::Exception; Symbol delete_package; Module::Lo
 
 {
   no warnings 'once';
-  *My::Role::external_marked  = sub {'external_marked'};
-  *My::Role::external_private = sub {'external_private'};
+  *My::Root::external_marked  = sub {'external_marked'};
+  *My::Root::external_private = sub {'external_private'};
 
-  package My::Role;
-  use Evo -Class, -Loaded, -Export;
+  package My::Alien;
+  use Evo -Loaded;
+  sub alien {'ok'}
 
-  # exported functions are skipped
-  sub func : Export {'FUNC'}
+  package My::Root;
+  use Evo -Class, -Loaded;
+  use parent 'My::Alien';
 
   # constants are skipped
   use Fcntl 'SEEK_CUR';
@@ -20,14 +22,20 @@ use Evo 'Test::More; Evo::Internal::Exception; Symbol delete_package; Module::Lo
   has 'a1' => 'ok1';
   has 'a2' => 'bad';
 
-  my sub priv1 {'HIDDEN'}
-  sub priv2    {'HIDDEN'}
-  META->mark_as_private('priv2');
+  my sub priv1        {'HIDDEN'}
+  sub priv2 : Private {'HIDDEN'}
   META->reg_method('external_marked');
 
   sub pmeth  {'ok'}
   sub ometh1 {'bad'}
   sub ometh2 {'bad'}
+
+  package My::Parent;
+  use Evo -Class, -Loaded, -Export;
+  with 'My::Root';
+
+  # exported functions are skipped
+  sub func : Export {'FUNC'}
 
   package My::Class;
   use Evo -Class, -Loaded;
@@ -35,7 +43,7 @@ use Evo 'Test::More; Evo::Internal::Exception; Symbol delete_package; Module::Lo
   has_over 'a3' => 'ok3';    # parent doesn't has it, same as has
   has 'a4'      => 'ok4';    # parent doesn't has it, same as has
   META->mark_as_overridden('ometh2');
-  with 'My::Role';
+  with 'My::Parent';
   sub ometh2        {'ok2'}
   sub ometh1 : Over {'ok1'}
 
@@ -59,7 +67,7 @@ GENERAL: {
   is(My::Class->ometh2,          'ok2');
   is(My::Class->external_marked, 'external_marked');
 
-  ok(My::Role->can('priv2'));
+  ok(My::Root->can('priv2'));
   ok(!My::Class->can('priv2'));
 
 
@@ -73,21 +81,26 @@ GENERAL: {
 }
 
 SKIP_EXTERNAL: {
-  ok(My::Role->can('external_private'));
+  ok(My::Root->can('external_private'));
   ok(!My::Class->can('external_private'));
 }
 
 SKIP_EXPORTED_SUBS: {
-  ok(My::Role->can('export'));
-  ok(My::Role->can('func'));
+  ok(My::Parent->can('export'));
+  ok(My::Parent->can('func'));
   ok(!My::Class->can('func'));
 }
 
 SKIP_CONSTANTS: {
-  ok(My::Role::->can('SEEK_CUR'));
+  ok(My::Root::->can('SEEK_CUR'));
   ok(!My::Class->can('SEEK_CUR'));
-  ok(My::Role->can('CONST'));
+  ok(My::Root->can('CONST'));
   ok(!My::Class->can('CONST'));
+}
+
+ALIEN: {
+  ok(My::Class->isa('My::Alien'));
+  is(My::Class->alien, 'ok');
 }
 
 {
@@ -101,13 +114,10 @@ SKIP_CONSTANTS: {
 like exception { My::ClassCheckImpl->can('implements')->('My::Interface') },
   qr/Bad implement.+$0/i;
 like exception { My::ClassCheckImpl->can('with')->('My::Interface') }, qr/Bad implement.+$0/i;
-no warnings 'once';
 Evo::Internal::Util::monkey_patch 'My::ClassCheckImpl', r1 => sub {'ok'};
 My::ClassCheckImpl->can('implements')->('My::Interface');
 
-# extends 3 module
-is(My::ClassExtend->pmeth,           'ok');
-is(My::ClassExtend->external_marked, 'external_marked');
-
+eval q#package My::Bad; use Evo -Class; extends 'My::Alien'#; ## no critic
+like $@, qr/My::Alien isn't.+parent.+external/;
 
 done_testing;

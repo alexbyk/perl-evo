@@ -6,6 +6,12 @@ has di_stash => sub { {} };
 
 our @CARP_NOT = ('Evo::Class::Attrs');
 
+my sub _croak_cirk (@path) { croak "Circular dependencies detected: " . join(' -> ', @path); }
+my sub _croak ($cur_key, $req_key) {
+  croak qq#Can't load dependency "$cur_key" for class "$req_key"#;
+}
+
+
 sub single ($self, $key) {
   return $self->{di_stash}{$key} if exists $self->{di_stash}{$key};
   load $key;
@@ -33,12 +39,6 @@ sub provide ($self, %args) {
   }
 }
 
-sub _croak_cirk (@path) { croak "Circular dependencies detected: " . join(' -> ', @path); }
-
-sub _croak ($cur_key, $req_key) {
-  croak qq#Can't load dependency "$cur_key" for class "$req_key"#;
-}
-
 # _di_list_pending - return Classes for the next resolve cycle
 # the code is scary, but well tested
 
@@ -54,7 +54,7 @@ sub _croak ($cur_key, $req_key) {
 # - try to load as class and return as result if loaded
 # - if not, croak if dependency is required
 
-sub _di_list_pending ($self, $req_key) {
+sub _di_list_pending ($self, $req_key) : Private {
   return unless $req_key->can('META');
   my @results;
   foreach my $slot ($req_key->META->{attrs}->slots) {

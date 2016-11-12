@@ -32,13 +32,13 @@ sub promise ($me, $fn) {
 
 sub deferred($me) { Evo::Promise::Deferred->new(promise => $me->new()); }
 
-sub resolve ($me, $v) : Export {
+sub resolve ($me, $v) {
   my $d = Evo::Promise::Deferred->new(promise => $me->new());
   $d->resolve($v);
   $d->promise;
 }
 
-sub reject ($me, $v) : Export {
+sub reject ($me, $v)  {
   my $d = Evo::Promise::Deferred->new(promise => $me->new());
   $d->reject($v);
   $d->promise;
@@ -64,7 +64,7 @@ sub race ($me, @prms) {
 }
 
 
-sub all ($me, @prms) : Export {
+sub all ($me, @prms) {
   my $d = Evo::Promise::Deferred->new(promise => $me->new());
   do { $d->resolve([]); return $d->promise; } unless @prms;
 

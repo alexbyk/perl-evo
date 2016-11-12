@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use Carp 'croak';
 use Module::Load ();
-use Evo::Internal::Util;
 use Evo::Attr;
 
 

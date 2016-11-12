@@ -19,7 +19,7 @@ sub register ($me, $package) {
 sub find_or_croak ($self, $package) {
   no strict 'refs';    ## no critic
   ${"${package}::EVO_CLASS_META"}
-    or croak qq#$package isn't Evo::Class; use inherit to inherit external classes#;
+    or croak qq#$package isn't Evo::Class; "use parent '$package';" for external classes#;
 }
 
 sub package($self) { $self->{package} }
@@ -54,8 +54,12 @@ sub is_method ($self, $name) {
   return 1 if $self->methods->{$name};
   my $pkg = $self->package;
 
-  no strict 'refs';    ## no critic
-  return if ${"${pkg}::EVO_EXPORT_META"} && ${"${pkg}::EVO_EXPORT_META"}->symbols->{$name};
+  {
+    no strict 'refs';    ## no critic
+    no warnings 'once';
+    my $meta = ${"${pkg}::EVO_EXPORT_META"};
+    return if $meta && $meta->symbols->{$name};
+  }
 
   my $code = Evo::Internal::Util::names2code($pkg, $name) or return;
   my ($realpkg, $realname, $xsub) = Evo::Internal::Util::code2names($code);
@@ -151,8 +155,10 @@ sub extend_with ($self, $source_p) {
   my %reqs    = $source->reqs()->%*;
   my %methods = $source->_public_methods_map();
 
-  my @new_attrs;
+  no strict 'refs';    ## no critic
+  push @{"${dest_p}::ISA"}, @{"${source_p}::ISA"};
 
+  my @new_attrs;
   foreach my $name (keys %reqs) { $self->reg_requirement($name); }
 
   foreach my $slot ($source->_public_attrs_slots) {
