@@ -18,7 +18,7 @@ foreach my $fn (qw(promise deferred resolve reject race all)) {
 
 =head1 PROMISE
 
-This library is designed to use with other backends. See L<Mojo::Promise>.
+Promises for L<Mojo::IOLoop>
 
 =head1 SYNOSIS
 
@@ -114,29 +114,30 @@ The same as C<then(undef, sub($r) {})>, recommended form
 
 If you expect promise gets fulfilled with the array reference, you can dereference it and pass to function
 
-all(first => $d1->promise, second => $d2->promise)
-  ->spread(sub(%res) { say $_ , ': ', $res{$_} for keys %res });
+  all(first => $d1->promise, second => $d2->promise)
+    ->spread(sub(%res) { say $_ , ': ', $res{$_} for keys %res });
 
 
 =head2 finnally
 
-Chain promise with a handler, that gets called with no argument when the parent promise is settled(fulfilled or rejected). When that handler returns a result, the next promise gets postponed. Value are ignored. If that handler causes an exception or returns rejected promise (or promise that will eventually gets rejected), the chain would be rejected.
+Chain promise with a handler, that gets called with no argument when the parent promise is settled(fulfilled or rejected). When that handler returns a promise as result, the next promise gets postponed untill that promise will be settled. Returned value is ignored. If that handler causes an exception or returns rejected promise (or promise that will eventually gets rejected), the chain would be rejected.
 
 A shorter. Causes no effect on the chain unless rejection happens
 
   resolve('VAL')->finally(sub() {'IGNORED'})->then(sub($v) { say $v});
 
-Usefull for closing connections etc. The idea described here: L<https://github.com/kriskowal/q#propagation>
+Usefull for closing connections etc or making any internal stuff without affecting a chain
 
 =head1 SEE ALSO
 
-More info about promise, race, all etc.: L<https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise>
 
 =over
 
-=item * L<Promises> - Last time I checked the implementation wasn't Spec/A+ compatible (despite it says it is). Wasn't goot enough for me. But contains a great documentation
+=item * More info about promise, race, all etc.: L<https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise>
 
-=item * L<Future> - an alternative way to deal non-blocking
+=item * L<Mojo::Pua> promises based http user agent
+
+=item * L<Evo::Promise::Role> a base role to bring Promises Spec/A+ to any event loop
 
 =back
 
