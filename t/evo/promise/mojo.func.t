@@ -1,4 +1,4 @@
-use Evo '-Promise::Mojo *; Test::More';
+use Evo 'Test::More';
 
 BEGIN {
   eval { require Mojo::IOLoop; 1 } or plan skip_all => 'Install Mojolicious to run this test';
