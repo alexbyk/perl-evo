@@ -30,13 +30,13 @@ BUILD_DOTS: {
   $meta = reset_class();
 
   My::Class->new();
-  $di->{di_stash} = {'My::Class.' => {foo => 'FOO'}};
+  $di->{di_stash} = {'My::Class@hash' => {foo => 'FOO'}};
 
-  $meta->reg_attr('foo', inject '.foo');
-  $meta->reg_attr('missing', inject '.missing', optional);
+  $meta->reg_attr('foo', inject 'foo@hash');
+  $meta->reg_attr('missing', inject 'missing@hash', optional);
   my $obj = $di->_di_build('My::Class');
-  is_deeply $obj,                          {foo => 'FOO'};
-  is_deeply $di->{di_stash}{'My::Class.'}, {foo => 'FOO'};
+  is_deeply $obj,                              {foo => 'FOO'};
+  is_deeply $di->{di_stash}{'My::Class@hash'}, {foo => 'FOO'};
 }
 
 ALL_MISSING: {
@@ -45,8 +45,8 @@ ALL_MISSING: {
   $meta = reset_class();
 
   My::Class->new();
-  $meta->reg_attr('foo', inject '.foo', optional);
-  $meta->reg_attr('missing', inject '.missing', optional);
+  $meta->reg_attr('foo',     inject 'foo@hash',     optional);
+  $meta->reg_attr('missing', inject 'missing@hash', optional);
   ok my $obj = $di->_di_build('My::Class');
   is_deeply $di->{di_stash}, {};    # not spoiled
 }

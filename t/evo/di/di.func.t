@@ -36,6 +36,12 @@ use Evo 'Test::More; Evo::Di; Evo::Internal::Exception';
   package My::Circ3;
   use Evo -Class, -Loaded;
   has circ1 => inject 'My::Circ1',;
+
+  package My::Hash;
+  use Evo -Class, -Loaded;
+  has req => inject 'req@hash';
+  has opt => optional, inject 'opt@hash';
+
 }
 
 EXISTING: {
@@ -73,6 +79,14 @@ CIRC: {
   my $di = Evo::Di->new;
   like exception { $di->single('My::Circ1') },
     qr/My::Circ1 -> My::Circ2 -> My::Circ3 -> My::Circ1.+$0/;
+}
+
+HASH: {
+  my $di = Evo::Di->new;
+
+  like exception { $di->single('My::Hash'); }, qr/req\@hash/;
+  $di->provide('My::Hash@hash' => {req => 'REQ'});
+  is $di->single('My::Hash')->req, 'REQ';
 }
 
 done_testing;

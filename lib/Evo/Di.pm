@@ -60,10 +60,11 @@ sub _di_list_pending ($self, $req_key) : Private {
   foreach my $slot ($req_key->META->{attrs}->slots) {
     next if !(my $k = $slot->{inject});
 
-    if ($k =~ /^\..+/) {
-      my $hash = $self->{di_stash}{"$req_key."};
-      croak(qq#"$req_key." should be a hash ref#) if ($hash && (ref $hash ne 'HASH'));
-      _croak($k, $req_key) if (!exists $hash->{(substr($k, 1))} && $slot->{type} == ECA_REQUIRED);
+    if ($k =~ /(.+)\@hash$/) {
+      my $opt_k = $1;
+      my $hash  = $self->{di_stash}{"$req_key\@hash"};
+      croak(qq#"$req_key\@hash" should be a hash ref#) if ($hash && (ref $hash ne 'HASH'));
+      _croak($k, $req_key) if (!exists $hash->{$opt_k} && $slot->{type} == ECA_REQUIRED);
     }
     else {    # class
       next if exists $self->{di_stash}{$k};
@@ -81,11 +82,12 @@ sub _di_build ($self, $key) {
   return $key->new() unless $key->can('META');
   my @opts;
 
-  my $dot_stash = $self->{di_stash}{"$key."};
+  my $dot_stash = $self->{di_stash}{"$key\@hash"};
   foreach my $slot ($key->META->{attrs}->slots) {
     next unless my $k = $slot->{inject};
-    if ($k =~ /^\..+/) {
-      my $dk = substr($k, 1);
+
+    if ($k =~ /^(.+)\@hash$/) {
+      my $dk = $1;
       push @opts, $slot->{name}, $dot_stash->{$dk} if exists $dot_stash->{$dk};
     }
     else {
@@ -110,9 +112,9 @@ sub _di_build ($self, $key) {
     use Evo -Class, -Loaded;
     has c2 => inject 'My::C2';
 
-    # dot notation
-    has host => inject '.ip';
-    has port => inject '.port';
+    # hash selector
+    has host => inject 'ip@hash';
+    has port => inject 'port@hash';
 
     package My::C2;
     use Evo -Class, -Loaded;
@@ -130,7 +132,7 @@ sub _di_build ($self, $key) {
   $di->provide(FOO => 'FOO value');
 
   # provide config using dot notation
-  $di->provide('My::C1.' => {ip => '127.0.0.1', port => '3000'});
+  $di->provide('My::C1@hash' => {ip => '127.0.0.1', port => '3000'});
 
   my $c1 = $di->single('My::C1');
   say $c1 == $di->single('My::C1');
@@ -141,7 +143,11 @@ sub _di_build ($self, $key) {
   say $c1->host;           # 127.0.0.1
   say $c1->port;           # 3000
 
-=head1 INJECTION
+=head1 TRIAL
+
+This module is in early alpha stage. The implementation will be changed. The syntax probably will remain the same. Right now it can only build singletones.
+
+=head1 DESCRIPTION
 
 Injection is a value of C<inject> option in L<Evo::Class>. Use it this way
 
@@ -161,10 +167,10 @@ If you need to provide some constant for class, use it this way
   has limit => inject => 'My::Class/LIMIT';
   $di->provide(My::Class/LIMIT => 8);
 
-For convineince, there is a special "dot notation". C<inject> field should start with dot and dependency in format "Class::Name."(dot at the and) should be a hash reference, containing keys
+For convineince, there is a special C<@hash> selector. C<inject> should be provided like C<My::Class@hash> as a hash reference
 
-  has ip => inject '.ip';
-  $di->provide('My::C1.' => {ip => '127.0.0.1', port => '3000'});
+  has ip => inject 'ip@hash';
+  $di->provide('My::C1@hash' => {ip => '127.0.0.1', port => '3000'});
 
 Usefull for configuration
 
@@ -190,23 +196,5 @@ You can put in stash any value as a dependency
 If there is already a dependency with this key, return it.
 If not, build it, resolving a dependencies tree. Has a protection from circular
 dependencies (die if A->B->C->A)
-
-=head3 Resolving dependencies tree
-
-Building a class means resolving a dependencies tree. Dependency is a value of C<inject> option if a C<$key> is a L<Evo::Class>
-
-This module will try to load every dependency from the stash which are not dot notations, if it's missing, consider it as a class name, load it and to build it with C<new> method and resolving it's dependency, if it's a L<Evo::Class> too.
-
-If the dependency can't be resolved (no value in stash, package is missing), there are 2 possible situations:
-
-If dependency is dot notation, module will check if it's provided and die, if it's missing and attribute is required.
-
-=head4 optional dependency
-
-If an attribute is L<Evo::Class/optional>, such attribute will be ignored.
-
-=head4 required dependency
-
-If an attribute isrequired, die.
 
 =cut
