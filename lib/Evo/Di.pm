@@ -39,39 +39,16 @@ sub provide ($self, %args) {
   }
 }
 
-# _di_list_pending - return Classes for the next resolve cycle
-# the code is scary, but well tested
-
-# 1) special dot syntax.
-# - check My::Class.->{key}. Assign to var because perl populates
-# - undef->{foo}{bar} and undef->{foo} becomes true.
-# - if $hash is true and not a hash ref, it's missuse, croak even if not required
-# - croak if .dep is required and $hash{dep} doesn't exists
-# - don't add to results.
-#
-# 2) class
-# - list only missing keys
-# - try to load as class and return as result if loaded
-# - if not, croak if dependency is required
-
 sub _di_list_pending ($self, $req_key) : Private {
   return unless $req_key->can('META');
   my @results;
   foreach my $slot ($req_key->META->{attrs}->slots) {
     next if !(my $k = $slot->{inject});
 
-    if ($k =~ /(.+)\@hash$/) {
-      my $opt_k = $1;
-      my $hash  = $self->{di_stash}{"$req_key\@hash"};
-      croak(qq#"$req_key\@hash" should be a hash ref#) if ($hash && (ref $hash ne 'HASH'));
-      _croak($k, $req_key) if (!exists $hash->{$opt_k} && $slot->{type} == ECA_REQUIRED);
-    }
-    else {    # class
-      next if exists $self->{di_stash}{$k};
-      my $loaded = is_loaded($k) || eval { load($k); 1 };
-      do { push @results, $k; next; } if $loaded;
-      _croak($k, $req_key) if $slot->{type} == ECA_REQUIRED;
-    }
+    next if exists $self->{di_stash}{$k};
+    my $loaded = is_loaded($k) || eval { load($k); 1 };
+    do { push @results, $k; next; } if $loaded;
+    _croak($k, $req_key) if $slot->{type} == ECA_REQUIRED;
   }
 
   @results;
@@ -82,19 +59,12 @@ sub _di_build ($self, $key) {
   return $key->new() unless $key->can('META');
   my @opts;
 
-  my $dot_stash = $self->{di_stash}{"$key\@hash"};
   foreach my $slot ($key->META->{attrs}->slots) {
     next unless my $k = $slot->{inject};
-
-    if ($k =~ /^(.+)\@hash$/) {
-      my $dk = $1;
-      push @opts, $slot->{name}, $dot_stash->{$dk} if exists $dot_stash->{$dk};
-    }
-    else {
-      push @opts, $slot->{name}, $self->{di_stash}{$k} if exists $self->{di_stash}{$k};
-    }
+    push @opts, $slot->{name}, $self->{di_stash}{$k} if exists $self->{di_stash}{$k};
   }
-  $key->new(@opts);
+  $key->new(@opts,
+    $self->{di_stash}{"$key\@defaults"} ? $self->{di_stash}{"$key\@defaults"}->%* : ());
 }
 
 

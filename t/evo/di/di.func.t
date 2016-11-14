@@ -19,7 +19,7 @@ use Evo 'Test::More; Evo::Di; Evo::Internal::Exception';
 
   package My::C3;
   use Evo -Class, -Loaded;
-  has val => inject 'My::C3/val';
+  has 'val';
 
   package My::Fail;
   use Evo -Class, -Loaded;
@@ -60,14 +60,23 @@ PROVIDE: {
 
 OK: {
   my $di = Evo::Di->new;
-  $di->provide('My::C3/val', 'V');
+  $di->provide('My::C3@defaults', {val => 'V'});
   my $c1 = $di->single('My::C1');
   is $c1, $di->single('My::C1');
   ok !exists $c1->{not_required};
   is $c1->c2, $di->single('My::C2');
   is $c1->c2->alien, $di->single('My::Alien');
   is $c1->c2->c3,    $di->single('My::C3');
-  is $c1->c2->c3->val, $di->single('My::C3/val');
+  is $c1->c2->c3->val, 'V';
+  is_deeply $di->di_stash,
+    {
+    'My::C3@defaults', {val => 'V'},
+    'My::C1'     => $c1,
+    'My::C2'     => $c1->c2,
+    'My::C3'     => $c1->c2->c3,
+    'My::Alien', => $c1->c2->alien,
+    };
+
 }
 
 FAIL: {
@@ -81,12 +90,5 @@ CIRC: {
     qr/My::Circ1 -> My::Circ2 -> My::Circ3 -> My::Circ1.+$0/;
 }
 
-HASH: {
-  my $di = Evo::Di->new;
-
-  like exception { $di->single('My::Hash'); }, qr/req\@hash/;
-  $di->provide('My::Hash@hash' => {req => 'REQ'});
-  is $di->single('My::Hash')->req, 'REQ';
-}
 
 done_testing;
