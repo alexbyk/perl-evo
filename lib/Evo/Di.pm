@@ -81,10 +81,7 @@ sub _di_build ($self, $key) {
     package My::C1;
     use Evo -Class, -Loaded;
     has c2 => inject 'My::C2';
-
-    # hash selector
-    has host => inject 'ip@hash';
-    has port => inject 'port@hash';
+    has 'required';    # can be provided by My::C1@defaults
 
     package My::C2;
     use Evo -Class, -Loaded;
@@ -102,7 +99,7 @@ sub _di_build ($self, $key) {
   $di->provide(FOO => 'FOO value');
 
   # provide config using dot notation
-  $di->provide('My::C1@hash' => {ip => '127.0.0.1', port => '3000'});
+  $di->provide('My::C1@defaults' => {required => 'OK'});
 
   my $c1 = $di->single('My::C1');
   say $c1 == $di->single('My::C1');
@@ -110,8 +107,7 @@ sub _di_build ($self, $key) {
   say $c1->c2->c3 == $di->single('My::C3');
   say $c1->c2->c3->foo;    # FOO value
 
-  say $c1->host;           # 127.0.0.1
-  say $c1->port;           # 3000
+  say $c1->required;       # OK
 
 =head1 TRIAL
 
@@ -132,17 +128,11 @@ If you need to provide a global value, for example, processor cores, you can use
   has cores => inject 'CORES';
   $di->provide(CORES => 8);
 
-If you need to provide some constant for class, use it this way
+For convineince, there is a special C<@defaults> provider modificator. That helps to build values without C<inject> attributes
 
-  has limit => inject => 'My::Class/LIMIT';
-  $di->provide(My::Class/LIMIT => 8);
+  has 'ip';
+  $di->provide('My::C1@defaults' => {ip => '127.0.0.1'});
 
-For convineince, there is a special C<@hash> selector. C<inject> should be provided like C<My::Class@hash> as a hash reference
-
-  has ip => inject 'ip@hash';
-  $di->provide('My::C1@hash' => {ip => '127.0.0.1', port => '3000'});
-
-Usefull for configuration
 
 =head1 ATTRIBUTES
 
@@ -159,7 +149,7 @@ You can put in stash any value as a dependency
   $di->provide('SOME_CONSTANT' => 33);
   say $di->single('SOME_CONSTANT'), 33;
 
-  $di->provide('My::C1.' => {ip => '127.0.0.1', port => '3000'});
+  $di->provide('My::C1@defaults' => {ip => '127.0.0.1', port => '3000'});
 
 =head2 single($self, $key)
 

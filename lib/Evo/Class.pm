@@ -141,6 +141,8 @@ Fast full featured post-modern Object oriented programming. Available both in PP
 
 You will find thet syntax differs from other modules, such C<Moose>, C<Moo>. That's because I decided not to copy and made it to be as short/safe/obvious/common as possible. Give it a try
 
+Also multiple inheritance is considered a good development pattern, because the flat code reuse (mixing) is used.
+
 =head2 EXPORTING SYNTAX
 
 By default this module exports some keywords, like C<has>, C<check>, C<rw> and so on. If your code conflicts with them, don't worry, perl will notify you and you can either rename conflicting methods, or exclude them from exporting/rename them this way:
@@ -321,9 +323,12 @@ Evo protects you from method clashing. But if you want to override method or fix
     sub greet : Over { ... }
 
 
-This differs from traditional OO style. With compoment programming. If you want to call parent's method, call it by full name instead of C<SUPER>
+If you want to call parent's method, call it by full name instead of C<SUPER>
 
-    sub greet : Over { Some::Parent::greet() }
+  sub foo($self) : Over {
+    say "Child";
+    $self->My::Parent::foo();
+  }
 
 =head1 FUNCTIONS
 
@@ -465,8 +470,7 @@ Q.: Why not perl's inheritance mechanism
 
 A.: Read the docs, you will understand why
 
-A. long: The simmilar functionality can be implemented with ISA by switching C<mro> to C<c3>, then traversing a dependency tree and comparing a lot of method, caching them. This is too many lines of code. OO Inheritance is an abstraction only. Perl's default implementation works somehow and somewhere, this module tries to make a code safer.
-
+A. long: The simmilar functionality can be implemented with ISA and traversing a dependency tree and comparing a lot of method, caching them. This is too many lines of code. OO Inheritance is an abstraction only. Perl's default implementation works somehow and somewhere, this module tries to make a code safer.
 
 Consider an example:
 
