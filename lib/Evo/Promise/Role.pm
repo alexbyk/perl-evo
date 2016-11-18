@@ -5,7 +5,7 @@ use Evo 'Carp croak; Scalar::Util blessed';
 
 requires 'postpone';
 
-# https://promiseaplus.com/
+# https://promisesaplus.com/
 
 has $_, optional, rw for qw(d_v d_locked d_fh d_rh d_settled);
 has 'd_children' => sub { [] };
