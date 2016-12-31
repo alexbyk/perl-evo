@@ -25,7 +25,7 @@ sub promise($fn) {
 
 plan skip_all => 'set TEST_EVO_PERF env to enable this test' unless $ENV{TEST_EVO_PERF};
 
-my $EXPECT = 5000 * $ENV{TEST_EVO_PERF};
+my $EXPECT = 4500 * $ENV{TEST_EVO_PERF};
 
 my $N = 5_000;
 

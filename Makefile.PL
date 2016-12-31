@@ -20,13 +20,15 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "MIN_PERL_VERSION" => "5.022000",
   "NAME" => "Evo",
-  "PREREQ_PM" => {},
+  "PREREQ_PM" => {
+    "ExtUtils::MakeMaker" => "7.24"
+  },
   "TEST_REQUIRES" => {
     "Test::More" => "0.88"
   },
-  "VERSION" => "0.0256",
+  "VERSION" => "0.0257",
   "test" => {
-    "TESTS" => "t/*.t t/evo/attr/*.t t/evo/class/*.t t/evo/class/attrs/*.t t/evo/di/*.t t/evo/ee/*.t t/evo/evo_import/*.t t/evo/export/*.t t/evo/fs/*.t t/evo/internal/*.t t/evo/lib/*.t t/evo/promise/*.t t/evo/promise/func/*.t t/evo/promise/promise/*.t t/evo/w/*.t t/evo/want/*.t t/perf/*.t"
+    "TESTS" => "t/*.t t/evo/attr/*.t t/evo/class/*.t t/evo/class/attrs/*.t t/evo/di/*.t t/evo/ee/*.t t/evo/evo_import/*.t t/evo/export/*.t t/evo/fs/*.t t/evo/internal/*.t t/evo/lib/*.t t/evo/promise/*.t t/evo/promise/func/*.t t/evo/promise/promise/*.t t/evo/test/*.t t/evo/w/*.t t/evo/want/*.t t/memory/*.t t/perf/*.t"
   }
 );
 
@@ -36,6 +38,7 @@ my %WriteMakefileArgs = (
 );
 
 my %FallbackPrereqs = (
+  "ExtUtils::MakeMaker" => "7.24",
   "Test::More" => "0.88"
 );
 

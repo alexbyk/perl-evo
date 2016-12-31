@@ -15,7 +15,7 @@ my $k = 0;
 
   package My::S1;
   use Evo -Class, -Loaded;
-  has 's2', inject => 'My::S2', required => 1;
+  has 's2', inject 'My::S2';
 
   package My::S2;
   use Evo -Class, -Loaded;

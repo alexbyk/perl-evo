@@ -16,13 +16,13 @@ my $k = 0;
   package My::Obj;
   use Evo -Class;
   has 'simple';
-  has 'default', is => 'rw', default => 'foo';
-  has 'lazy', is => 'rw', lazy => sub { $k++; 'bar' };
+  has 'default', rw, 'foo';
+  has 'lz', rw, lazy, sub { $k++; 'bar' };
 }
 
 my $fn = sub {
   my $obj = My::Obj->new(simple => 'hello');
-  my $res = join ' ', $obj->simple, $obj->default, $obj->lazy;
+  my $res = join ' ', $obj->simple, $obj->default, $obj->lz;
   die unless $res eq 'hello foo bar';
 };
 
