@@ -8,9 +8,6 @@ our $SINGLE = __PACKAGE__->new();
 sub _FS : Export(FS) {$SINGLE}
 META->mark_as_private('_FS');
 
-
-# ========= CLASS =========
-
 use Fcntl qw(:seek O_RDWR O_RDONLY O_WRONLY O_RDWR O_CREAT O_TRUNC O_APPEND O_EXCL :flock);
 use Evo 'File::Spec; File::Path; Cwd() abs_path; File::Basename fileparse; Symbol()';
 use Time::HiRes ();
@@ -26,11 +23,16 @@ our @CARP_NOT = qw(Evo::Fs::Temp);
   *path2real = *to_abs;
 };
 
-#sub new {
-#  my $fs = _new(shift, @_);
-#  croak "${\$fs->cwd} doesn't exists" unless $fs->stat($fs->cwd)->is_dir;
-#  $fs;
-#}
+sub SKIP_HIDDEN : Export : prototype() {
+  sub($dir) {
+    my @dirs = File::Spec->splitdir($dir);
+    $dirs[-1] !~ /^\./;
+  };
+}
+
+
+# ========= CLASS =========
+
 
 my $CWD = Cwd::getcwd();
 has 'cwd' => $CWD, check sub($v) { File::Spec->file_name_is_absolute($v) };    # on module load
@@ -516,6 +518,13 @@ So, in situations, when a file have several hard and symbolic links, only one of
 each time it can be different path for each C<find_files> invocation.
 
 See L</traverse> for examining all nodes. This method just decorate it's arguments
+
+=head3 SKIP_HIDDEN
+
+You can also traverse all files, but ignore hidden directories, like ".git" this way:
+
+  use Evo '-Fs FS SKIP_HIDDEN';
+  FS->find_files('./', sub($path) { say $path; }, SKIP_HIDDEN)
 
 =head2 traverse($self, $dirs, $fn, $pick=undef)
 

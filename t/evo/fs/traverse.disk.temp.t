@@ -5,6 +5,7 @@ use File::Basename 'fileparse';
 plan skip_all => "Win isn't supported yet" if $^O eq 'MSWin32';
 require Evo::Fs::Temp;
 
+
 # traverse
 foreach my $fs (Evo::Fs::Temp->new(), Evo::Fs->new(cwd => File::Temp->newdir)) {
   $fs->write_many(
@@ -126,7 +127,6 @@ SKIP: {
   }
 }
 
-
 # files
 FILES: {
 
@@ -177,5 +177,31 @@ FILES_LINKS: {
 
   }
 }
+
+SKIP_HIDDEN: {
+  foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
+    $fs->mkdir('.bad');
+    $fs->make_tree('ok/.bad');
+    $fs->write_many(
+      'ok/ok.txt'  => '',
+      'ok/.ok.txt' => '',
+
+      '.bad/bad.txt'    => '',
+      'ok/.bad/bad.txt' => '',
+    );
+
+    my (@files);
+    $fs->find_files(
+      './',
+      sub ($path) {
+        push @files, $path;
+      },
+      Evo::Fs::SKIP_HIDDEN()
+    );
+
+    is_deeply [sort @files], [sort('ok/ok.txt', 'ok/.ok.txt')];
+  }
+}
+
 
 done_testing;
