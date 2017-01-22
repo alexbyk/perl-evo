@@ -34,6 +34,12 @@ sub Private ($dest, $code, $name) : Attr {
   Evo::Class::Meta->find_or_croak($dest)->mark_as_private($name);
 }
 
+sub has_dummy ($me, $dest) : ExportGen {
+  sub ($name, @opts) {
+    Evo::Class::Meta->find_or_croak($dest)->reg_dummy_attr($name, @opts);
+  };
+}
+
 sub has ($me, $dest) : ExportGen {
   sub ($name, @opts) {
     Evo::Class::Meta->find_or_croak($dest)->reg_attr($name, @opts);
@@ -180,6 +186,12 @@ We're protected from common mistakes, because constructor won't accept unknown a
   has 'baz' => rw, 'BAZ';
 
 Without options attributes are required and read-only. You can pass extra flags/options + a default value in any order. If you make a mistake, smart syntax parser will notify you. In the example above default values are C<BAR> and C<BAZ>. Pay attention, C<rw> and C<check> are not strings, so C<'rw'> or C<check =E<gt>> is a mistake.
+
+=head3 has_dummy
+
+  has_dummy 'dummy';
+
+Like attribute, but doesn't install methods, only check constructor's arguments. Can be used to make things work with non-evo classes
 
 =head3 Flags and Options
 

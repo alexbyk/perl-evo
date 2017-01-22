@@ -2,10 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0258    2017-01-01 21:25:32+02:00 Europe/Kiev
-
-0.0257    2016-12-31 23:49:56+02:00 Europe/Kiev
-
+Added has_dummy for Evo::Class
+Added Evo::Di->mortal
 Added Evo::Test
 Added Evo::Promise::AE
 Switch from Mojo::Promise to Evo::Promise::Mojo

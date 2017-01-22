@@ -26,6 +26,8 @@ use Evo::Internal::Exception;
   has adef => 1;
   has 'alazy', lazy, sub {'L'};
   has 'asimple', optional, rw;
+  has_dummy 'dummy';
+
 
 };
 
@@ -61,11 +63,12 @@ is $obj->with_dfn, 'DFN';
 $obj = My::Foo::->new(req => 1, foo => 'foo');
 is $obj->foo, 'foo';
 
-$obj = My::Bar::->new();
-is_deeply $obj, {adef => 1};
+$obj = My::Bar::->new(dummy => 1);
+ok !$obj->can('dummy');
+is_deeply $obj, {adef => 1, dummy => 1};
 ok $obj->alazy;
-is_deeply $obj, {adef => 1, alazy => 'L'};
+is_deeply $obj, {adef => 1, alazy => 'L', dummy => 1};
 ok $obj->asimple('S');
-is_deeply $obj, {adef => 1, alazy => 'L', asimple => 'S'};
+is_deeply $obj, {adef => 1, alazy => 'L', asimple => 'S', dummy => 1};
 
 done_testing;

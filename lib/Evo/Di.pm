@@ -11,25 +11,27 @@ my sub _croak ($cur_key, $req_key) {
   croak qq#Can't load dependency "$cur_key" for class "$req_key"#;
 }
 
-
-sub single ($self, $key) {
-  return $self->{di_stash}{$key} if exists $self->{di_stash}{$key};
-  load $key;
-  my @stack = ($key);
-
+# TODO: copypase, optimaze
+sub mortal ($self, $class, %args) {
+  load $class;
+  my @stack = _di_list_pending($self, $class);
   my %in_stack;
   while (@stack) {
     my $cur = pop @stack;
     my @pending = _di_list_pending($self, $cur);
     if (!@pending) {
-      $self->{di_stash}{$cur} = _di_build($self, $cur);
+      $self->{di_stash}{$cur} = $cur->new(_di_args($self, $cur));
       next;
     }
     _croak_cirk(@stack, $cur) if $in_stack{$cur}++;
     push @stack, $cur, @pending;
   }
+  $class->new(%args,_di_args($self, $class));
+}
 
-  $self->{di_stash}{$key};
+sub single ($self, $key) {
+  return $self->{di_stash}{$key} if exists $self->{di_stash}{$key};
+  $self->{di_stash}{$key} = $self->mortal($key);
 }
 
 sub provide ($self, %args) {
@@ -54,17 +56,16 @@ sub _di_list_pending ($self, $req_key) : Private {
   @results;
 }
 
-# pass only existing key/values to ->new, skip missing
-sub _di_build ($self, $key) {
-  return $key->new() unless $key->can('META');
+# only existing key/values to ->new, skip missing
+sub _di_args ($self, $key) : Private {
+  return unless $key->can('META');
   my @opts;
 
   foreach my $slot ($key->META->{attrs}->slots) {
     next unless my $k = $slot->{inject};
     push @opts, $slot->{name}, $self->{di_stash}{$k} if exists $self->{di_stash}{$k};
   }
-  $key->new(@opts,
-    $self->{di_stash}{"$key\@defaults"} ? $self->{di_stash}{"$key\@defaults"}->%* : ());
+  (@opts, $self->{di_stash}{"$key\@defaults"} ? $self->{di_stash}{"$key\@defaults"}->%* : ());
 }
 
 
@@ -91,6 +92,11 @@ sub _di_build ($self, $key) {
     use Evo -Class, -Loaded;
     has foo => inject 'FOO';
 
+    package My::Mortal;
+    use Evo -Class, -Loaded;
+    has c1 => inject 'My::C1';
+    has 'counter';
+
   }
 
   my $di = Evo::Di->new();
@@ -108,6 +114,11 @@ sub _di_build ($self, $key) {
   say $c1->c2->c3->foo;    # FOO value
 
   say $c1->required;       # OK
+
+  my $temp1 = $di->mortal('My::Mortal', counter => 1);
+  my $temp2 = $di->mortal('My::Mortal', counter => 2);
+  say $temp1->c1 eq $temp2->c1;    # true
+  say $temp1 eq $temp2;            # false
 
 =head1 TRIAL
 
@@ -156,5 +167,9 @@ You can put in stash any value as a dependency
 If there is already a dependency with this key, return it.
 If not, build it, resolving a dependencies tree. Has a protection from circular
 dependencies (die if A->B->C->A)
+
+=head2 mortal($self, $class)
+
+Build an instance of class resolving required dependencies
 
 =cut

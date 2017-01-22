@@ -42,6 +42,20 @@ use Evo 'Test::More; Evo::Di; Evo::Internal::Exception';
   has req => inject 'req@hash';
   has opt => optional, inject 'opt@hash';
 
+  package My::Mortal;
+  use Evo -Class, -Loaded;
+  has c1 => inject 'My::C1';
+  has 'baz';
+
+}
+
+MORTAL: {
+  my $di = Evo::Di->new();
+  $di->provide('My::C3@defaults', {val => 'V'});
+  my $c = $di->mortal('My::Mortal', baz => 44, c1 => 'bad');
+  ok $c->c1;
+  is $c->c1, $di->single('My::C1');
+  isnt $c, $di->mortal('My::Mortal', baz => 44);
 }
 
 EXISTING: {
@@ -87,7 +101,7 @@ FAIL: {
 CIRC: {
   my $di = Evo::Di->new;
   like exception { $di->single('My::Circ1') },
-    qr/My::Circ1 -> My::Circ2 -> My::Circ3 -> My::Circ1.+$0/;
+    qr/My::Circ2 -> My::Circ3 -> My::Circ1.+$0/;
 }
 
 

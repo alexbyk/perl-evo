@@ -10,6 +10,7 @@ sub register ($me, $package) {
     package    => $package,
     private    => {},
     attrs      => Evo::Class::Attrs->new,
+    dummies    => {},
     methods    => {},
     reqs       => {},
     overridden => {}
@@ -24,6 +25,7 @@ sub find_or_croak ($self, $package) {
 
 sub package($self) { $self->{package} }
 sub attrs($self)   { $self->{attrs} }
+sub dummies($self) { $self->{dummies} }
 sub methods($self) { $self->{methods} }
 sub reqs($self)    { $self->{reqs} }
 
@@ -105,6 +107,20 @@ sub _reg_parsed_attr_over ($self, $name, @opts) {
   Evo::Internal::Util::monkey_patch_silent $pkg, $name, $sub;
 }
 
+sub _reg_parsed_dummy_attr ($self, $name, @opts) {
+  _check_exists_valid_name($self, $name);
+  my $pkg = $self->package;
+  croak qq{$pkg already has subroutine "$name"} if Evo::Internal::Util::names2code($pkg, $name);
+  $self->attrs->gen_attr($name, @opts);              # register
+  $self->dummies->{$name}++;
+}
+
+sub reg_dummy_attr ($self, $name, @attr) {
+  my @opts = $self->parse_attr(@attr);
+  $self->_reg_parsed_dummy_attr($name, @opts);
+  $self->dummies->{$name}++;
+}
+
 sub reg_attr ($self, $name, @attr) {
   my @opts = $self->parse_attr(@attr);
   $self->_reg_parsed_attr($name, @opts);
@@ -155,15 +171,17 @@ sub extend_with ($self, $source_p) {
   my %reqs    = $source->reqs()->%*;
   my %methods = $source->_public_methods_map();
 
-  no strict 'refs';    ## no critic
-  push @{"${dest_p}::ISA"}, @{"${source_p}::ISA"};
-
   my @new_attrs;
   foreach my $name (keys %reqs) { $self->reg_requirement($name); }
 
   foreach my $slot ($source->_public_attrs_slots) {
     next if $self->is_overridden($slot->{name});
-    $self->_reg_parsed_attr(@$slot{qw(name type value check ro inject)});
+    if ($source->dummies->{$slot->{name}}) {
+      $self->_reg_parsed_dummy_attr(@$slot{qw(name type value check ro inject)});
+    }
+    else {
+      $self->_reg_parsed_attr(@$slot{qw(name type value check ro inject)});
+    }
     push @new_attrs, $slot->{name};
   }
 
@@ -178,6 +196,10 @@ sub extend_with ($self, $source_p) {
     Evo::Internal::Util::monkey_patch $dest_p, $name, $methods{$name};
     $self->reg_method($name);
   }
+
+  no strict 'refs';                 ## no critic
+  push @{"${dest_p}::ISA"}, @{"${source_p}::ISA"};
+
   @new_attrs;
 }
 

@@ -230,6 +230,14 @@ REG_ATTR: {
   ok !$meta->is_attr($_) for qw(external own 4bad isa);
 }
 
+REG_DUMMY_ATTR: {
+  my $meta = gen_meta;
+  $meta->reg_dummy_attr('pub1', lazy, sub {'ATTR-PUB1'});
+
+  ok $meta->is_attr('pub1');
+  ok !(My::Class->can('pub1'));
+}
+
 REG_ATTR_OVER: {
   my $meta = gen_meta;
   $meta->reg_attr('pub1', lazy, sub {'ATTR-PUB1'});
@@ -277,9 +285,13 @@ EXTEND_ATTRS: {
 NORMAL: {
     my $parent = gen_meta('My::Class');
     $parent->reg_attr('pub1');
+    $parent->reg_dummy_attr('dummy1');
     my $child = gen_meta('My::Child');
     $child->extend_with('My::Class');
     ok $child->is_attr('pub1');
+    ok $child->is_attr('dummy1');
+    ok(My::Child->can('pub1'));
+    ok !(My::Child->can('dummy1'));
   }
 
 
