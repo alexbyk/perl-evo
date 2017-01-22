@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0259    2017-01-22 07:59:47+02:00 Europe/Kiev
+
 Added has_dummy for Evo::Class
 Added Evo::Di->mortal
 Added Evo::Test
