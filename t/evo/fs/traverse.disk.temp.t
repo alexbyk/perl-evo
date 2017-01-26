@@ -99,12 +99,14 @@ CIRC: {
 
 SKIP: {
   foreach my $fs (Evo::Fs->new(cwd => File::Temp->newdir), Evo::Fs::Temp->new()) {
-    $fs->mkdir('bad1', oct 100);
-    $fs->mkdir('bad2', oct 400);
-    $fs->mkdir('bad3', oct 600);
+    $fs->mkdir('bad', oct 100);
     $fs->write("good/f", oct 500);
 
     my (@children, @dirs);
+    no warnings qw(once redefine);
+    local *Evo::Fs::Stat::can_exec
+      = sub($st) { $st->mode & 1 };    ## instead of can_exec, because of docker
+
     $fs->traverse(
       './',
       sub ($path) {
@@ -121,8 +123,9 @@ SKIP: {
     @children = map { File::Spec->canonpath($_) } sort @children;
 
     # see skip once only
+
     is_deeply \@dirs,     [sort qw(good)];
-    is_deeply \@children, [sort qw(bad1 bad2 bad3 good good/f)];
+    is_deeply \@children, [sort qw(bad good good/f)];
 
   }
 }

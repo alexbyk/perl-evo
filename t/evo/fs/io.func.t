@@ -1,5 +1,6 @@
 use Evo 'Test::More; Evo::Internal::Exception';
 use Evo 'Fcntl; Time::HiRes time';
+use English qw( -no_match_vars );
 
 plan skip_all => "Win isn't supported yet" if $^O eq 'MSWin32';
 require Evo::Fs::Temp;
@@ -161,8 +162,10 @@ STAT: {
   # cando
   $fs->sysopen(my $fh, "/foo", 'w', oct 000);
   $stat = $fs->stat('/foo');
-  ok !$stat->can_read;
-  ok !$stat->can_write;
+  if ($UID) {
+    ok !$stat->can_read;
+    ok !$stat->can_write;
+  }
   ok !$stat->can_exec;
   is $stat->perms, oct 000;
   $fs->close($fh);
