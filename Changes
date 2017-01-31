@@ -2,6 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+Implemented Evo::Fs copy_file and copy_dir
 Breaking changes in Evo::Fs. Now every path is relative to "root" attribute
 
 0.0200    2017-01-22 07:59:47+02:00 Europe/Kiev

@@ -8,6 +8,7 @@ use Time::HiRes ();
 use List::Util 'first';
 use Errno qw(EAGAIN EWOULDBLOCK);
 use Scalar::Util;
+use File::Copy ();
 
 
 sub SKIP_HIDDEN : Export : prototype() {
@@ -29,7 +30,7 @@ sub path2real ($self, $path) : Over {
   my (undef, $dir,  $last)  = File::Spec->splitpath($path);
   my ($rvol, $rdir, $rlast) = File::Spec->splitpath($self->root);
   my $realdir = File::Spec->catdir($rdir, $rlast, $dir);
-  File::Spec->catpath($rvol, File::Spec->catdir($rdir, $rlast, $dir), $last);
+  File::Spec->catpath($rvol, $realdir, $last);
 }
 
 sub exists ($self, $path) {
@@ -255,6 +256,46 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
   }
 }
 
+my sub _copy_file ($self, $from, $to, $mk) {
+  $self->make_tree((fileparse($to))[1]);
+  File::Copy::cp $self->path2real($from), $self->path2real($to) or die "Copy failed: $!";
+}
+
+sub copy_dir ($self, $from, $to) {
+  $self->mkdir($to);
+  my @stack = ($from);
+  while (@stack) {
+    my $cur_dir = shift @stack;
+    $self->traverse(
+      $cur_dir,
+      sub($path) {
+
+        my $stat = $self->stat($path);
+        if ($stat->is_dir) {
+          my @dirs = File::Spec->splitdir($path);
+          $dirs[1] = $to;
+          my $dest = File::Spec->catdir(@dirs);
+          $self->mkdir($dest);
+        }
+        elsif ($stat->is_file) {
+          my ($vol, $dir, $last) = File::Spec->splitpath($path);
+          my @dirs = File::Spec->splitdir($dir);
+          $dirs[1] = $to;
+          $dir = File::Spec->catdir(@dirs);
+          my $dest = File::Spec->catpath($vol, $dir, $last);
+          _copy_file($self, $path, $dest, 0);
+        }
+
+        #else { croak "Can't copy $path, not a dir neither a file"; }
+      }
+    );
+  }
+}
+
+sub copy_file ($self, $from, $to) {
+  _copy_file($self, $from, $to, 1);
+}
+
 # ========= MODULE =========
 
 my $FSROOT = __PACKAGE__->new(root => '/');
@@ -282,12 +323,27 @@ sub FSROOT : Export {$FSROOT}
   # bulk
   $fs->write_many('/a/foo' => 'afoo', '/b/foo' => 'bfoo');
 
+
+  # copying
+  $fs->write('/from/d/f' => 'OK');
+
+  # copy file
+  $fs->remove_tree('/to') if $fs->exists('/to');
+  $fs->copy_file('/from/d/f' => '/to/d/f');
+  say $fs->read('/to/d/f');    # OK
+
+  # copy dir recursively
+  $fs->remove_tree('/to') if $fs->exists('/to');
+  $fs->copy_dir('/from' => '/to');
+  say $fs->read('/to/d/f');    # OK
+
   $fs->sysopen($fh, '/c', 'w+');
   $fs->syswrite($fh, "123456");
   $fs->sysseek($fh, 0);
   $fs->sysread($fh, \my $buf, 3);
   say $buf;                                  # 123
 
+  # traversing
   $fs->find_files(
 
     # where to start (/ => /tmp/testfs)
@@ -335,6 +391,14 @@ Return a single instance of L<Evo::Fs> where root is C</>
   my $fs = Evo::Fs->new(root => '/tmp/test-root');
 
 =head1 METHODS
+
+=head2 copy_file($self, $from, $to)
+
+Copy file, die if already exists
+
+=head2 copy_dir($self, $from, $to)
+
+Copy directory recursively, die if already exists
 
 =head2 sysopen ($self, $path, $mode, $perm=...)
 
