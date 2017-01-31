@@ -1,13 +1,11 @@
-use Evo 'Test::More; Evo::Internal::Exception';
+use Evo 'Test::More; Evo::Internal::Exception; File::Temp';
 use Evo 'Fcntl; Time::HiRes time';
 use English qw( -no_match_vars );
 
 plan skip_all => "Win isn't supported yet" if $^O eq 'MSWin32';
-require Evo::Fs::Temp;
+require Evo::Fs;
 
-my $fs = Evo::Fs::Temp->new();
-
-ok $fs->stat($fs->cwd)->is_dir;
+my $fs = Evo::Fs->new(root => File::Temp->newdir);
 
 sub _write ($path, $what) {
   $fs->sysopen(my $fh, $path, 'w');
@@ -22,8 +20,6 @@ sub _slurp ($path) {
   $fs->close($fh);
   $buf;
 }
-
-diag "Testing " . ref $fs;
 
 EXISTS_SIZE: {
   ok !$fs->exists('/foo');
@@ -137,19 +133,19 @@ WRITE: {
 
 STAT: {
 
-  if ($^O eq 'MSWin32') {
-    diag "skipping stat on windows";
-    last STAT;
-  }
+  #if ($^O eq 'MSWin32') {
+  #  diag "skipping stat on windows";
+  #  last STAT;
+  #}
 
-  $fs->write("/foo", 'hello');
-  my $stat = $fs->stat('/foo');
+  $fs->write("/foo/bar/baz", 'hello');
+  my $stat = $fs->stat('/foo/bar/baz');
   ok defined $stat->dev;
   ok defined $stat->ino;
   is $stat->size, 5;
   ok $stat->is_file;
   ok !$stat->is_dir;
-  $fs->unlink('/foo');
+  $fs->remove_tree('/foo');
 
   $fs->mkdir('/somedir');
   $stat = $fs->stat('/somedir');
@@ -214,10 +210,10 @@ LOCK: {
 
 SYMLINK: {
 
-  if ($^O eq 'MSWin32') {
-    diag "skipping symlink on windows";
-    last SYMLINK;
-  }
+  #if ($^O eq 'MSWin32') {
+  #  diag "skipping symlink on windows";
+  #  last SYMLINK;
+  #}
 
   $fs->write('/foo', 'foo');
   $fs->symlink('/foo', '/link');
@@ -240,7 +236,7 @@ LINK: {
   ok !$fs->is_symlink('/foo');
 
 SKIP: {
-    last SKIP if $^O eq 'MSWin32';
+    #last SKIP if $^O eq 'MSWin32';
     like exception { $fs->symlink('/404', '/link') }, qr/exists.+$0/;
   }
   $fs->unlink('/foo');
@@ -258,10 +254,14 @@ RENAME: {
 
 
 # ---------- dirs
-MAKE_TREE: {
+MAKE_TREE_REMOVE_TREE: {
   $fs->make_tree('/bar/p2/p3');
   ok $fs->stat('/bar/p2/p3')->is_dir;
+  $fs->remove_tree('/bar', {keep_root => 1});
+  ok !$fs->exists('/bar/p2');
+  ok $fs->exists('/bar');
   $fs->remove_tree('/bar');
+  ok !$fs->exists('/bar');
 
   # TODO: - test with cur mask
   # $fs->make_tree('/bar/p2/p3', oct 700);

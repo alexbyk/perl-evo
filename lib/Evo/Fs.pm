@@ -2,12 +2,6 @@ package Evo::Fs;
 use Evo '-Export *; -Class; ::Stat; Carp croak';
 die "Win isn't supported yet. Pull requests are welcome!" if $^O eq 'MSWin32';
 
-# ========= MODULE =========
-
-our $SINGLE = __PACKAGE__->new();
-sub _FS : Export(FS) {$SINGLE}
-META->mark_as_private('_FS');
-
 use Fcntl qw(:seek O_RDWR O_RDONLY O_WRONLY O_RDWR O_CREAT O_TRUNC O_APPEND O_EXCL :flock);
 use Evo 'File::Spec; File::Path; Cwd() abs_path; File::Basename fileparse; Symbol()';
 use Time::HiRes ();
@@ -15,13 +9,6 @@ use List::Util 'first';
 use Errno qw(EAGAIN EWOULDBLOCK);
 use Scalar::Util;
 
-our @CARP_NOT = qw(Evo::Fs::Temp);
-
-{
-  # same as to_abs
-  no warnings 'once';
-  *path2real = *to_abs;
-};
 
 sub SKIP_HIDDEN : Export : prototype() {
   sub($dir) {
@@ -34,25 +21,16 @@ sub SKIP_HIDDEN : Export : prototype() {
 # ========= CLASS =========
 
 
-my $CWD = Cwd::getcwd();
-has 'cwd' => $CWD, check sub($v) { File::Spec->file_name_is_absolute($v) };    # on module load
+has root =>
+  check sub($v) { File::Spec->file_name_is_absolute($v) ? 1 : (0, "root should be absolute") };
 
-
-sub cd ($self, $path) {
-  my $abs = $self->to_abs($path);
-  my $clone = (ref $self)->new(cwd => $abs);
+sub path2real ($self, $path) : Over {
+  $path = '/' if ($path eq '.');
+  my (undef, $dir,  $last)  = File::Spec->splitpath($path);
+  my ($rvol, $rdir, $rlast) = File::Spec->splitpath($self->root);
+  my $realdir = File::Spec->catdir($rdir, $rlast, $dir);
+  File::Spec->catpath($rvol, File::Spec->catdir($rdir, $rlast, $dir), $last);
 }
-
-sub cdm ($self, $path) {
-  $self->make_tree($path);
-  $self->cd($path);
-}
-
-
-sub to_abs ($self, $path) {
-  File::Spec->rel2abs($path, $self->cwd);
-}
-
 
 sub exists ($self, $path) {
   -e $self->path2real($path);
@@ -152,10 +130,10 @@ sub unlink ($self, $path) {
   unlink $self->path2real($path) or croak "$path $!";
 }
 
-sub remove_tree ($self, $path) {
+sub remove_tree ($self, $path, $opts = {}) {
   my $real = $self->path2real($path);
   croak "remove_tree $real: Not a directory" unless $self->stat($path)->is_dir;
-  File::Path::remove_tree($real, {error => \my $err});
+  File::Path::remove_tree($real, {%$opts, error => \my $err});
   croak join('; ', map { $_->%* } @$err) if @$err;    # TODO: test
 }
 
@@ -184,11 +162,8 @@ sub flock ($self, $fh, $flag) {
 }
 
 sub open ($self, $path, $mode, @rest) {
-  my $fh;
-
   $self->make_tree((fileparse($path))[1]) unless ($mode eq 'r' && $mode eq 'r+');
-  $self->sysopen($fh, $path, $mode, @rest);
-
+  $self->sysopen(my $fh, $path, $mode, @rest);
   $fh;
 }
 
@@ -280,41 +255,43 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
   }
 }
 
+# ========= MODULE =========
+
+my $FSROOT = __PACKAGE__->new(root => '/');
+sub FSROOT : Export {$FSROOT}
+
 
 1;
 
 =head1 SYNOPSIS
 
-  # single
-  use Evo '-Fs FS';
-  say FS->ls('./');
-
-
-  # class
   use Evo '-Fs; File::Basename fileparse';
-  my $orig_fs = Evo::Fs->new;
-  my $fs      = $orig_fs->cd('/tmp');    # new Fs with cwd as '/tmp'
+  my $fs = Evo::Fs->new(root => '/tmp/testfs');
+
+  say "/foo => ", $fs->path2real('/foo');
+  say "foo => ",  $fs->path2real('/foo');    # the same
 
   my $fh = $fs->open('foo/bar.txt', 'w');    # open and create '/foo' if necessary
   $fs->close($fh);
 
-  $fs->write('a/foo', 'one');
-  $fs->append('a/foo', 'two');
-  say $fs->read('a/foo');                # onetwo
-  say $fs->read('/tmp/a/foo');           # the same, a/foo resolves to /tmp/a/foo
-                                         # bulk
-                                         
+  $fs->write('a/foo', 'one');                # /tmp/test/a/foo
+  $fs->append('/a/foo', 'two');              # /tmp/test/a/foo
+  say $fs->read('a/foo');                    # onetwo
+  say $fs->read('/a/foo');                   # the same
 
-  $fs->write_many('/tmp/a/foo' => 'afoo', '/tmp/b/foo' => 'bfoo');
-  $fs->sysopen($fh, '/tmp/c', 'w+');
+  # bulk
+  $fs->write_many('/a/foo' => 'afoo', '/b/foo' => 'bfoo');
+
+  $fs->sysopen($fh, '/c', 'w+');
   $fs->syswrite($fh, "123456");
   $fs->sysseek($fh, 0);
   $fs->sysread($fh, \my $buf, 3);
-  say $buf;                              # 123
+  say $buf;                                  # 123
+
   $fs->find_files(
 
-    # where to start
-    './',
+    # where to start (/ => /tmp/testfs)
+    '/',
 
     # do something with file
     sub ($path) {
@@ -326,70 +303,36 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
       scalar fileparse($path) !~ /^\./;
     }
   );
+
   $fs->find_files(
-    ['/tmp'],
-    sub ($path, $stat) {
-      say $path;
+    ['/'],
+    sub ($path) {
+      say "FOUND: ", $path;
     }
   );
+
+  # FSROOT
+  use Evo::Fs 'FSROOT';
+  say join ', ', FSROOT->ls('/');
 
 
 
 =head1 DESCRIPTION
 
-An abstraction layer between file system and your application. Provides a nice interface for blocking I/O and other file stuff.
-
-It's worth to use at least because allow you to test FS logic of your app with the help of L<Evo::Fs::Class::Temp>.
-
-
-Imagine, you have an app that should read C</etc/passwd> and validate a user C<validate_user>. To test this behaviour with traditional IO you should implement C<read_passwd> operation and stub it. With C<Evo::Fs> you can just create a temporary filesystem with C<chroot> like behaviour, fill C</etc/passwd> and inject this as a dependency to you app:
-
-
-Here is our app. Pay attention it has a C<fs> attribute with default.
-
-
-  package My::App;
-  use Evo '-Fs FS; -Class';
-
-  has fs => sub { FS() };
-
-  sub validate_user ($self, $user) {
-    $self->fs->read('/etc/passwd') =~ /$user/;
-  }
-
-
-And here is how we test it
-
-  package main;
-  use Evo '-Fs; -Fs::Temp; Test::More';
-  my $app = My::App->new(fs => Evo::Fs::Temp->new);    # provide dependency as Evo::Fs::Class::Temp
-
-  # or mock the single object
-  local $Evo::Fs::SINGLE = Evo::Fs::Temp->new;
-  $app = My::App->new();                               # provide dependency as Evo::Fs::Class::Temp
-
-  $app->fs->write('/etc/passwd', 'alexbyk:x:1:1');
-  diag "Root is: " . $app->fs->root;                   # temporary fs has a "root" method
-
-  ok $app->validate_user('alexbyk');
-  ok !$app->validate_user('not_existing');
-
-  done_testing;
-
-We created a temporary FileSystem and passed it as C<fs> attribute. Now we can write C</etc/passwd> file in chrooted envirement.
-This testing strategy is simple and good.
-
-You can also mock a single object this way
-
-  local $Evo::Fs::SINGLE = Evo::Fs::Temp->new;
-  say FS();
-
+An abstraction url-like layer between file system and your application. Every path is relative to C<root>.
 
 =head1 EXPORTS
 
-=head2 FS, $Evo::Fs::SINGLE
+=head2 FSROOT
 
-Return a single instance of L<Evo::Fs>
+Return a single instance of L<Evo::Fs> where root is C</>
+
+
+=head1 ATTRIBUTES
+
+=head2 root
+
+  my $fs = Evo::Fs->new(root => '/tmp/test-root');
 
 =head1 METHODS
 
@@ -399,21 +342,6 @@ Return a single instance of L<Evo::Fs>
 
 Open a file and return a filehandle. Create parent directories if necessary.
  See L</sysopen> for list of modes
-
-  
-
-=head2 cd ($self, $path)
-
-  my $new = $fs->cd('foo/bar');
-  say $new->cwd;    # ~/foo/bar
-  $new = $fs->cd('foo/bar');
-  say $new->cwd;    # ~/foo/bar
-
-Returns new FS with passed C<cwd>
-
-=head2 cdm ($self, $path)
-
-Same as L</cd> but also calls L</make_tree> before
 
 =head2 append, write, read, read_ref
 
@@ -484,22 +412,6 @@ Rename a file.
 =head2 stat($self, $path)
 
 Return a L<Evo::Fs::Stat> object
-
-=head2 to_abs
-
-  my $fs = Evo::Fs::Base->new(cwd => '/foo');
-  say $fs->to_abs('bar');    # /foo/bar
-
-Convert relative path to absolute, depending on L</cwd> attribute.
-This is virtual represantion only and L</root> doesn't affects the value
-
-=head2 cwd
-
-Current working directory which affects relative paths. Should be absolute.
-
-=head2 root
-
-Can be used like a chroot in Linux. Should be absolute
 
 =head2 path2real($virtual)
 

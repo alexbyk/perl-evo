@@ -1,10 +1,10 @@
 use Evo 'Test::More; Evo::Internal::Exception';
-use Evo 'Fcntl; File::Spec';
+use Evo 'Fcntl; File::Spec; File::Temp';
 
 plan skip_all => "Win isn't supported yet" if $^O eq 'MSWin32';
-require Evo::Fs::Temp;
+require Evo::Fs;
 
-my $fs = Evo::Fs::Temp->new();
+my $fs = Evo::Fs->new(root => File::Temp->newdir);
 
 sub _write ($path, $what) {
   $fs->sysopen(my $fh, $path, 'w');
@@ -19,8 +19,6 @@ sub _slurp ($path) {
   $fs->close($fh);
   $buf;
 }
-
-diag "Testing " . ref $fs;
 
 like exception { $fs->sysopen(my $fh, '/foo', 'BAD'); }, qr/bad mode BAD/i;
 

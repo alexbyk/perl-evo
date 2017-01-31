@@ -2,10 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0260    2017-01-26 07:28:53+02:00 Europe/Kiev
+Breaking changes in Evo::Fs. Now every path is relative to "root" attribute
 
-0.0259    2017-01-22 07:59:47+02:00 Europe/Kiev
-
+0.0200    2017-01-22 07:59:47+02:00 Europe/Kiev
 Added has_dummy for Evo::Class
 Added Evo::Di->mortal
 Added Evo::Test
