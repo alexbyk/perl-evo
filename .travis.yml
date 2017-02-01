@@ -23,6 +23,6 @@ before_install:
   - build-perl
   - perl -V
 install:
-  - cpanm --quiet --notest Memory::Stats Mojolicious AnyEvent
+  - cpanm --quiet --notest Memory::Stats Mojolicious AnyEvent ExtUtils::MakeMaker
 script:
   - script/test.sh t/
