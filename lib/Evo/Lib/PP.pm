@@ -37,9 +37,22 @@ sub uniq : Export {
   return grep { !$seen{$_}++ } @_;
 }
 
-sub strict_opts ($hash, $keys, $level = 1) : Export {
-  my %opts = %$hash;
-  my @opts = map { delete $opts{$_} } @$keys;
+sub strict_opts ($hash, @other) : Export {
+  croak 'Usage strict_opts($hash, qw(key1 key2))'
+    . 'or strict_opts($hash, ["key1", "key2"], $level)'
+    if !@other || (ref $other[0]) && @other > 2;
+  my ($level, @keys);
+  if (ref $other[0]) {
+    @keys = (shift @other)->@*;
+    $level = @other ? shift(@other) : 1;
+  }
+  else {
+    @keys  = @other;
+    $level = 1;
+  }
+
+  my %opts  = %$hash;
+  my @opts  = map { delete $opts{$_} } @keys;
   if (my @remaining = keys %opts) {
     local $Carp::CarpLevel = $level;
     croak "Unknown options: ", join ',', @remaining;

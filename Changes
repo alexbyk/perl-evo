@@ -2,8 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0301    2017-02-01 01:23:51+02:00 Europe/Kiev
-
+Improve Evo::Lib::strict_opts
 Implemented Evo::Fs copy_file and copy_dir
 Breaking changes in Evo::Fs. Now every path is relative to "root" attribute
 

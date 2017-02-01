@@ -63,11 +63,12 @@ Return an array contains only uniq elements
 =head2 strict_opts($level, $hash, @keys)
 
 
-  sub myfunc(%opts) { my ($foo, $bar) = strict_opts(1, \%opts, 'foo', 'bar'); }
+  sub foo3(%opts) { strict_opts(\%opts, qw(foo bar)); }
+  sub foo2(%opts) { strict_opts(\%opts, [qw(foo bar)], 1); }
 
 Get a C<$hash> and return values in order defined by C<@keys>. If there are superfluous keys in hash, throw an error. This will help you to protect your functions from bugs "passing wrong keys"
 
-C<$level> determines how many frames to skip. In most cases it's C<1>
+C<$level> (the last argument if the second is array ref) determines how many frames to skip. By default it's C<1>
 
 =head2 try 
 
