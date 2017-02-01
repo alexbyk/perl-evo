@@ -22,7 +22,7 @@ sub create_mock ($me, $name, $msub) {
   my $orig = *{$name}{CODE} or die "No sub $name";
   croak "$name was already mocked" if $REG{$orig};
 
-  my $mock_sub = ref $msub eq 'CODE' ? $msub : $msub ? sub { call_original() } : sub { };
+  my $mock_sub = ref $msub eq 'CODE' ? $msub : $msub ? sub { call_original(@_) } : sub { };
 
   my $calls = [];
   my $sub   = sub {

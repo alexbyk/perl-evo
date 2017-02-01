@@ -3,7 +3,7 @@ use Evo '-Export *; ::Mock';
 
 export_proxy '::Mock', qw(get_original call_original);
 
-sub mock ($name, $mock) : Export {
+sub mock ($name, $mock=0) : Export {
   Evo::Test::Mock->create_mock($name, $mock);
 }
 

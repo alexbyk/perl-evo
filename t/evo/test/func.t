@@ -3,12 +3,30 @@ use Evo 'Test::More; -Test *';
 {
 
   package My::Foo;    ## no critic
-  sub foo {'FOO'}
+  sub foo { shift; join '-', 'FOO', @_ }
 }
 
-my $mock = mock('My::Foo::foo', sub { call_original() });
-is(My::Foo->foo(), 'FOO');
-is $mock->get_call(0)->result, 'FOO';
-is $mock->calls->[0]->args->[0], 'My::Foo';
+SUB: {
+  my $mock = mock('My::Foo::foo', sub { call_original(@_) });
+  is(My::Foo->foo(), 'FOO');
+  is(My::Foo->foo(1, 2), 'FOO-1-2');
+  is $mock->get_call(0)->result, 'FOO';
+  is_deeply $mock->calls->[0]->args, ['My::Foo'];
+  is_deeply $mock->calls->[1]->args, ['My::Foo', 1, 2];
+}
+
+NOOP: {
+  my $mock = mock('My::Foo::foo');
+  ok(!My::Foo->foo(1, 2));
+  ok !$mock->get_call(0)->result;
+  is_deeply $mock->calls->[0]->args, ['My::Foo', 1, 2];
+}
+
+NOOP: {
+  my $mock = mock('My::Foo::foo', 1);
+  is(My::Foo->foo(1, 2), 'FOO-1-2');
+  is $mock->get_call(0)->result, 'FOO-1-2';
+  is_deeply $mock->calls->[0]->args, ['My::Foo', 1, 2];
+}
 
 done_testing;
