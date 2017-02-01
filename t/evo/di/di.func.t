@@ -9,7 +9,8 @@ use Evo 'Test::More; Evo::Di; Evo::Internal::Exception';
 
   package My::C1;
   use Evo -Class, -Loaded;
-  has c2 => inject 'My::C2';
+  has c2           => inject 'My::C2';
+  has c2alias      => inject 'My::C2';
   has not_required => optional, inject 'My::Missing';
 
   package My::C2;
@@ -44,7 +45,8 @@ use Evo 'Test::More; Evo::Di; Evo::Internal::Exception';
 
   package My::Mortal;
   use Evo -Class, -Loaded;
-  has c1 => inject 'My::C1';
+  has c1      => inject 'My::C1';
+  has c1alias => inject 'My::C1';
   has 'baz';
 
 }
@@ -54,7 +56,8 @@ MORTAL: {
   $di->provide('My::C3@defaults', {val => 'V'});
   my $c = $di->mortal('My::Mortal', baz => 44, c1 => 'bad');
   ok $c->c1;
-  is $c->c1, $di->single('My::C1');
+  is $c->c1,      $di->single('My::C1');
+  is $c->c1alias, $c->c1;
   isnt $c, $di->mortal('My::Mortal', baz => 44);
 }
 
@@ -78,7 +81,8 @@ OK: {
   my $c1 = $di->single('My::C1');
   is $c1, $di->single('My::C1');
   ok !exists $c1->{not_required};
-  is $c1->c2, $di->single('My::C2');
+  is $c1->c2,      $di->single('My::C2');
+  is $c1->c2alias, $di->single('My::C2');
   is $c1->c2->alien, $di->single('My::Alien');
   is $c1->c2->c3,    $di->single('My::C3');
   is $c1->c2->c3->val, 'V';
@@ -100,8 +104,7 @@ FAIL: {
 
 CIRC: {
   my $di = Evo::Di->new;
-  like exception { $di->single('My::Circ1') },
-    qr/My::Circ2 -> My::Circ3 -> My::Circ1.+$0/;
+  like exception { $di->single('My::Circ1') }, qr/My::Circ2 -> My::Circ3 -> My::Circ1.+$0/;
 }
 
 
