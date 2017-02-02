@@ -1,5 +1,5 @@
 package Evo::Test::Mock;
-use Evo '-Class * new:_new; -Export; Carp croak; -Lib eval_want; /::Call';
+use Evo '-Class * new:_new; -Export; Carp croak; -Lib eval_want strict_opts; /::Call';
 use Hash::Util::FieldHash 'fieldhash';
 
 fieldhash my %REG;
@@ -17,19 +17,25 @@ sub get_original() : prototype() : Export {
 
 sub call_original : Export { get_original->(@_); }
 
-sub create_mock ($me, $name, $msub) {
+sub create_mock ($me, $name, @args) {
+  my %args;
+  %args = @args == 1 ? (patch => $args[0]) : @args;
+  my ($patch, $rethrow) = strict_opts \%args, [qw(patch rethrow)], 2;
+
   no strict 'refs';    ## no critic
   my $orig = *{$name}{CODE} or die "No sub $name";
   croak "$name was already mocked" if $REG{$orig};
 
-  my $mock_sub = ref $msub eq 'CODE' ? $msub : $msub ? sub { call_original(@_) } : sub { };
+  my $mock_sub = ref $patch eq 'CODE' ? $patch : $patch ? sub { call_original(@_) } : sub { };
 
   my $calls = [];
   my $sub   = sub {
     local $ORIGINAL = $orig;
     my $rfn = eval_want wantarray, @_, $mock_sub;
-    my $call = Evo::Test::Call->new(args => \@_, exception => $@, result_fn => $rfn);
+    my $err = $@;
+    my $call = Evo::Test::Call->new(args => \@_, exception => $err, result_fn => $rfn);
     push $calls->@*, $call;
+    croak $err if !$rfn && $rethrow; 
     return unless $rfn;
     $rfn->();
   };
