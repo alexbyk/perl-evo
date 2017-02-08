@@ -202,7 +202,7 @@ SKIP_HIDDEN: {
     Evo::Fs::SKIP_HIDDEN()
   );
 
-  is_deeply [sort @files], [sort('ok/ok.txt', 'ok/.ok.txt')];
+  is_deeply [sort @files], [sort('./ok/ok.txt', './ok/.ok.txt')];
 
 }
 

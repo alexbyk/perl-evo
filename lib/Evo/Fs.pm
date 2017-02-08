@@ -1,5 +1,5 @@
 package Evo::Fs;
-use Evo '-Export *; -Class; ::Stat; Carp croak';
+use Evo '-Export *; -Class; ::Stat; Carp croak; -Path';
 die "Win isn't supported yet. Pull requests are welcome!" if $^O eq 'MSWin32';
 
 use Fcntl qw(:seek O_RDWR O_RDONLY O_WRONLY O_RDWR O_CREAT O_TRUNC O_APPEND O_EXCL :flock);
@@ -224,6 +224,8 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
   my %seen_children;    # don't fire the same file twice
 
   my @stack = map {
+    Evo::Path->new(base => $_);
+  } map {
     my $path = $_;
     my $stat = $self->stat($path);
     $seen_dirs{($stat->dev, '-', $stat->ino)}++ ? () : ($path);
@@ -235,7 +237,7 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
     my (@dirs, @children);
     foreach my $cur_child (sort $self->ls($cur_dir)) {
 
-      my $path = File::Spec->canonpath(File::Spec->join($cur_dir, $cur_child));
+      my $path = $cur_dir->append($cur_child);
       next unless $self->exists($path);    # broken link
       my $stat = $self->stat($path);
 
@@ -262,30 +264,22 @@ my sub _copy_file ($self, $from, $to, $mk) {
 }
 
 sub copy_dir ($self, $from, $to) {
-  $self->mkdir($to) unless $self->exists($to);
+  $to = Evo::Path->new(base => $to);
+  $self->make_tree($to);
   my @stack = ($from);
   while (@stack) {
     my $cur_dir = shift @stack;
     $self->traverse(
       $cur_dir,
       sub($path) {
-
         my $stat = $self->stat($path);
+        my $dest = $to->append(join '/', $path->children->@*);
         if ($stat->is_dir) {
-          my @dirs = File::Spec->splitdir($path);
-          $dirs[1] = $to;
-          my $dest = File::Spec->catdir(@dirs);
           $self->mkdir($dest) unless $self->exists($dest);
         }
         elsif ($stat->is_file) {
-          my ($vol, $dir, $last) = File::Spec->splitpath($path);
-          my @dirs = File::Spec->splitdir($dir);
-          $dirs[1] = $to;
-          $dir = File::Spec->catdir(@dirs);
-          my $dest = File::Spec->catpath($vol, $dir, $last);
           _copy_file($self, $path, $dest, 0);
         }
-
         #else { croak "Can't copy $path, not a dir neither a file"; }
       }
     );
@@ -409,7 +403,7 @@ This functions kinda try to synchronize one path with another. Unlike C<cp -a>, 
   $fs->copy_dir('/base', 'copy');
   say $fs->read('/copy/child/file'); # OK
 
-In this example, directory C</copy/child> already exists, so on file C</base/child/file> will be silenty copied to C</copy/child/file>
+In this example, directory C</copy/child> already exists, so a single file C</base/child/file> will be silenty copied to C</copy/child/file>
 
 =head2 sysopen ($self, $path, $mode, $perm=...)
 
