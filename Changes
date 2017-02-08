@@ -4,6 +4,7 @@ Revision history for {{$dist->name}}
 
 0.0305    2017-02-02 03:25:29+02:00 Europe/Kiev
 
+Change behaviour of Evo::Fs::copy_dir to silentry ignore existing directories
 Improve Test::Mock
 Improve Evo::Lib::strict_opts
 Implemented Evo::Fs copy_file and copy_dir

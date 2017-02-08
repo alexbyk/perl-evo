@@ -10,7 +10,16 @@ COPY_FILE: {
   is $fs->read('/to/d/f'), 'OK';
 }
 
-COPY_DIR: {
+COPY_DIR_EXISTING: {
+  my $fs = Evo::Fs->new(root => File::Temp->newdir);
+  $fs->write_many('/base/child/file' => 'OK');
+  $fs->make_tree('/copy/child');
+  $fs->copy_dir('/base', 'copy');
+  is $fs->read('/copy/child/file'),  'OK';
+}
+
+
+COPY_DIR_NOT_EXISTING: {
   my $fs = Evo::Fs->new(root => File::Temp->newdir);
 
   $fs->write_many(
@@ -20,9 +29,6 @@ COPY_DIR: {
     '/base/d2/f2a' => 'F2a',
   );
   $fs->mkdir('/base/emptydir');
-
-
-  my $to = '/copy';
 
   $fs->copy_dir('/base', 'copy');
 

@@ -262,7 +262,7 @@ my sub _copy_file ($self, $from, $to, $mk) {
 }
 
 sub copy_dir ($self, $from, $to) {
-  $self->mkdir($to);
+  $self->mkdir($to) unless $self->exists($to);
   my @stack = ($from);
   while (@stack) {
     my $cur_dir = shift @stack;
@@ -275,7 +275,7 @@ sub copy_dir ($self, $from, $to) {
           my @dirs = File::Spec->splitdir($path);
           $dirs[1] = $to;
           my $dest = File::Spec->catdir(@dirs);
-          $self->mkdir($dest);
+          $self->mkdir($dest) unless $self->exists($dest);
         }
         elsif ($stat->is_file) {
           my ($vol, $dir, $last) = File::Spec->splitpath($path);
@@ -398,7 +398,18 @@ Copy file, die if already exists
 
 =head2 copy_dir($self, $from, $to)
 
-Copy directory recursively, die if already exists
+
+Copy directory recursively, if directory C<$to>exists, replace it content, create it otherwise. And for the children do the same 
+
+This functions kinda try to synchronize one path with another. Unlike C<cp -a>, 2 invocations of this functions will lead to the same result (C<cp> tries to check, if directory C<$to> exists and copies C<$from> to it in this case, this functions won't do this)
+
+  my $fs = Evo::Fs->new(root => File::Temp->newdir);
+  $fs->write('/base/child/file' => 'OK');
+  $fs->make_tree('/copy/child'); # just to show that directory can exist
+  $fs->copy_dir('/base', 'copy');
+  say $fs->read('/copy/child/file'); # OK
+
+In this example, directory C</copy/child> already exists, so on file C</base/child/file> will be silenty copied to C</copy/child/file>
 
 =head2 sysopen ($self, $path, $mode, $perm=...)
 
