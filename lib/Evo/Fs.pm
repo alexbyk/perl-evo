@@ -1,15 +1,13 @@
 package Evo::Fs;
-use Evo '-Export *; -Class; ::Stat; Carp croak; -Path';
+use Evo '-Export *; -Class; ::Stat; -Path; Carp croak; -Path';
 die "Win isn't supported yet. Pull requests are welcome!" if $^O eq 'MSWin32';
 
 use Fcntl qw(:seek O_RDWR O_RDONLY O_WRONLY O_RDWR O_CREAT O_TRUNC O_APPEND O_EXCL :flock);
 use Evo 'File::Spec; File::Path; Cwd() abs_path; File::Basename fileparse; Symbol()';
 use Time::HiRes ();
-use List::Util 'first';
+use Evo 'List::Util first; File::Copy ()';
 use Errno qw(EAGAIN EWOULDBLOCK);
 use Scalar::Util;
-use File::Copy ();
-
 
 sub SKIP_HIDDEN : Export : prototype() {
   sub($dir) {
@@ -25,12 +23,14 @@ sub SKIP_HIDDEN : Export : prototype() {
 has root =>
   check sub($v) { File::Spec->file_name_is_absolute($v) ? 1 : (0, "root should be absolute") };
 
-sub path2real ($self, $path) : Over {
-  $path = '/' if ($path eq '.');
-  my (undef, $dir,  $last)  = File::Spec->splitpath($path);
-  my ($rvol, $rdir, $rlast) = File::Spec->splitpath($self->root);
-  my $realdir = File::Spec->catdir($rdir, $rlast, $dir);
-  File::Spec->catpath($rvol, $realdir, $last);
+
+sub cd ($self, $rel) {
+  my $root = Evo::Path->from_string('', $self->root . '')->append_unsafe($rel)->to_string;
+  ref($self)->new(root  => $root);
+}
+
+sub path2real ($self, $rel) {
+  Evo::Path->from_string($rel, $self->root . '')->to_string;
 }
 
 sub exists ($self, $path) {
@@ -223,9 +223,7 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
   my %seen_dirs;        # don't go into the same dir twice
   my %seen_children;    # don't fire the same file twice
 
-  my @stack = map {
-    Evo::Path->new(base => $_);
-  } map {
+  my @stack = map { Evo::Path->new(base => $_); } map {
     my $path = $_;
     my $stat = $self->stat($path);
     $seen_dirs{($stat->dev, '-', $stat->ino)}++ ? () : ($path);
@@ -258,8 +256,7 @@ sub traverse ($self, $start, $fn, $pick_d = undef) {
   }
 }
 
-my sub _copy_file ($self, $from, $to, $mk) {
-  $self->make_tree((fileparse($to))[1]);
+my sub _copy_file ($self, $from, $to) {
   File::Copy::cp $self->path2real($from), $self->path2real($to) or die "Copy failed: $!";
 }
 
@@ -278,8 +275,9 @@ sub copy_dir ($self, $from, $to) {
           $self->mkdir($dest) unless $self->exists($dest);
         }
         elsif ($stat->is_file) {
-          _copy_file($self, $path, $dest, 0);
+          _copy_file($self, $path, $dest);
         }
+
         #else { croak "Can't copy $path, not a dir neither a file"; }
       }
     );
@@ -287,7 +285,8 @@ sub copy_dir ($self, $from, $to) {
 }
 
 sub copy_file ($self, $from, $to) {
-  _copy_file($self, $from, $to, 1);
+  $self->make_tree((fileparse($to))[1]);
+  _copy_file($self, $from, $to);
 }
 
 # ========= MODULE =========
@@ -371,6 +370,17 @@ sub FSROOT : Export {$FSROOT}
 
 An abstraction url-like layer between file system and your application. Every path is relative to C<root>.
 
+You wan't be able to do something like this:
+  
+  my $fs = Evo::Fs->new(root => '/tmp/fs');
+  my $path = '../fs2/foo';
+  $fs->write($path);
+
+This is a security protection. But you can use L</cd> instead
+
+  my $fs2 = $fs->cd('../fs2');
+  $fs2->write('foo' => 'OK');
+
 =head1 EXPORTS
 
 =head2 FSROOT
@@ -385,6 +395,14 @@ Return a single instance of L<Evo::Fs> where root is C</>
   my $fs = Evo::Fs->new(root => '/tmp/test-root');
 
 =head1 METHODS
+
+=head2 cd
+
+Create a new C<Evo::FS> instance. Also this is the only way to traverse up
+
+  my $fs       = Evo::Fs->new(root => '/tmp/fs');
+  my $fs2      = $fs->cd('../fs2');
+  my $fs_child = $fs->cd('child');
 
 =head2 copy_file($self, $from, $to)
 

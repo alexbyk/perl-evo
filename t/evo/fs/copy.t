@@ -48,12 +48,13 @@ COPY_DIR_EXISTING: {
 }
 
 COPY_UPPER: {
-  my $fs = Evo::Fs->new(root => File::Temp->newdir);
-  $fs->write('corpus/file', 'OK');
-  $fs->make_tree('files/testing');
-  my $fs_chroot = Evo::Fs->new(root => $fs->path2real('files/testing'));
-  $fs_chroot->copy_dir('../../corpus', 'foo');
-  is $fs_chroot->read('/foo/file'), 'OK';
+  my $tmp = File::Temp->newdir;
+  my $root = Evo::Fs->new(root => "$tmp");
+  $root->write('files/corpus/file', 'OK');
+
+  my $testing = Evo::Fs->new(root => "$tmp/files/testing");
+  $testing->cd('..')->copy_dir('corpus', 'testing');
+  is $testing->read('file'), 'OK';
 }
 
 done_testing;
