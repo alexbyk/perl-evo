@@ -43,9 +43,9 @@ sub from_string ($me, $path = undef, $base = '/') {
   say Evo::Path->from_string('/a/b//', '/base/');    # /base/a/b
 
   my $path = Evo::Path->from_string('part', '/base');
-  say $path->append('foo/bar');                      # /base/foo/bar
-  say $path->append('/foo/bar/');                    # /base/foo/bar
-  say $path->append_unsafe('/foo/../bar');           # /base/foo/../bar
+  say $path->append('foo/bar');                      # /base/part/foo/bar
+  say $path->append('/foo/bar/');                    # /base/part/foo/bar
+  say $path->append_unsafe('/foo/../bar');           # /base/part/foo/../bar
 
 =head1 METHODS
 
