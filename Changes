@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.0402    2017-05-06 12:22:09+03:00 Europe/Kiev
 add no_method flag for Evo::Class
 Changed a behaviour when new method was generated for every class. Right now every class is a subclass of Evo::Class::Base and inherits it's "new" method
 Change behaviour of Evo::Fs::copy_dir to silentry ignore existing directories
