@@ -16,8 +16,8 @@ my $k = 0;
   package My::Obj;
   use Evo -Class;
   has 'simple';
-  has 'default', rw, 'foo';
-  has 'lz', rw, lazy, sub { $k++; 'bar' };
+  has 'default', 'foo';
+  has 'lz', lazy, sub { $k++; 'bar' };
 }
 
 my $fn = sub {

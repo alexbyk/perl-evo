@@ -32,12 +32,6 @@ sub Private ($dest, $code, $name) : Attr {
   Evo::Class::Meta->find_or_croak($dest)->mark_as_private($name);
 }
 
-sub has_dummy ($me, $dest) : ExportGen {
-  sub ($name, @opts) {
-    Evo::Class::Meta->find_or_croak($dest)->reg_dummy_attr($name, @opts);
-  };
-}
-
 sub has ($me, $dest) : ExportGen {
   sub ($name, @opts) {
     Evo::Class::Meta->find_or_croak($dest)->reg_attr($name, @opts);
