@@ -15,31 +15,29 @@ my sub _croak_bad_value ($val, $name, $msg) {
 sub new { bless [], shift }
 
 sub exists ($self, $name) {
-  do { return 1 if $_->[0] eq $name }
+  do { return 1 if $_->{name} eq $name }
     for @$self;
   return;
 }
 
 sub slots ($self) {
-  map {
-    my %hash;
-    @hash{qw(name type value check ro inject)} = @$_;
-    \%hash;
-  } @$self;
+  @$self;
 }
 
 my sub _find_index ($self, $name) {
   my $index = 0;
-  do { last if $_->[0] eq $name; $index++ }
+  do { last if $_->{name} eq $name; $index++ }
     for @$self;
   $index;
 }
 
-sub _reg_attr ($self, $name, $type, $value, $check, $ro, $inject) {
-  $self->[_find_index($self, $name)] = my $attr = [$name, $type, $value, $check, $ro, $inject];
+sub _reg_attr ($self, %opts) {
+  $self->[_find_index($self, $opts{name})] = my $attr = \%opts;
 }
 
-sub _gen_attr ($self, $name, $lazy, $check, $ro) {
+sub _gen_attr ($self, %opts) {
+  my ($name, $check, $ro) = @opts{qw(name check ro)};
+  my $lazy = $opts{type} == ECA_LAZY ? $opts{value} : undef;
 
   # simplest and popular
   if (!$ro && !$lazy && !$check) {
@@ -67,23 +65,23 @@ sub _gen_attr ($self, $name, $lazy, $check, $ro) {
   };
 }
 
-sub gen_attr ($self, $name, $type, $value, $check, $ro, $inject) {
-  $self->_reg_attr($name, $type, $value, $check, $ro, $inject);
-  $self->_gen_attr($name, $type == ECA_LAZY ? $value : undef, $check, $ro);
+sub gen_attr ($self, %opts) {
+  $self->_reg_attr(%opts);
+  $self->_gen_attr(%opts);
 }
 
 
 sub gen_new($self) {
 
   sub ($class, %opts) {
-    no strict 'refs'; ## no critic
+    no strict 'refs';    ## no critic
     $class = ref $class || $class;
     my $attrs = ${"${class}::EVO_CLASS_ATTRS"} || croak "Not an Evo class, no ATTRS";
     my $obj = {};
 
     # iterate known attrs
     foreach my $slot (@$attrs) {
-      my ($name, $type, $value, $check) = @$slot;
+      my ($name, $type, $value, $check) = @$slot{qw(name type value check)};
 
       if (exists $opts{$name}) {
         if ($check) {

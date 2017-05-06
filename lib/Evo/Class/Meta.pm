@@ -24,7 +24,7 @@ sub find_or_croak ($self, $package) {
 sub package($self) { $self->{package} }
 
 sub attrs($self) {
-  no strict 'refs'; ## no critic
+  no strict 'refs';    ## no critic
   my $package = $self->{package};
   ${"${package}::EVO_CLASS_ATTRS"};
 }
@@ -90,34 +90,33 @@ sub _check_exists_valid_name ($self, $name) {
   _check_exists($self, $name);
 }
 
-sub _reg_parsed_attr ($self, $name, @opts) {
+sub _reg_parsed_attr ($self, %opts) {
+  my $name = $opts{name};
   _check_exists_valid_name($self, $name);
   my $pkg = $self->package;
   croak qq{$pkg already has subroutine "$name"} if Evo::Internal::Util::names2code($pkg, $name);
 
-#  croak
-#    qq/$pkg already has a (probably inherited by \@ISA) method "$name", define implementation with "has_over" or :Over/
-#    if $pkg->can($name);
-  my $sub = $self->attrs->gen_attr($name, @opts);    # register
-  Evo::Internal::Util::monkey_patch $pkg, $name, $sub;
+  my $sub = $self->attrs->gen_attr(%opts);    # register
+  Evo::Internal::Util::monkey_patch $pkg, $name, $sub if $opts{method};
 }
 
-sub _reg_parsed_attr_over ($self, $name, @opts) {
+sub _reg_parsed_attr_over ($self, %opts) {
+  my $name = $opts{name};
   _check_valid_name($self, $name);
   $self->mark_as_overridden($name);
-  my $sub = $self->attrs->gen_attr($name, @opts);    # register
+  my $sub = $self->attrs->gen_attr(%opts);    # register
   my $pkg = $self->package;
-  Evo::Internal::Util::monkey_patch_silent $pkg, $name, $sub;
+  Evo::Internal::Util::monkey_patch_silent $pkg, $name, $sub if $opts{method};
 }
 
 sub reg_attr ($self, $name, @attr) {
-  my @opts = $self->parse_attr(@attr);
-  $self->_reg_parsed_attr($name, @opts);
+  my %opts = $self->parse_attr($name, @attr);
+  $self->_reg_parsed_attr(%opts);
 }
 
 sub reg_attr_over ($self, $name, @attr) {
-  my @opts = $self->parse_attr(@attr);
-  $self->_reg_parsed_attr_over($name, @opts);
+  my %opts = $self->parse_attr($name, @attr);
+  $self->_reg_parsed_attr_over(%opts);
 }
 
 # means register external sub as method. Because every sub in the current package
@@ -165,7 +164,7 @@ sub extend_with ($self, $source_p) {
 
   foreach my $slot ($source->_public_attrs_slots) {
     next if $self->is_overridden($slot->{name});
-    $self->_reg_parsed_attr(@$slot{qw(name type value check ro inject)});
+    $self->_reg_parsed_attr(%$slot);
     push @new_attrs, $slot->{name};
   }
 
@@ -213,7 +212,7 @@ sub check_implementation ($self, $inter_class) {
 # check?
 # is_ro?
 
-sub parse_attr ($me, @attr) {
+sub parse_attr ($me, $name, @attr) {
   my @scalars = grep { $_ ne SYNTAX_STATE } @attr;
   croak "expected 1 scalar, got: " . join ',', @scalars if @scalars > 1;
   my %state = syntax_reset;
@@ -231,7 +230,16 @@ sub parse_attr ($me, @attr) {
   elsif ($state{lazy})     { $type = ECA_LAZY     if $state{lazy}; }
   elsif (@scalars) { $type = ref($scalars[0]) ? ECA_DEFAULT_CODE : ECA_DEFAULT; }
   else             { $type = ECA_REQUIRED; }
-  return ($type, $scalars[0], $state{check}, $state{ro} ? 1 : 0, $state{inject});
+
+  return (
+    name   => $name,
+    type   => $type,
+    value  => $scalars[0],
+    check  => $state{check},
+    ro     => !!$state{ro},
+    inject => $state{inject},
+    method => !$state{no_method},
+  );
 }
 
 sub info($self) {

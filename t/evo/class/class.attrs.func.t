@@ -26,8 +26,12 @@ use Evo::Internal::Exception;
   has adef => 1;
   has 'alazy', lazy, sub {'L'};
   has 'asimple', optional;
+  has dummy       => optional, no_method;
+  has_over dummy2 => optional, no_method;
+
 
 };
+
 
 ok $My::Foo::EVO_CLASS_META;
 ok $My::Foo::EVO_CLASS_META->attrs;
@@ -67,5 +71,9 @@ ok $obj->alazy;
 is_deeply $obj, {adef => 1, alazy => 'L'};
 ok $obj->asimple('S');
 is_deeply $obj, {adef => 1, alazy => 'L', asimple => 'S'};
+
+ok(My::Bar->new(dummy => 1, dummy2 => 2));
+ok !$obj->can('dummy');
+ok !$obj->can('dummy2');
 
 done_testing;

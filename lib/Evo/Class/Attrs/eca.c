@@ -36,7 +36,7 @@ static int eca_mg_free(pTHX_ SV *sv, MAGIC *mg) {
 }
 
 static ECAslot *eca_init(char *name, ECAtype type, SV *value, SV *check,
-                         bool is_ro, SV *inject) {
+                         bool is_ro, SV *inject, bool is_method) {
   dTHX;
 
   ECAslot *slot = calloc(1, sizeof(ECAslot));
@@ -62,16 +62,17 @@ static ECAslot *eca_init(char *name, ECAtype type, SV *value, SV *check,
   if (SvTRUE(check)) slot->check = newSVsv(check);
   if (SvTRUE(inject)) slot->inject = newSVsv(inject);
   slot->is_ro = is_ro;
+  slot->is_method = is_method;
   slot->type = type;
   slot->key = newSVpv_share(name, 0);
   return slot;
 }
 
 static SV *eca_new_sv(char *name, ECAtype type, SV *value, SV *check,
-                      bool is_ro, SV *inject) {
+                      bool is_ro, SV *inject, bool is_method) {
 
   dTHX;
-  ECAslot *slot = eca_init(name, type, value, check, is_ro, inject);
+  ECAslot *slot = eca_init(name, type, value, check, is_ro, inject, is_method);
   SV *result_sv = newSVuv(PTR2UV(slot));
   MAGIC *mg =
       sv_magicext(result_sv, result_sv, PERL_MAGIC_ext, &ECA_TBL, NULL, 0);

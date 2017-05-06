@@ -1,6 +1,8 @@
 use Evo 'Test::More; -Internal::Exception;-Class::Meta; -Class::Attrs, -Class::Syntax *';
 
-sub parse { Evo::Class::Meta->parse_attr(@_) }
+sub parse {
+  Evo::Class::Meta->parse_attr(@_);
+}
 
 my $positive = sub($v) { $v > 0 ? 1 : (0, 'OOPS') };
 
@@ -17,7 +19,7 @@ sub before() {
 SKIP: {
   skip "no threads support", 1 unless eval "use threads; 1";    ## no critic
   before();
-  $attrs->gen_attr(simple => parse);
+  $attrs->gen_attr(parse 'simple');
   $new->(simple => 'foo');
 
   threads->create(
@@ -29,9 +31,9 @@ SKIP: {
 
 sub run_tests {
 
-  SIMPLE: {
+SIMPLE: {
     before();
-    $attrs->gen_attr(simple => parse);
+    $attrs->gen_attr(parse 'simple');
     my $val = 333;
     my $obj = $new->(simple => 'BAD', simple => $val);
     $val = 'bad';
@@ -39,31 +41,31 @@ sub run_tests {
     isa_ok $obj, 'My::Class';
   }
 
-  REQUIRED: {
+REQUIRED: {
     before();
-    $attrs->gen_attr(req => parse);
+    $attrs->gen_attr(parse 'req');
     like exception { $new->() }, qr#"req" is required.+$0#;
   }
 
-  UNKNOWN: {
+UNKNOWN: {
     before();
     like exception { $new->(bad => 1) }, qr#Unknown.+bad.+$0#;
   }
 
 
-  DEFAULT_CODE: {
+DEFAULT_CODE: {
     before();
     my $def = sub($class) { is $class, 'My::Class'; 'DEF' };
-    $attrs->gen_attr(foo => parse $def);
+    $attrs->gen_attr(parse foo => $def);
     is_deeply $new->(foo => 222), {foo => 222};
     is_deeply $new->(), {foo => 'DEF'};
     is_deeply $new->(foo => undef), {foo => undef};
   }
 
-  DEFAULT_VALUE: {
+DEFAULT_VALUE: {
     before();
     my $val = 'DEF';
-    $attrs->gen_attr(foo => parse $val);
+    $attrs->gen_attr(parse foo => $val);
     $val = 'bad';
     is_deeply $new->(foo => 222), {foo => 222};
     is_deeply $new->(), {foo => 'DEF'};
@@ -71,25 +73,25 @@ sub run_tests {
   }
 
 
-  CHECK: {
+CHECK: {
     before();
 
     # check if passed but bypass checking of default value, even if it's negative
-    $attrs->gen_attr(foo => parse 0, check $positive);
+    $attrs->gen_attr(parse foo => 0, check $positive);
     like exception { $new->(foo => 0) }, qr#Bad value.+"0".+"foo".+OOPS.+$0#i;
     is_deeply $new->(), {foo => 0};
     is_deeply $new->(foo => 1), {foo => 1};
   }
 
-  CHECK_CHANGE: {
+CHECK_CHANGE: {
     before();
-    $attrs->gen_attr(foo => parse check sub { $_[0] .= "BAD"; 1 });
+    $attrs->gen_attr(parse foo => check sub { $_[0] .= "BAD"; 1 });
     my $val = "VAL";
     is_deeply $new->(foo => $val), {foo => "VAL"};
     is $val, "VAL";
   }
 
-  PASS_OBJECT: {
+PASS_OBJECT: {
     my $obj = $new->(foo => 2);
     my $obj2 = $_new->($obj, foo => 3);
     is $obj2->{foo}, 3;

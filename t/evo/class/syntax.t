@@ -1,6 +1,10 @@
 use Evo 'Test::More; -Class::Syntax *; -Internal::Exception';
 
 STATE: {
+  is no_method, SYNTAX_STATE;
+  ok SYNTAX_STATE->{no_method};
+  like exception {no_method}, qr/syntax error: "no_method" already/;
+
   is ro, SYNTAX_STATE;
   ok SYNTAX_STATE->{ro};
   like exception {ro}, qr/syntax error: "ro" already/;
@@ -22,7 +26,7 @@ STATE: {
   ok SYNTAX_STATE->{lazy};
   like exception {lazy}, qr/syntax error: "lazy" already/;
 
-  is keys({syntax_reset}->%*), 5;
+  is keys({syntax_reset}->%*), 6;
   is_deeply SYNTAX_STATE, {};
 }
 

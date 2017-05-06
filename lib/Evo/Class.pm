@@ -1,7 +1,7 @@
 package Evo::Class;
 use Evo '-Export export_proxy; Evo::Class::Meta; Evo::Class::Base';
 
-export_proxy '::Syntax', qw(lazy rw ro optional check inject);
+export_proxy '::Syntax', qw(lazy rw ro optional check inject no_method);
 
 sub import ($me, @list) {
   my $caller = caller;
@@ -273,6 +273,20 @@ Used to describe dependencies of a class. We can build C<Foo> that depends on C<
   say $foo->bar->host;
 
 See L<Evo::Di> for more information.
+
+=head4 no_method
+
+Register an attribute but don't install method(accessor) for it.
+
+  package Foo;
+  use Evo -Class, -Loaded;
+  has foo => no_method;
+
+  package main;
+  use Evo;
+  my $obj = Foo::->new(foo => 'FOO');
+  warn $obj->{foo};    # FOO
+  warn $obj->can('foo') ? 'can' : "can't";    # can't
 
 =head1 CODE REUSE
 

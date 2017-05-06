@@ -18,6 +18,10 @@ $version
 
 sub new { bless [], shift }
 
+sub gen_attr ($self, %opts) {
+  $self->_gen_attr(@opts{qw(name type value check ro inject method)});
+}
+
 1;
 
 # ABSTRACT: XS implementation of attributes and "new" method generator

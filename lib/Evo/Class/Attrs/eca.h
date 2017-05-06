@@ -9,6 +9,7 @@ typedef enum {
 typedef struct {
   ECAtype type;
   bool is_ro;
+  bool is_method;
   SV *check;
   SV *value;
   SV *inject;

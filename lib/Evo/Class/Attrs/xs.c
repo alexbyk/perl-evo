@@ -148,11 +148,11 @@ static void xs_attr(pTHX_ SV *cv) {
 };
 
 /* XS FUNCTIONS */
-static SV *attrs_gen_attr(SV *self, char *name, int type, SV *value, SV *check,
-                          bool is_ro, SV *inject) {
+static SV *attrs__gen_attr(SV *self, char *name, int type, SV *value, SV *check,
+                           bool is_ro, SV *inject, bool method) {
   dTHX;
   AV *av = sv2av(self);
-  SV *slot_sv = eca_new_sv(name, type, value, check, is_ro, inject);
+  SV *slot_sv = eca_new_sv(name, type, value, check, is_ro, inject, method);
   ECAslot *slot = sv2slot(slot_sv);
 
   // register... i will be either last + 1 or matched element

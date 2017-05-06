@@ -9,9 +9,9 @@ local *Module::Load::load = sub { $loaded = shift };
 
 
 my $prev = Evo::Class::Attrs->can('gen_attr');
-local *Evo::Class::Attrs::gen_attr = sub ($self, $name, @opts) {
-  $prev->($self, $name, @opts);
-  sub { uc "ATTR-$name" };
+local *Evo::Class::Attrs::gen_attr = sub ($self, %opts) {
+  $prev->($self, %opts);
+  sub { uc "ATTR-$opts{name}" };
 };
 
 sub gen_meta($class = 'My::Class') {
@@ -90,7 +90,7 @@ REG_METHOD: {
   eval 'package My::Class; sub own {}';      ## no critic
   eval '*My::Class::external = sub { };';    ## no critic
 
-  $meta->attrs->gen_attr('attr1', parse());
+  $meta->attrs->gen_attr(parse('attr1'));
   like exception { $meta->reg_method('attr1'); },        qr/has attribute.+attr1.+$0/;
   like exception { $meta->reg_method('not_existing'); }, qr/doesn't exist.+$0/;
   like exception { $meta->reg_method('own'); },          qr/already.+own.+$0/;
@@ -109,7 +109,7 @@ PUBLIC_METHODS: {
 
 
   # only own
-  $meta->attrs->gen_attr('bad', parse);
+  $meta->attrs->gen_attr(parse 'bad');
   is_deeply { $meta->_public_methods_map }, {own => My::Class->can('own')};
   is_deeply [$meta->public_methods], [qw(own)];
 
@@ -169,6 +169,8 @@ CLASH_METHOD: {
     is(My::Child->own, 'CHILD');
   }
 
+  warn '-------------------', "\n";
+
 CLASH_ATTR: {
     my $parent = gen_meta;
     eval 'package My::Class; sub own {"OWN"}';            ## no critic
@@ -200,9 +202,9 @@ REG_ATTR: {
   ok $meta->is_attr('pub1');
   is(My::Class->pub1, 'ATTR-PUB1');
 
-  eval 'package My::Class; sub own { }';       ## no critic
-  eval '*My::Class::external = sub {}';        ## no critic
-  eval '@My::Class::ISA = ("My::Isa")';        ## no critic
+  eval 'package My::Class; sub own { }';    ## no critic
+  eval '*My::Class::external = sub {}';     ## no critic
+  eval '@My::Class::ISA = ("My::Isa")';     ## no critic
 
   # errors
   like exception { $meta->reg_attr('pub1') },     qr/My::Class.+already.+attribute.+pub1.+$0/;

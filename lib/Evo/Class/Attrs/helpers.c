@@ -50,7 +50,9 @@ static SV *psv_to_slotsv(SV *sv) {
 
   hv_stores_or_croak(hv, "name", newSVsv(slot->key)); // always defined
 
-  hv_stores_or_croak(hv, "ro", newSViv(slot->is_ro));
+  hv_stores_or_croak(hv, "ro", newSVsv(slot->is_ro ? &PL_sv_yes : &PL_sv_no));
+  hv_stores_or_croak(hv, "method",
+                     newSVsv(slot->is_method ? &PL_sv_yes : &PL_sv_no));
   hv_stores_or_croak(hv, "type", newSViv(slot->type));
   return newRV_noinc((SV *)hv);
 }

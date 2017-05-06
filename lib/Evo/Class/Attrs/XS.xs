@@ -20,7 +20,7 @@ MODULE = Evo::Class::Attrs::XS				PACKAGE = Evo::Class::Attrs::XS PREFIX = attrs
 
 PROTOTYPES: DISABLE
 
-SV * attrs_gen_attr(self, name, type, value, check, is_ro, inject)
+SV * attrs__gen_attr(self, name, type, value, check, is_ro, inject, method)
   SV *self;
   char *name;
   int type;
@@ -28,6 +28,7 @@ SV * attrs_gen_attr(self, name, type, value, check, is_ro, inject)
   SV *check;
   bool is_ro;
   SV *inject;
+  bool method;
 
 SV *attrs_gen_new(self)
   SV *self;

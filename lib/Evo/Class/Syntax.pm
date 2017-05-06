@@ -27,6 +27,12 @@ sub lazy : prototype() : Export {
   SYNTAX_STATE;
 }
 
+sub no_method() : prototype() : Export {
+  _check_settled('no_method');
+  SYNTAX_STATE()->{no_method}++;
+  SYNTAX_STATE;
+}
+
 sub ro() : prototype() : Export {
   _check_settled('ro');
   SYNTAX_STATE()->{ro}++;
