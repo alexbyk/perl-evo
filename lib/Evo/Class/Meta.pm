@@ -198,7 +198,6 @@ sub check_implementation ($self, $inter_class) {
   my $class = $self->package;
   my $inter = $self->find_or_croak($inter_class);
   my @reqs  = sort $inter->requirements;
-  croak qq{Empty class "$inter_class", nothing to check} unless @reqs;
 
   my @not_exists = grep { !($self->is_attr($_) || $class->can($_)); } @reqs;
   return $self if !@not_exists;

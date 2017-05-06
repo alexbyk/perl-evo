@@ -1,8 +1,6 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
-
-0.0401    2017-05-06 05:06:59+03:00 Europe/Kiev
 Changed a behaviour when new method was generated for every class. Right now every class is a subclass of Evo::Class::Base and inherits it's "new" method
 Change behaviour of Evo::Fs::copy_dir to silentry ignore existing directories
 Improve Test::Mock

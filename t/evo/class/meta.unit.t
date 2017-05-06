@@ -355,7 +355,6 @@ CHECK_IMPLEMENTATION: {
 
   like exception { $meta->check_implementation('My::NotExists') },
     qr/NotExists isn't.+Evo::Class.+$0/;
-  like exception { $meta->check_implementation('My::Inter') }, qr/Empty.+$0/i;
 
   $inter->reg_requirement('myattr');
   $inter->reg_requirement('mymeth');
