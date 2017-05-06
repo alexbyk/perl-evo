@@ -1,5 +1,5 @@
 package Evo::Test::Mock;
-use Evo '-Class * new:_new; -Export; Carp croak; -Lib eval_want strict_opts; /::Call';
+use Evo '-Class *; -Export; Carp croak; -Lib eval_want strict_opts; /::Call';
 use Hash::Util::FieldHash 'fieldhash';
 
 fieldhash my %REG;
@@ -41,7 +41,7 @@ sub create_mock ($me, $name, @args) {
   };
 
   my $mock
-    = $me->_new(original_sub => $orig, original_name => $name, sub => $sub, calls => $calls);
+    = $me->new(original_sub => $orig, original_name => $name, sub => $sub, calls => $calls);
 
   no warnings 'redefine';
   $REG{$sub}++;

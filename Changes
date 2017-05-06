@@ -1,15 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
-
-0.0308    2017-03-06 01:15:41+02:00 Europe/Kiev
-
-0.0307    2017-02-08 09:15:37+02:00 Europe/Kiev
-
-0.0306    2017-02-08 07:36:33+02:00 Europe/Kiev
-
-0.0305    2017-02-02 03:25:29+02:00 Europe/Kiev
-
+Changed a behaviour when new method was generated for every class. Right now every class is a subclass of Evo::Class::Base and inherits it's "new" method
 Change behaviour of Evo::Fs::copy_dir to silentry ignore existing directories
 Improve Test::Mock
 Improve Evo::Lib::strict_opts

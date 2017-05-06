@@ -5,16 +5,19 @@ use Evo 'Test::More; -Internal::Exception';
 
   package My::Class;
   use Evo -Class;
-  has 'attr1',      rw;
-  has_over 'attr2', rw;
+  has 'attr1';
+  has_over 'attr2';
 
 
   package My::Class2;
-  use Evo '-Class new:new2 META:META2';
+  use Evo '-Class META:META2';
+
+  sub new ($me, @rest) {
+    $me->SUPER::new(@rest);
+  }
 }
 
 ok(My::Class->can($_), "$_ exists") for qw(attr1 attr2 new);
-ok(My::Class2->can('new2'));
 
 ok $My::Class::EVO_CLASS_META;
 is(My::Class->META,   $My::Class::EVO_CLASS_META);
@@ -25,6 +28,6 @@ is $obj->attr1, 1;
 is $obj->attr2, 2;
 is ref $obj, 'My::Class';
 
-is ref(My::Class2->new2), 'My::Class2';
+is ref(My::Class2->new), 'My::Class2';
 
 done_testing;

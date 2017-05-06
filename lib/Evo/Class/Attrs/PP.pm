@@ -76,11 +76,13 @@ sub gen_attr ($self, $name, $type, $value, $check, $ro, $inject) {
 sub gen_new($self) {
 
   sub ($class, %opts) {
-
+    no strict 'refs'; ## no critic
+    $class = ref $class || $class;
+    my $attrs = ${"${class}::EVO_CLASS_ATTRS"} || croak "Not an Evo class, no ATTRS";
     my $obj = {};
 
     # iterate known attrs
-    foreach my $slot (@$self) {
+    foreach my $slot (@$attrs) {
       my ($name, $type, $value, $check) = @$slot;
 
       if (exists $opts{$name}) {

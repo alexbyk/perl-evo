@@ -11,9 +11,9 @@ use Evo::Internal::Exception;
   package My::Foo;
   use Evo -Class, -Loaded;
 
-  has 'foo',    optional;
-  has 'gt10',   optional, check sub { $_[0] > 10 };
-  has 'gt10rw', optional, rw, check sub { $_[0] > 10 };
+  has 'foo', optional, ro;
+  has 'gt10', optional, ro, check sub { $_[0] > 10 };
+  has 'gt10rw', optional, check sub { $_[0] > 10 };
   has 'req';
 
   has lazyfn => lazy, sub { 'LFN' . rand() };
@@ -25,14 +25,12 @@ use Evo::Internal::Exception;
   use Evo -Class, -Loaded;
   has adef => 1;
   has 'alazy', lazy, sub {'L'};
-  has 'asimple', optional, rw;
-  has_dummy 'dummy';
-
+  has 'asimple', optional;
 
 };
 
 ok $My::Foo::EVO_CLASS_META;
-ok $My::Foo::EVO_CLASS_META->{attrs};
+ok $My::Foo::EVO_CLASS_META->attrs;
 
 ok(My::Empty->new());
 
@@ -63,12 +61,11 @@ is $obj->with_dfn, 'DFN';
 $obj = My::Foo::->new(req => 1, foo => 'foo');
 is $obj->foo, 'foo';
 
-$obj = My::Bar::->new(dummy => 1);
-ok !$obj->can('dummy');
-is_deeply $obj, {adef => 1, dummy => 1};
+$obj = My::Bar::->new();
+is_deeply $obj, {adef => 1};
 ok $obj->alazy;
-is_deeply $obj, {adef => 1, alazy => 'L', dummy => 1};
+is_deeply $obj, {adef => 1, alazy => 'L'};
 ok $obj->asimple('S');
-is_deeply $obj, {adef => 1, alazy => 'L', asimple => 'S', dummy => 1};
+is_deeply $obj, {adef => 1, alazy => 'L', asimple => 'S'};
 
 done_testing;

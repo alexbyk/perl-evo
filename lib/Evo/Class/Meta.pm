@@ -6,15 +6,13 @@ our @CARP_NOT = qw(Evo::Class);
 
 sub register ($me, $package) {
   no strict 'refs';    ## no critic
-  ${"${package}::EVO_CLASS_META"} ||= bless {
-    package    => $package,
-    private    => {},
-    attrs      => Evo::Class::Attrs->new,
-    dummies    => {},
-    methods    => {},
-    reqs       => {},
-    overridden => {}
-  }, $me;
+  no warnings 'once';
+
+  ${"${package}::EVO_CLASS_ATTRS"} ||= Evo::Class::Attrs->new;
+
+  ${"${package}::EVO_CLASS_META"}
+    ||= bless {package => $package, private => {}, methods => {}, reqs => {}, overridden => {}},
+    $me;
 }
 
 sub find_or_croak ($self, $package) {
@@ -24,8 +22,13 @@ sub find_or_croak ($self, $package) {
 }
 
 sub package($self) { $self->{package} }
-sub attrs($self)   { $self->{attrs} }
-sub dummies($self) { $self->{dummies} }
+
+sub attrs($self) {
+  no strict 'refs'; ## no critic
+  my $package = $self->{package};
+  ${"${package}::EVO_CLASS_ATTRS"};
+}
+
 sub methods($self) { $self->{methods} }
 sub reqs($self)    { $self->{reqs} }
 
@@ -92,9 +95,9 @@ sub _reg_parsed_attr ($self, $name, @opts) {
   my $pkg = $self->package;
   croak qq{$pkg already has subroutine "$name"} if Evo::Internal::Util::names2code($pkg, $name);
 
-  croak
-    qq/$pkg already has a (probably inherited by \@ISA) method "$name", define implementation with "has_over" or :Over/
-    if $pkg->can($name);
+#  croak
+#    qq/$pkg already has a (probably inherited by \@ISA) method "$name", define implementation with "has_over" or :Over/
+#    if $pkg->can($name);
   my $sub = $self->attrs->gen_attr($name, @opts);    # register
   Evo::Internal::Util::monkey_patch $pkg, $name, $sub;
 }
@@ -105,20 +108,6 @@ sub _reg_parsed_attr_over ($self, $name, @opts) {
   my $sub = $self->attrs->gen_attr($name, @opts);    # register
   my $pkg = $self->package;
   Evo::Internal::Util::monkey_patch_silent $pkg, $name, $sub;
-}
-
-sub _reg_parsed_dummy_attr ($self, $name, @opts) {
-  _check_exists_valid_name($self, $name);
-  my $pkg = $self->package;
-  croak qq{$pkg already has subroutine "$name"} if Evo::Internal::Util::names2code($pkg, $name);
-  $self->attrs->gen_attr($name, @opts);              # register
-  $self->dummies->{$name}++;
-}
-
-sub reg_dummy_attr ($self, $name, @attr) {
-  my @opts = $self->parse_attr(@attr);
-  $self->_reg_parsed_dummy_attr($name, @opts);
-  $self->dummies->{$name}++;
 }
 
 sub reg_attr ($self, $name, @attr) {
@@ -176,12 +165,7 @@ sub extend_with ($self, $source_p) {
 
   foreach my $slot ($source->_public_attrs_slots) {
     next if $self->is_overridden($slot->{name});
-    if ($source->dummies->{$slot->{name}}) {
-      $self->_reg_parsed_dummy_attr(@$slot{qw(name type value check ro inject)});
-    }
-    else {
-      $self->_reg_parsed_attr(@$slot{qw(name type value check ro inject)});
-    }
+    $self->_reg_parsed_attr(@$slot{qw(name type value check ro inject)});
     push @new_attrs, $slot->{name};
   }
 
@@ -189,17 +173,13 @@ sub extend_with ($self, $source_p) {
     next if $self->is_overridden($name);
     croak qq/$dest_p already has a subroutine with name "$name"/
       if Evo::Internal::Util::names2code($dest_p, $name);
-    croak
-      qq/$dest_p already has a (probably inherited by \@ISA) method "$name", define implementation with :Over tag/
-      if $dest_p->can($name);
     _check_exists($self, $name);    # prevent patching before check
     Evo::Internal::Util::monkey_patch $dest_p, $name, $methods{$name};
     $self->reg_method($name);
   }
 
   no strict 'refs';                 ## no critic
-  push @{"${dest_p}::ISA"}, @{"${source_p}::ISA"};
-
+  push @{"${dest_p}::ISA"}, $source_p;
   @new_attrs;
 }
 
@@ -252,7 +232,7 @@ sub parse_attr ($me, @attr) {
   elsif ($state{lazy})     { $type = ECA_LAZY     if $state{lazy}; }
   elsif (@scalars) { $type = ref($scalars[0]) ? ECA_DEFAULT_CODE : ECA_DEFAULT; }
   else             { $type = ECA_REQUIRED; }
-  return ($type, $scalars[0], $state{check}, $state{rw} ? 0 : 1, $state{inject});
+  return ($type, $scalars[0], $state{check}, $state{ro} ? 1 : 0, $state{inject});
 }
 
 sub info($self) {

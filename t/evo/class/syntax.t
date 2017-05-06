@@ -1,9 +1,9 @@
 use Evo 'Test::More; -Class::Syntax *; -Internal::Exception';
 
 STATE: {
-  is rw, SYNTAX_STATE;
-  ok SYNTAX_STATE->{rw};
-  like exception {rw}, qr/syntax error: "rw" already/;
+  is ro, SYNTAX_STATE;
+  ok SYNTAX_STATE->{ro};
+  like exception {ro}, qr/syntax error: "ro" already/;
 
   is optional, SYNTAX_STATE;
   ok SYNTAX_STATE->{optional};

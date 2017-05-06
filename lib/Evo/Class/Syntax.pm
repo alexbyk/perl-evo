@@ -27,9 +27,14 @@ sub lazy : prototype() : Export {
   SYNTAX_STATE;
 }
 
+sub ro() : prototype() : Export {
+  _check_settled('ro');
+  SYNTAX_STATE()->{ro}++;
+  SYNTAX_STATE;
+}
+
 sub rw() : prototype() : Export {
-  _check_settled('rw');
-  SYNTAX_STATE()->{rw}++;
+  Carp::carp "rw is deprecated, all attributes are rw by default";
   SYNTAX_STATE;
 }
 

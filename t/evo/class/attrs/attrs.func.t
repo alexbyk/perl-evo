@@ -11,9 +11,9 @@ SLOTS: {
     my $attrs  = Evo::Class::Attrs->new();
     my $inject = {foo => 2};
 
-    $attrs->gen_attr(foo => parse 'DEF', inject $inject, check $noop);
-    $attrs->gen_attr(bar => parse rw,    optional);
-    $attrs->gen_attr(baz => parse lazy,  $noop);
+    $attrs->gen_attr(foo => parse 'DEF', ro, inject $inject, check $noop);
+    $attrs->gen_attr(bar => parse optional);
+    $attrs->gen_attr(baz => parse lazy, $noop);
 
     is_deeply [$attrs->slots],
       [
@@ -33,7 +33,7 @@ SLOTS: {
         ro     => 0,
         type   => ECA_OPTIONAL
       },
-      {name => 'baz', inject => undef, value => $noop, check => undef, ro => 1, type => ECA_LAZY}
+      {name => 'baz', inject => undef, value => $noop, check => undef, ro => 0, type => ECA_LAZY}
       ];
 
     ok $attrs->exists('foo');

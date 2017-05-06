@@ -1,111 +1,71 @@
-use Evo 'Test::More; -Class::Meta; -Class::Attrs *; -Class::Syntax *';
-use Evo '-Internal::Exception';
+package main;
+use Evo;
+use Test::More;
+use Evo::Internal::Exception;
 
-sub parse { Evo::Class::Meta->parse_attr(@_) }
+{
 
-my ($attrs, $obj, $lcalled, $chcalled);
-my $lazy = sub { $lcalled++; 'LAZY' };
-my $check = sub { $chcalled++; $_[0] > 0 ? (1) : (0, "Ooops"); };
+  package My::Empty;
+  use Evo '-Class *';
 
-sub before() {
-  $attrs    = Evo::Class::Attrs->new();
-  $obj      = {};
-  $lcalled  = 0;
-  $chcalled = 0;
-}
+  package My::Foo;
+  use Evo -Class, -Loaded;
 
-SKIP: {
-  skip "no threads support", 1 unless eval "use threads; 1";    ## no critic
-  before();
-  my $sub = $attrs->gen_attr('name', parse rw);
-  $sub->($obj, 'foo');
+  has 'foo', optional, ro;
+  has 'gt10', optional, ro, check sub { $_[0] > 10 };
+  has 'gt10rw', optional, check sub { $_[0] > 10 };
+  has 'req';
 
-  threads->create(
-    sub {
-      do { fail "thr"; die } unless $sub->($obj) eq 'foo';
-    }
-  )->join();
-  die unless $sub->($obj) eq 'foo';
-}
+  has lazyfn => lazy, sub { 'LFN' . rand() };
+  has lazyfnch => lazy, check sub {1}, sub { 'LFNCH' . rand() };
+  has with_dv => 'DV';
+  has with_dfn => sub {'DFN'};
 
-sub run_tests {
+  package My::Bar;
+  use Evo -Class, -Loaded;
+  has adef => 1;
+  has 'alazy', lazy, sub {'L'};
+  has 'asimple', optional;
 
-GS: {
-    before();
-    my $sub = $attrs->gen_attr('name', parse rw);
-    my $val = 'foo';
-    is $sub->($obj), undef;
-    ok !exists $obj->{name};
-    $sub->($obj, $val);
-    $val = 'BAD';
-    is $sub->($obj), 'foo';
-  }
+};
 
-RO: {
-    before();
-    my $sub = $attrs->gen_attr('name', parse);
-    is $sub->($obj), undef;
-    like exception { $sub->($obj, 22) }, qr/name.+readonly.+$0/;
-    is $sub->($obj), undef;
-  }
+ok $My::Foo::EVO_CLASS_META;
+ok $My::Foo::EVO_CLASS_META->attrs;
 
-GS_LAZY: {
-    before();
-    my $sub = $attrs->gen_attr('name', parse rw, lazy, $lazy);
+ok(My::Empty->new());
 
-    is $sub->($obj), 'LAZY' for 1 .. 2;
-    is $lcalled, 1;
-    ok exists $obj->{name};
-    $sub->($obj, 'foo');
-    is $sub->($obj), 'foo';
-    delete $obj->{name};
-    is $sub->($obj), 'LAZY';
-  }
+my $obj = {};
 
-GSCH: {
-    before();
-    my $sub = $attrs->gen_attr('name', parse check $check, rw);
+like exception { My::Foo->new() }, qr/req.+required.+$0/;
+like exception { My::Foo->new(gt10   => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { My::Foo->new(gt10rw => 9, req     => 1); }, qr/gt10.+$0/;
+like exception { My::Foo->new(req    => 1, unknown => 1); }, qr/unknown.+$0/;
 
-    is $sub->($obj), undef;
-    $sub->($obj, 22);
-    is $chcalled, 1;
-    is $sub->($obj), 22;
+$obj = My::Foo->new(gt10 => 10 + 1, foo => 'FOO', req => 1);
+like exception { $obj->gt10(11); },  qr/gt10.+readonly.+$0/;
+like exception { $obj->gt10rw(9); }, qr/9.+gt10.+$0/;
+like exception { $obj->foo('Bad') }, qr/foo.+readonly.+$0/;
 
-    like exception { $sub->($obj, -22); }, qr/bad value "-22".+"name".+Ooops.+$0/i;
+# must be called once
+like $obj->lazyfn,   qr/LFN/;
+is $obj->lazyfn,     $obj->lazyfn;
+like $obj->lazyfnch, qr/LFNCH/;
+is $obj->lazyfnch,   $obj->lazyfnch;
 
-    # empty check
-    like exception {
-      $attrs->gen_attr('name', parse rw, check sub { })->($obj, -22);
-    }, qr/bad value "-22".+"name".+$0/i;
-  }
+is $obj->gt10, 11;
+is $obj->gt10rw(12)->gt10rw, 12;
 
-GCH_CHANGE: {
-    my $subinc = $attrs->gen_attr('nameinc', parse rw, check sub { $_[0] .= "BAD"; 1 });
-    my $val = "VAL";
-    $subinc->($obj, $val);
-    is $subinc->($obj), "VAL";
-    is $val, "VAL";
-  }
+is $obj->with_dv,  'DV';
+is $obj->with_dfn, 'DFN';
 
-GSCH_LAZY: {
-    before();
-    my $sub = $attrs->gen_attr('name', parse rw, check $check, lazy, $lazy);
+$obj = My::Foo::->new(req => 1, foo => 'foo');
+is $obj->foo, 'foo';
 
-    is $sub->($obj), 'LAZY';
-    is $lcalled, 1;
-    $sub->($obj, 22);
-    is $chcalled, 1;
-    is $sub->($obj), 22;
-
-    like exception { $sub->($obj, -22); }, qr/bad value "-22".+"name".+Ooops.+$0/i;
-  }
-
-
-}
-
-run_tests;
-
-do "t/test_memory.pl";
-die $@ if $@;
+$obj = My::Bar::->new();
+is_deeply $obj, {adef => 1};
+ok $obj->alazy;
+is_deeply $obj, {adef => 1, alazy => 'L'};
+ok $obj->asimple('S');
+is_deeply $obj, {adef => 1, alazy => 'L', asimple => 'S'};
 
 done_testing;

@@ -22,7 +22,7 @@ sub gen_meta($class = 'My::Class') {
 REGISTER: {
   my ($meta) = Evo::Class::Meta->register('My::Class');
   is $My::Class::EVO_CLASS_META, $meta;
-  ok $meta->{attrs};
+  ok $meta->attrs;
   is $meta, Evo::Class::Meta->register('My::Class');
 }
 
@@ -147,7 +147,7 @@ PRIVATE: {
     $child->extend_with('My::Class');
     ok !$child->is_method('priv');
     ok(My::Child->can('own'));
-    ok(!My::Child->can('priv'));
+    ok(!Evo::Internal::Util::names2code('My::Child', 'priv'));
   }
 
 OVERRIDEN: {
@@ -190,22 +190,6 @@ CLASH_WITH_ALIEN_SUB: {
     is(My::Child->foo, 'LIB');
   }
 
-CLASH_WITH_ALIEN_ISA: {
-    my $parent = gen_meta;
-    my $child  = gen_meta('My::Child');
-    ## no critic
-    eval '
-    package My::Alien; sub foo {"ISA"};
-    package My::Class; sub foo {"BAD"};
-    package My::Child; our @ISA = ("My::Alien");
-    ';
-    like exception { $child->extend_with('My::Class') }, qr/My::Child.+inherited.+foo.+$0/;
-    is(My::Child->foo, 'ISA');
-    $child->mark_as_overridden('foo');
-    $child->extend_with('My::Class');
-    is(My::Child->foo, 'ISA');
-  }
-
 }
 
 
@@ -218,24 +202,14 @@ REG_ATTR: {
 
   eval 'package My::Class; sub own { }';       ## no critic
   eval '*My::Class::external = sub {}';        ## no critic
-  eval 'package My::Isa; sub isa { "ISA"}';    ## no critic
   eval '@My::Class::ISA = ("My::Isa")';        ## no critic
 
   # errors
   like exception { $meta->reg_attr('pub1') },     qr/My::Class.+already.+attribute.+pub1.+$0/;
   like exception { $meta->reg_attr('external') }, qr/My::Class.+already.+subroutine.+external.+$0/;
   like exception { $meta->reg_attr('own') },      qr/My::Class.+already.+method.+own.+$0/;
-  like exception { $meta->reg_attr('isa') },      qr/My::Class.+already.+inherited.+isa.+$0/;
   like exception { $meta->reg_attr('4bad'); }, qr/4bad.+invalid.+$0/i;
   ok !$meta->is_attr($_) for qw(external own 4bad isa);
-}
-
-REG_DUMMY_ATTR: {
-  my $meta = gen_meta;
-  $meta->reg_dummy_attr('pub1', lazy, sub {'ATTR-PUB1'});
-
-  ok $meta->is_attr('pub1');
-  ok !(My::Class->can('pub1'));
 }
 
 REG_ATTR_OVER: {
@@ -285,13 +259,10 @@ EXTEND_ATTRS: {
 NORMAL: {
     my $parent = gen_meta('My::Class');
     $parent->reg_attr('pub1');
-    $parent->reg_dummy_attr('dummy1');
     my $child = gen_meta('My::Child');
     $child->extend_with('My::Class');
     ok $child->is_attr('pub1');
-    ok $child->is_attr('dummy1');
     ok(My::Child->can('pub1'));
-    ok !(My::Child->can('dummy1'));
   }
 
 
@@ -341,23 +312,6 @@ CLASH_WITH_ALIEN_SUB: {
     $child->extend_with('My::Class');
     is(My::Child->foo, 'LIB');
   }
-
-CLASH_WITH_ALIEN_ISA: {
-    my $parent = gen_meta;
-    my $child  = gen_meta('My::Child');
-    $parent->reg_attr('foo');
-    ## no critic
-    eval '
-    package My::Alien; sub foo {"ISA"};
-    package My::Child; our @ISA = ("My::Alien");
-    ';
-    like exception { $child->extend_with('My::Class') }, qr/My::Child.+inherited.+foo.+$0/;
-    is(My::Child->foo, 'ISA');
-    $child->mark_as_overridden('foo');
-    $child->extend_with('My::Class');
-    is(My::Child->foo, 'ISA');
-  }
-
 
 }
 

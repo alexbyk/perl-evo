@@ -44,7 +44,7 @@ sub provide ($self, %args) {
 sub _di_list_pending ($self, $req_key) : Private {
   return unless $req_key->can('META');
   my @results;
-  foreach my $slot ($req_key->META->{attrs}->slots) {
+  foreach my $slot ($req_key->META->attrs->slots) {
     next if !(my $k = $slot->{inject});
 
     next if exists $self->{di_stash}{$k};
@@ -61,7 +61,7 @@ sub _di_args ($self, $key) : Private {
   return unless $key->can('META');
   my @opts;
 
-  foreach my $slot ($key->META->{attrs}->slots) {
+  foreach my $slot ($key->META->attrs->slots) {
     next unless my $k = $slot->{inject};
     push @opts, $slot->{name}, $self->{di_stash}{$k} if exists $self->{di_stash}{$k};
   }

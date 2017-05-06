@@ -7,7 +7,7 @@ use Test::More;
   package My::P;
   use Evo '-Class *';
   with '-Promise::Role';
-  has $_, optional, rw, for qw(n x_res x_rej);
+  has $_, optional for qw(n x_res x_rej);
 
   sub postpone ($me, $sub) {
     $sub->();

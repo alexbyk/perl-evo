@@ -7,9 +7,9 @@ requires 'postpone';
 
 # https://promisesaplus.com/
 
-has $_, optional, rw for qw(d_v d_locked d_fh d_rh d_settled);
-has 'd_children' => sub { [] };
-has 'state' => PENDING, rw;
+has $_, optional for qw(d_v d_locked d_fh d_rh d_settled);
+has 'd_children' => ro, sub { [] };
+has 'state' => PENDING;
 
 #sub assert { shift or croak join '; ', caller() }
 
@@ -38,7 +38,7 @@ sub resolve ($me, $v) {
   $d->promise;
 }
 
-sub reject ($me, $v)  {
+sub reject ($me, $v) {
   my $d = Evo::Promise::Deferred->new(promise => $me->new());
   $d->reject($v);
   $d->promise;

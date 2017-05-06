@@ -1,5 +1,5 @@
 static inline AV *sv2av(SV *self) {
-  if (!(SvROK(self) && SvTYPE(SvRV(self)) == SVt_PVAV))
+  if (!(self && SvROK(self) && SvTYPE(SvRV(self)) == SVt_PVAV))
     croak("Not an ARRAY ref");
   return (AV *)SvRV(self);
 }

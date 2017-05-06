@@ -32,17 +32,28 @@
 static MGVTBL ATTRS_TBL = {0, 0, 0, 0, 0, 0, 0, 0};
 
 static void xs_new(pTHX_ SV *cv) {
+  PERL_UNUSED_VAR(cv);
   dXSARGS;
   if (items < 1) croak("Usage: class, ref");
 
-#ifndef MULTIPLICITY
-  AV *slots = CvXSUBANY(cv).any_ptr;
-#else
-  MAGIC *mg = mg_findext(cv, PERL_MAGIC_ext, &ATTRS_TBL);
-  AV *slots = (AV *)mg->mg_obj;
-#endif
+  SV *class;
+  if (sv_isobject(ST(0))) {
+    HV *stash = SvSTASH(SvRV(ST(0)));
+    char *class_name = HvNAME(stash);
+    class = newSVpv(class_name, 0);
+    sv_2mortal(class);
+  } else {
+    class = ST(0);
+  }
 
-  SV *class = ST(0);
+  // $class::EVO_CLASS_ATTRS
+  const char *SUFFIX = "::EVO_CLASS_ATTRS";
+  STRLEN need_len = SvCUR(class) + strlen(SUFFIX) + 1;
+  char attrs_name[need_len];
+  strcpy(attrs_name, SvPV_nolen(class));
+  strncat(attrs_name, SUFFIX, need_len);
+  AV *slots = sv2av(get_sv(attrs_name, 0));
+
   HV *hash = newHV();
   SV *obj = sv_2mortal(newRV_noinc((SV *)hash)); // don't move to the end(leaks)
 
@@ -164,12 +175,8 @@ static SV *attrs_gen_attr(SV *self, char *name, int type, SV *value, SV *check,
 
 static SV *attrs_gen_new(SV *self) {
   dTHX;
-  AV *av = sv2av(self);
+  PERL_UNUSED_VAR(self);
   CV *xsub = newXS(NULL, (XSUBADDR_t)xs_new, __FILE__);
-  sv_magicext((SV *)xsub, (SV *)av, PERL_MAGIC_ext, &ATTRS_TBL, NULL, 0);
-#ifndef MULTIPLICITY
-  CvXSUBANY(xsub).any_ptr = av;
-#endif
   return newRV_noinc((SV *)xsub);
 }
 

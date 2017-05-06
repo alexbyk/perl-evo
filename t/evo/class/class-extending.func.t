@@ -9,14 +9,11 @@ use Evo 'Test::More; Evo::Internal::Exception; Symbol delete_package; Module::Lo
 
   package My::Alien;
   use Evo -Loaded;
-  sub alien     {'ok'}
-  sub over_deep {'bad'}
+  sub alien {'ok'}
 
   package My::Root;
   use Evo -Class, -Loaded;
   use parent 'My::Alien';
-  has_over over_deep => 'ok';
-  has_dummy dummy    => 'DUMMY';
 
   # constants are skipped
   use Fcntl 'SEEK_CUR';
@@ -64,42 +61,42 @@ GENERAL: {
   isa_ok $meta, 'Evo::Class::Meta';
   ok $meta->is_attr('a1');
   is_deeply [sort $meta->requirements()],
-    [sort qw(a1 a2 a3 a4 dummy pmeth ometh1 ometh2 external_marked over_deep)];
+    [sort qw(a1 a2 a3 a4 pmeth ometh1 ometh2 external_marked)];
   is(My::Class->pmeth,           'ok');
   is(My::Class->ometh1,          'ok1');
   is(My::Class->ometh2,          'ok2');
   is(My::Class->external_marked, 'external_marked');
 
+  isa_ok 'My::Class', 'My::Parent';
+
   ok(My::Root->can('priv2'));
-  ok(!My::Class->can('priv2'));
-  ok(!My::Class->can('dummy'));
+  ok(!Evo::Internal::Util::names2code('My::Class', 'priv2'));
 
   my $obj = My::Class->new;
   is $obj->a1, 'ok1';
   is $obj->a2, 'ok2';
   is $obj->a3, 'ok3';
   is $obj->a4, 'ok4';
-  is $obj->{dummy}, 'DUMMY';
+  is $obj->new->a1, 'ok1';
 
   like exception { My::Class->can('has')->('a1') }, qr/already.+a1.+$0/i;
 }
 
 SKIP_EXTERNAL: {
   ok(My::Root->can('external_private'));
-  ok(!My::Class->can('external_private'));
+  ok(!Evo::Internal::Util::names2code('My::Class', 'external_private'));
 }
 
 SKIP_EXPORTED_SUBS: {
   ok(My::Parent->can('export'));
-  ok(My::Parent->can('func'));
-  ok(!My::Class->can('func'));
+  ok(!Evo::Internal::Util::names2code('My::Class', 'func'));
 }
 
 SKIP_CONSTANTS: {
   ok(My::Root::->can('SEEK_CUR'));
-  ok(!My::Class->can('SEEK_CUR'));
+  ok(!Evo::Internal::Util::names2code('My::Class', 'SEEK_CUR'));
   ok(My::Root->can('CONST'));
-  ok(!My::Class->can('CONST'));
+  ok(!Evo::Internal::Util::names2code('My::Class', 'CONST'));
 }
 
 ALIEN: {

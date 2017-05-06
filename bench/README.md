@@ -33,14 +33,6 @@ We're benchmarking Moo + Class::XSAccessor, Mouse(which is XS by itself) and Evo
     Mouse 2047999/s   35%    --   -8%
     Evo   2226950/s   46%    9%    --
 
-### Conclusions
-
-Obviously, Mouse and Evo are faster than Moo.
-
-While the performance of attributes is similar, Evo's `new` constructor is significantly faster (2.5-4 times).
-
-Also in perl build with MULTIPLICITY enabled this module is a little bit slower than without it. That's because I don't realy need this feature and try to keep code simple
-
 ## Evo::Lib::try
 
     cpanm Evo Try::Tiny
@@ -72,7 +64,3 @@ We evaluate simple function `inc_c` that increases some counter and may die
     Try::Tiny      108742/s            --          -86%          -96%
     Evo::Lib::try  771011/s          609%            --          -75%
     eval          3099675/s         2750%          302%            --
-
-### Conclusions
-
-Evo's `try` is about 20 times faster than `Try::Tiny::try` and almost as fast as bare `eval` code, so XS can be used without performance penalty in production

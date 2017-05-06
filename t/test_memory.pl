@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 
 if ($ENV{TEST_MEMORY}) {
   my $count = $ENV{TEST_MEMORY} > 1 ? $ENV{TEST_MEMORY} : 10_000;
@@ -11,7 +13,8 @@ if ($ENV{TEST_MEMORY}) {
     local *Test::More::builder = sub { bless {}, 'MockB' };
     run_tests();
     $stats->start;
-    do { run_tests(); } for 1 .. $count;
+    do { run_tests(); }
+      for 1 .. $count;
   }
   $stats->stop;
   my $consumed = $stats->usage;

@@ -1,8 +1,8 @@
 package Evo::Promise::Sync;
 use Evo '-Class *';
 
-has 'promise';
-has $_, optional, rw for qw(called v blocking should_resolve);
+has 'promise', ro;
+has $_, optional for qw(called v blocking should_resolve);
 
 sub reject ($self, $r) {
   return if $self->called;
@@ -45,4 +45,4 @@ continue the loop in C<d_resolve>, or break it otherwise.
 Because true value means blocking C<resolve> was called with C<v> and we need extra loop,
 because C<blocking> resolve dosn't call C<d_resolve> (but blocking C<reject> calls C<d_reject>)
 
-=cut
+=cutcut

@@ -1,15 +1,13 @@
 package Evo::Class;
-use Evo '-Export export_proxy; Evo::Class::Meta';
+use Evo '-Export export_proxy; Evo::Class::Meta; Evo::Class::Base';
 
-export_proxy '::Syntax', qw(lazy rw optional check inject);
-
-sub new ($me, $dest) : ExportGen {
-  Evo::Class::Meta->find_or_croak($dest)->attrs->gen_new;
-}
+export_proxy '::Syntax', qw(lazy rw ro optional check inject);
 
 sub import ($me, @list) {
   my $caller = caller;
-  Evo::Class::Meta->register($caller);
+  my $meta   = Evo::Class::Meta->register($caller);
+  no strict 'refs'; ## no critic
+  push @{"${caller}::ISA"}, 'Evo::Class::Base' unless $caller->isa('Evo::Class::Base');
   Evo::Export->install_in($caller, $me, @list ? @list : '*');
 }
 
@@ -79,6 +77,7 @@ sub with ($me, $dest) : ExportGen {
 
 1;
 
+
 =head1 SYNOPSYS
 
 
@@ -90,9 +89,9 @@ sub with ($me, $dest) : ExportGen {
     package My::Human;
     use Evo -Class, -Loaded;
 
-    has 'name' => 'unnamed', rw;
-    has 'gender';
-    has age => optional, rw, check sub($v) { $v >= 18 };
+    has 'name' => 'unnamed';
+    has 'gender', ro;
+    has age => optional, check sub($v) { $v >= 18 };
     sub greet($self) { say "I'm " . $self->name }
   }
 
@@ -147,7 +146,11 @@ Fast full featured post-modern Object oriented programming. Available both in PP
 
 You will find thet syntax differs from other modules, such C<Moose>, C<Moo>. That's because I decided not to copy and made it to be as short/safe/obvious/common as possible. Give it a try
 
-Also multiple inheritance is considered a good development pattern, because the flat code reuse (mixing) is used.
+Also multiple inheritance is considered a good development pattern, because a composition (mixing) is used for code reuse.
+
+A note about C<@ISA>. Evo classes don't require it, all methods and attributes are copied from parents to children. But C<@ISA> is still in use to work fine with external modules and to be able to call C<isa>.
+
+Also every class is a subclass of C<Evo::Class::Base>
 
 =head2 EXPORTING SYNTAX
 
@@ -181,23 +184,20 @@ We're protected from common mistakes, because constructor won't accept unknown a
 
 =head2 Attributes
 
-  has 'foo';
-  has 'bar' => 'BAR', rw, check sub {1};
-  has 'baz' => rw, 'BAZ';
+  has 'foo', ro;
+  has 'bar' => 'BAR', check sub {1};
+  has 'baz' => 'BAZ';
 
-Without options attributes are required and read-only. You can pass extra flags/options + a default value in any order. If you make a mistake, smart syntax parser will notify you. In the example above default values are C<BAR> and C<BAZ>. Pay attention, C<rw> and C<check> are not strings, so C<'rw'> or C<check =E<gt>> is a mistake.
-
-=head3 has_dummy
-
-  has_dummy 'dummy';
-
-Like attribute, but doesn't install methods, only check constructor's arguments. Can be used to make things work with non-evo classes
+Without options attributes are required and read-only. You can pass extra flags/options + a default value in any order. If you make a mistake, smart syntax parser will notify you. In the example above default values are C<BAR> and C<BAZ>. Pay attention, C<ro> and C<check> are not strings, so C<'ro'> or C<check =E<gt>> is a mistake.
 
 =head3 Flags and Options
 
-=head4 rw
+=head4 ro
 
-Make attribute read-write
+Make attribute read-only. You can set it only once via C<new>. You still will be able to change it as a normal
+hash key like 
+
+  $obj->{ro_attr} = 33;
 
 =head4 default value
 
@@ -243,7 +243,7 @@ You can also return C<(0, "CustomError")> to provide more expressive explanation
     package My::Foo;
     use Evo '-Class *';
 
-    has big => rw, check sub($val) { $val > 10 ? 1 : (0, "not > 10"); };
+    has big => check sub($val) { $val > 10 ? 1 : (0, "not > 10"); };
   };
 
   my $foo = My::Foo->new(big => 11);
@@ -408,104 +408,8 @@ You may want to use C<extends> and C<implements> separately to resolve circular 
 
 Mark name as overridden. Overridden means it will override the "parent's" method with the same name without diying
 
-=head1 EXTENDING ALIEN CLASSES
-
-In some case you may wish to inherite from non-evo classes using C<@ISA>. C<Evo::Class> will croak an error, if you try to use L</extend> or L</with> in this case.
-But you can do it old fashiot way C<use parent 'Some::Alien::Class';>
-
-While C<Evo::Class> doesn't use C<@ISA>, it popolates C<@Child::ISA> with C<@Parent::ISA> to work with old classes. But in this case it won't help you to avoid classical problems:
-
-  package My::Alien;
-  use Evo -Loaded;
-  sub foo {'ALIEN'}
-
-  package My::Parent;
-  use Evo -Loaded, -Class;
-
-  # with 'My::Alien'; # will die, use instead:
-  use parent 'My::Alien';
-  sub bar {'EVO'}
-
-  package My::Child;
-  use Evo -Class;
-  with 'My::Parent';
-
-  package main;
-  use Evo;
-  say My::Child->new->foo;    # ALIEN
-  say My::Child->new->bar;    # EVO
-  say @My::Child::ISA;        # My::Alien
-
-In this example C<My::Alien> isn't Evo class. So we inherit it like C<use parent 'My::Alien';>. C<My::Child> gets C<bar> from  C<My::Parent>, and C<foo> works too by classical inheritance mechanism C<@ISA>.
-
-But if you then write a second child and acccidentally rewrite C<foo>, C<Evo::Class> won't be able to find a bug, because C<foo> is an alien method.
-
-  package My::Child2;
-  use Evo -Class;
-  with 'My::Parent';
-  sub foo {};
-
-But it will find a bug in this case, because C<My::Parent> provides C<bar> method and C<My::Child3::bar> is written without C<:Over> attribute
-
-  package My::Child3;
-  use Evo -Class;
-  with 'My::Parent';
-  sub bar {};
-
 =head1 INTERNAL
 
 Every class gets C<$EVO_CLASS_META> variable which holds an C<Evo::Class::Meta> instance. See L<Evo::Class::Meta/register>
-
-=head1 FAQ 
-
-Q.: Why another OO module?
-
-A.: Why not?
-
-Q.: Why not traditional attributes syntax.
-
-A.: See it yourself:
-
-Moose:
-
-  use Moose;
-  has foo => is => 'ro', default => 'FOO';
-  has bar => is => 'rw', default => 'BAR';
-
-Evo::Class
-
-  use Evo -Class;
-  has foo => 'FOO';
-  has bar => rw, 'BAR';
-
-Q.: Why not perl's inheritance mechanism
-
-A.: Read the docs, you will understand why
-
-A. long: The simmilar functionality can be implemented with ISA and traversing a dependency tree and comparing a lot of method, caching them. This is too many lines of code. OO Inheritance is an abstraction only. Perl's default implementation works somehow and somewhere, this module tries to make a code safer.
-
-Consider an example:
-
-  package My::Foo;
-  use Evo -Loaded;
-  use Fcntl 'SEEK_CUR';
-
-  package My::Bar;
-  use parent 'My::Foo';
-  say __PACKAGE__->can('SEEK_CUR');
-
-You don't expect C<My::Bar> having a method C<SEEK_CUR>, but that's perl classical inheritance problem. Other module like L<Moose> provide C<autocleaners>, Evo do all the job for you
-
-  package My::Foo;
-  use Evo -Loaded, -Class;
-  use Fcntl 'SEEK_CUR';
-  sub foo { }
-
-  package My::Bar;
-  use Evo -Class;
-  with 'My::Foo';
-  say __PACKAGE__->can('SEEK_CUR');
-
-It's smart enough to understand that C<SEEK_CUR> is a constant and not a method.
 
 =cut

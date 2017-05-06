@@ -4,18 +4,20 @@ sub parse { Evo::Class::Meta->parse_attr(@_) }
 
 my $positive = sub($v) { $v > 0 ? 1 : (0, 'OOPS') };
 
-my ($attrs, $new);
+my ($attrs, $new, $_new);
 
 sub before() {
   $attrs = Evo::Class::Attrs->new();
-  my $_new = $attrs->gen_new;
-  $new = sub { $_new->('My::Class', @_) };
+  no warnings 'once';
+  $My::Class::EVO_CLASS_ATTRS = $attrs;
+  $_new                       = $attrs->gen_new;
+  $new                        = sub { $_new->('My::Class', @_) };
 }
 
 SKIP: {
   skip "no threads support", 1 unless eval "use threads; 1";    ## no critic
   before();
-  $attrs->gen_attr(simple => parse rw);
+  $attrs->gen_attr(simple => parse);
   $new->(simple => 'foo');
 
   threads->create(
@@ -27,9 +29,9 @@ SKIP: {
 
 sub run_tests {
 
-SIMPLE: {
+  SIMPLE: {
     before();
-    $attrs->gen_attr(simple => parse rw);
+    $attrs->gen_attr(simple => parse);
     my $val = 333;
     my $obj = $new->(simple => 'BAD', simple => $val);
     $val = 'bad';
@@ -37,19 +39,19 @@ SIMPLE: {
     isa_ok $obj, 'My::Class';
   }
 
-REQUIRED: {
+  REQUIRED: {
     before();
     $attrs->gen_attr(req => parse);
     like exception { $new->() }, qr#"req" is required.+$0#;
   }
 
-UNKNOWN: {
+  UNKNOWN: {
     before();
     like exception { $new->(bad => 1) }, qr#Unknown.+bad.+$0#;
   }
 
 
-DEFAULT_CODE: {
+  DEFAULT_CODE: {
     before();
     my $def = sub($class) { is $class, 'My::Class'; 'DEF' };
     $attrs->gen_attr(foo => parse $def);
@@ -58,7 +60,7 @@ DEFAULT_CODE: {
     is_deeply $new->(foo => undef), {foo => undef};
   }
 
-DEFAULT_VALUE: {
+  DEFAULT_VALUE: {
     before();
     my $val = 'DEF';
     $attrs->gen_attr(foo => parse $val);
@@ -69,7 +71,7 @@ DEFAULT_VALUE: {
   }
 
 
-CHECK: {
+  CHECK: {
     before();
 
     # check if passed but bypass checking of default value, even if it's negative
@@ -79,12 +81,18 @@ CHECK: {
     is_deeply $new->(foo => 1), {foo => 1};
   }
 
-CHECK_CHANGE: {
+  CHECK_CHANGE: {
     before();
     $attrs->gen_attr(foo => parse check sub { $_[0] .= "BAD"; 1 });
     my $val = "VAL";
     is_deeply $new->(foo => $val), {foo => "VAL"};
     is $val, "VAL";
+  }
+
+  PASS_OBJECT: {
+    my $obj = $new->(foo => 2);
+    my $obj2 = $_new->($obj, foo => 3);
+    is $obj2->{foo}, 3;
   }
 }
 
