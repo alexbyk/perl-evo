@@ -2,7 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
-0.0403    2017-05-06 22:54:40+03:00 Europe/Kiev
+Fixed a bug when exception in promise(sub{}) isn't catched
 
 0.0402    2017-05-06 12:22:09+03:00 Europe/Kiev
 add no_method flag for Evo::Class
