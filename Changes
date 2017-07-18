@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.0404    2017-07-18 23:15:44+03:00 Europe/Kiev
+
 Fixed a bug when exception in promise(sub{}) isn't catched
 
 0.0402    2017-05-06 12:22:09+03:00 Europe/Kiev
